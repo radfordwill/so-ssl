@@ -477,6 +477,252 @@ function so_ssl_xframe_allow_from_callback() {
 }
 
 /**
+ * Add Content Security Policy header with frame-ancestors directive if enabled.
+ */
+function so_ssl_add_csp_frame_ancestors_header() {
+    $enable_csp_frame_ancestors = get_option('so_ssl_enable_csp_frame_ancestors', 0);
+    
+    if ($enable_csp_frame_ancestors) {
+        $csp_option = get_option('so_ssl_csp_frame_ancestors_option', 'none');
+        $csp_value = '';
+        
+        // Set CSP value based on selected option
+        if ($csp_option === 'none') {
+            $csp_value = "frame-ancestors 'none'";
+        } elseif ($csp_option === 'self') {
+            $csp_value = "frame-ancestors 'self'";
+        } elseif ($csp_option === 'custom') {
+            $allowed_domains = get_option('so_ssl_csp_frame_ancestors_domains', '');
+            $domains = explode("\n", $allowed_domains);
+            $valid_domains = array();
+            
+            // Add 'self' if selected
+            if (get_option('so_ssl_csp_include_self', 0)) {
+                $valid_domains[] = "'self'";
+            }
+            
+            // Process and validate each domain
+            foreach ($domains as $domain) {
+                $domain = trim($domain);
+                if (!empty($domain)) {
+                    // Add single quotes if it's a special keyword like 'none'
+                    if (in_array($domain, array('none', 'self'))) {
+                        $domain = "'$domain'";
+                    }
+                    $valid_domains[] = $domain;
+                }
+            }
+            
+            if (!empty($valid_domains)) {
+                $csp_value = "frame-ancestors " . implode(' ', $valid_domains);
+            } else {
+                $csp_value = "frame-ancestors 'none'";  // Default if no valid domains
+            }
+        }
+        
+        // Only add header if we have a value
+        if (!empty($csp_value)) {
+            header("Content-Security-Policy: $csp_value");
+        }
+    }
+}
+add_action('send_headers', 'so_ssl_add_csp_frame_ancestors_header');
+
+/**
+ * Add CSP Frame-Ancestors settings to plugin settings page.
+ */
+function so_ssl_csp_settings() {
+    // CSP Frame-Ancestors settings
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_enable_csp_frame_ancestors',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        )
+    );
+    
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_csp_frame_ancestors_option',
+        array(
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => 'none',
+        )
+    );
+    
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_csp_include_self',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        )
+    );
+    
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_csp_frame_ancestors_domains',
+        array(
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_textarea_field',
+            'default' => '',
+        )
+    );
+    
+    // CSP Frame-Ancestors Settings Section
+    add_settings_section(
+        'so_ssl_csp_section',
+        __('Content Security Policy (CSP): Frame-Ancestors', 'so-ssl'),
+        'so_ssl_csp_section_callback',
+        'so-ssl'
+    );
+    
+    add_settings_field(
+        'so_ssl_enable_csp_frame_ancestors',
+        __('Enable CSP Frame-Ancestors', 'so-ssl'),
+        'so_ssl_enable_csp_frame_ancestors_callback',
+        'so-ssl',
+        'so_ssl_csp_section'
+    );
+    
+    add_settings_field(
+        'so_ssl_csp_frame_ancestors_option',
+        __('Frame-Ancestors Value', 'so-ssl'),
+        'so_ssl_csp_frame_ancestors_option_callback',
+        'so-ssl',
+        'so_ssl_csp_section'
+    );
+    
+    add_settings_field(
+        'so_ssl_csp_include_self',
+        __('Include Self', 'so-ssl'),
+        'so_ssl_csp_include_self_callback',
+        'so-ssl',
+        'so_ssl_csp_section',
+        array('class' => 'so_ssl_csp_custom_field')
+    );
+    
+    add_settings_field(
+        'so_ssl_csp_frame_ancestors_domains',
+        __('Allowed Domains', 'so-ssl'),
+        'so_ssl_csp_frame_ancestors_domains_callback',
+        'so-ssl',
+        'so_ssl_csp_section',
+        array('class' => 'so_ssl_csp_custom_field')
+    );
+    
+    // Add JavaScript to show/hide the custom CSP fields based on selected option
+    add_action('admin_footer', 'so_ssl_csp_admin_footer_js');
+}
+add_action('admin_init', 'so_ssl_csp_settings');
+
+/**
+ * Add JavaScript to show/hide the custom CSP fields
+ */
+function so_ssl_csp_admin_footer_js() {
+    ?>
+    <script>
+    jQuery(document).ready(function($) {
+        function toggleCSPCustomFields() {
+            var selected = $('#so_ssl_csp_frame_ancestors_option').val();
+            if (selected === 'custom') {
+                $('.so_ssl_csp_custom_field').show();
+            } else {
+                $('.so_ssl_csp_custom_field').hide();
+            }
+        }
+        
+        // Initial state
+        toggleCSPCustomFields();
+        
+        // On change
+        $('#so_ssl_csp_frame_ancestors_option').on('change', function() {
+            toggleCSPCustomFields();
+        });
+    });
+    </script>
+    <?php
+}
+
+/**
+ * CSP section description.
+ */
+function so_ssl_csp_section_callback() {
+    echo '<p>' . __('Content Security Policy (CSP) with frame-ancestors directive is a modern replacement for X-Frame-Options. It provides more flexibility for controlling which domains can embed your site in an iframe.', 'so-ssl') . '</p>';
+    echo '<p>' . __('Note: You can use both X-Frame-Options and CSP frame-ancestors for better browser compatibility.', 'so-ssl') . '</p>';
+}
+
+/**
+ * Enable CSP Frame-Ancestors field callback.
+ */
+function so_ssl_enable_csp_frame_ancestors_callback() {
+    $enable_csp = get_option('so_ssl_enable_csp_frame_ancestors', 0);
+    
+    echo '<label for="so_ssl_enable_csp_frame_ancestors">';
+    echo '<input type="checkbox" id="so_ssl_enable_csp_frame_ancestors" name="so_ssl_enable_csp_frame_ancestors" value="1" ' . checked(1, $enable_csp, false) . '/>';
+    echo __('Enable Content Security Policy: frame-ancestors directive', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . __('Adds the Content-Security-Policy header with frame-ancestors directive to control iframe embedding.', 'so-ssl') . '</p>';
+}
+
+/**
+ * CSP Frame-Ancestors value field callback.
+ */
+function so_ssl_csp_frame_ancestors_option_callback() {
+    $csp_option = get_option('so_ssl_csp_frame_ancestors_option', 'none');
+    
+    echo '<select id="so_ssl_csp_frame_ancestors_option" name="so_ssl_csp_frame_ancestors_option">';
+    echo '<option value="none" ' . selected('none', $csp_option, false) . '>' . __('\'none\' - No site can embed your content (most restrictive)', 'so-ssl') . '</option>';
+    echo '<option value="self" ' . selected('self', $csp_option, false) . '>' . __('\'self\' - Only your own site can embed your content', 'so-ssl') . '</option>';
+    echo '<option value="custom" ' . selected('custom', $csp_option, false) . '>' . __('Custom - Specify allowed domains', 'so-ssl') . '</option>';
+    echo '</select>';
+    echo '<p class="description">' . __('Determines which sites (if any) can embed your site in an iframe.', 'so-ssl') . '</p>';
+}
+
+/**
+ * CSP Include Self field callback.
+ */
+function so_ssl_csp_include_self_callback() {
+    $include_self = get_option('so_ssl_csp_include_self', 0);
+    
+    echo '<label for="so_ssl_csp_include_self">';
+    echo '<input type="checkbox" id="so_ssl_csp_include_self" name="so_ssl_csp_include_self" value="1" ' . checked(1, $include_self, false) . '/>';
+    echo __('Include \'self\' in allowed domains', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . __('Allow your own site to embed your content when using custom domains.', 'so-ssl') . '</p>';
+}
+
+/**
+ * CSP Frame-Ancestors domains field callback.
+ */
+function so_ssl_csp_frame_ancestors_domains_callback() {
+    $domains = get_option('so_ssl_csp_frame_ancestors_domains', '');
+    
+    echo '<textarea id="so_ssl_csp_frame_ancestors_domains" name="so_ssl_csp_frame_ancestors_domains" rows="5" class="large-text" placeholder="https://example.com">' . esc_textarea($domains) . '</textarea>';
+    echo '<p class="description">' . __('Enter domains that are allowed to embed your site, one per line. Example: https://example.com', 'so-ssl') . '</p>';
+    echo '<p class="description">' . __('You can also use wildcards like *.example.com to allow all subdomains.', 'so-ssl') . '</p>';
+}
+
+/**
+ * Add activation settings
+ */
+function update_so_ssl_activation() {
+    // Add the new CSP options with defaults during activation
+    add_option('so_ssl_enable_csp_frame_ancestors', 0);
+    add_option('so_ssl_csp_frame_ancestors_option', 'none');
+    add_option('so_ssl_csp_include_self', 0);
+    add_option('so_ssl_csp_frame_ancestors_domains', '');
+}
+
+// Update the activation hook to include the new settings
+register_activation_hook(__FILE__, 'activate_so_ssl');
+add_action('activate_so_ssl', 'update_so_ssl_activation');
+
+/**
  * Add admin menu for plugin settings.
  */
 function so_ssl_add_admin_menu() {
