@@ -1,4 +1,3 @@
-
 === So SSL ===
 Contributors: yourname
 Tags: ssl, security, https, hsts, frame-options

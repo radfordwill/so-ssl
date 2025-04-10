@@ -1,0 +1,523 @@
+<?php
+/**
+ * Plugin Name: So SSL
+ * Plugin URI: https://example.com/plugins/so-ssl
+ * Description: A plugin to activate and enforce SSL on your WordPress site with additional security headers.
+ * Version: 1.0.0
+ * Author: Your Name
+ * Author URI: https://example.com
+ * License: GPL-2.0+
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain: so-ssl
+ * Domain Path: /languages
+ */
+
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+    die;
+}
+
+/**
+ * Current plugin version.
+ */
+define('SO_SSL_VERSION', '1.0.0');
+
+/**
+ * Plugin path.
+ */
+define('SO_SSL_PATH', plugin_dir_path(__FILE__));
+
+/**
+ * Plugin URL.
+ */
+define('SO_SSL_URL', plugin_dir_url(__FILE__));
+
+/**
+ * The code that runs during plugin activation.
+ */
+function activate_so_ssl() {
+    // Activation code here...
+    
+    // Add SSL options with defaults
+    add_option('so_ssl_force_ssl', 0);
+    add_option('so_ssl_enable_hsts', 0);
+    add_option('so_ssl_hsts_max_age', 31536000); // Default: 1 year
+    add_option('so_ssl_hsts_subdomains', 0);
+    add_option('so_ssl_hsts_preload', 0);
+    
+    // Add X-Frame-Options with default (SAMEORIGIN)
+    add_option('so_ssl_enable_xframe', 1);
+    add_option('so_ssl_xframe_option', 'sameorigin');
+}
+
+/**
+ * The code that runs during plugin deactivation.
+ */
+function deactivate_so_ssl() {
+    // Deactivation code here...
+}
+
+register_activation_hook(__FILE__, 'activate_so_ssl');
+register_deactivation_hook(__FILE__, 'deactivate_so_ssl');
+
+/**
+ * Check if SSL is available and activate it if needed.
+ */
+function so_ssl_check_ssl() {
+    // Check if site has SSL capability
+    $has_ssl = is_ssl();
+    
+    // Get current setting
+    $force_ssl = get_option('so_ssl_force_ssl', 0);
+    
+    // If SSL is forced and we're not on HTTPS, redirect
+    if ($force_ssl && !$has_ssl && !is_admin()) {
+        // Get current URL
+        $current_url = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        $ssl_url = str_replace('http://', 'https://', $current_url);
+        
+        // Redirect to HTTPS
+        wp_redirect($ssl_url, 301);
+        exit;
+    }
+    
+    return $has_ssl;
+}
+add_action('template_redirect', 'so_ssl_check_ssl');
+
+/**
+ * Add HTTP Strict Transport Security (HSTS) header if enabled.
+ */
+function so_ssl_add_hsts_header() {
+    // Only proceed if we're on HTTPS
+    if (!is_ssl()) {
+        return;
+    }
+    
+    $enable_hsts = get_option('so_ssl_enable_hsts', 0);
+    
+    if ($enable_hsts) {
+        $max_age = get_option('so_ssl_hsts_max_age', 31536000);
+        $include_subdomains = get_option('so_ssl_hsts_subdomains', 0) ? '; includeSubDomains' : '';
+        $preload = get_option('so_ssl_hsts_preload', 0) ? '; preload' : '';
+        
+        $hsts_header = "max-age=" . intval($max_age) . $include_subdomains . $preload;
+        
+        header("Strict-Transport-Security: " . $hsts_header);
+    }
+}
+add_action('send_headers', 'so_ssl_add_hsts_header');
+
+/**
+ * Add X-Frame-Options header if enabled.
+ */
+function so_ssl_add_xframe_header() {
+    $enable_xframe = get_option('so_ssl_enable_xframe', 1);
+    
+    if ($enable_xframe) {
+        $xframe_option = get_option('so_ssl_xframe_option', 'sameorigin');
+        
+        // Set header based on selected option
+        if ($xframe_option === 'deny') {
+            header('X-Frame-Options: DENY');
+        } elseif ($xframe_option === 'sameorigin') {
+            header('X-Frame-Options: SAMEORIGIN');
+        } elseif ($xframe_option === 'allowfrom' && !empty(get_option('so_ssl_xframe_allow_from', ''))) {
+            $allowed_origin = get_option('so_ssl_xframe_allow_from', '');
+            header('X-Frame-Options: ALLOW-FROM ' . esc_url($allowed_origin));
+        }
+    }
+}
+add_action('send_headers', 'so_ssl_add_xframe_header');
+
+/**
+ * Add SSL settings to plugin settings page.
+ */
+function so_ssl_settings() {
+    // Force SSL setting
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_force_ssl',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        )
+    );
+    
+    // HSTS settings
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_enable_hsts',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        )
+    );
+    
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_hsts_max_age',
+        array(
+            'type' => 'integer',
+            'sanitize_callback' => 'intval',
+            'default' => 31536000,
+        )
+    );
+    
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_hsts_subdomains',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        )
+    );
+    
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_hsts_preload',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        )
+    );
+    
+    // X-Frame-Options settings
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_enable_xframe',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 1,
+        )
+    );
+    
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_xframe_option',
+        array(
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => 'sameorigin',
+        )
+    );
+    
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_xframe_allow_from',
+        array(
+            'type' => 'string',
+            'sanitize_callback' => 'esc_url_raw',
+            'default' => '',
+        )
+    );
+    
+    // SSL Settings Section
+    add_settings_section(
+        'so_ssl_section',
+        __('SSL Settings', 'so-ssl'),
+        'so_ssl_section_callback',
+        'so-ssl'
+    );
+    
+    add_settings_field(
+        'so_ssl_force_ssl',
+        __('Force SSL', 'so-ssl'),
+        'so_ssl_force_ssl_callback',
+        'so-ssl',
+        'so_ssl_section'
+    );
+    
+    // HSTS Settings Section
+    add_settings_section(
+        'so_ssl_hsts_section',
+        __('HTTP Strict Transport Security (HSTS)', 'so-ssl'),
+        'so_ssl_hsts_section_callback',
+        'so-ssl'
+    );
+    
+    add_settings_field(
+        'so_ssl_enable_hsts',
+        __('Enable HSTS', 'so-ssl'),
+        'so_ssl_enable_hsts_callback',
+        'so-ssl',
+        'so_ssl_hsts_section'
+    );
+    
+    add_settings_field(
+        'so_ssl_hsts_max_age',
+        __('Max Age', 'so-ssl'),
+        'so_ssl_hsts_max_age_callback',
+        'so-ssl',
+        'so_ssl_hsts_section'
+    );
+    
+    add_settings_field(
+        'so_ssl_hsts_subdomains',
+        __('Include Subdomains', 'so-ssl'),
+        'so_ssl_hsts_subdomains_callback',
+        'so-ssl',
+        'so_ssl_hsts_section'
+    );
+    
+    add_settings_field(
+        'so_ssl_hsts_preload',
+        __('Preload', 'so-ssl'),
+        'so_ssl_hsts_preload_callback',
+        'so-ssl',
+        'so_ssl_hsts_section'
+    );
+    
+    // X-Frame-Options Settings Section
+    add_settings_section(
+        'so_ssl_xframe_section',
+        __('X-Frame-Options (Iframe Protection)', 'so-ssl'),
+        'so_ssl_xframe_section_callback',
+        'so-ssl'
+    );
+    
+    add_settings_field(
+        'so_ssl_enable_xframe',
+        __('Enable X-Frame-Options', 'so-ssl'),
+        'so_ssl_enable_xframe_callback',
+        'so-ssl',
+        'so_ssl_xframe_section'
+    );
+    
+    add_settings_field(
+        'so_ssl_xframe_option',
+        __('X-Frame-Options Value', 'so-ssl'),
+        'so_ssl_xframe_option_callback',
+        'so-ssl',
+        'so_ssl_xframe_section'
+    );
+    
+    add_settings_field(
+        'so_ssl_xframe_allow_from',
+        __('Allow From Domain', 'so-ssl'),
+        'so_ssl_xframe_allow_from_callback',
+        'so-ssl',
+        'so_ssl_xframe_section',
+        array('class' => 'so_ssl_allow_from_field')
+    );
+    
+    // Add JavaScript to show/hide the "Allow From" field based on selected option
+    add_action('admin_footer', 'so_ssl_admin_footer_js');
+}
+add_action('admin_init', 'so_ssl_settings');
+
+/**
+ * Add JavaScript to show/hide the "Allow From" field
+ */
+function so_ssl_admin_footer_js() {
+    ?>
+    <script>
+    jQuery(document).ready(function($) {
+        function toggleAllowFrom() {
+            var selected = $('#so_ssl_xframe_option').val();
+            if (selected === 'allowfrom') {
+                $('.so_ssl_allow_from_field').show();
+            } else {
+                $('.so_ssl_allow_from_field').hide();
+            }
+        }
+        
+        // Initial state
+        toggleAllowFrom();
+        
+        // On change
+        $('#so_ssl_xframe_option').on('change', function() {
+            toggleAllowFrom();
+        });
+    });
+    </script>
+    <?php
+}
+
+/**
+ * SSL section description.
+ */
+function so_ssl_section_callback() {
+    echo '<p>' . __('Configure SSL settings for your website.', 'so-ssl') . '</p>';
+    
+    // Display current SSL status
+    if (is_ssl()) {
+        echo '<div class="notice notice-success inline"><p>' . __('Your site is currently using SSL/HTTPS.', 'so-ssl') . '</p></div>';
+    } else {
+        echo '<div class="notice notice-warning inline"><p>' . __('Your site is not using SSL/HTTPS. Enabling force SSL without having a valid SSL certificate may make your site inaccessible.', 'so-ssl') . '</p></div>';
+    }
+}
+
+/**
+ * HSTS section description.
+ */
+function so_ssl_hsts_section_callback() {
+    echo '<p>' . __('HTTP Strict Transport Security (HSTS) instructs browsers to only access your site over HTTPS, even if the user enters or clicks on a plain HTTP URL. This helps protect against SSL stripping attacks.', 'so-ssl') . '</p>';
+    echo '<div class="notice notice-warning inline"><p>' . __('<strong>Warning:</strong> Only enable HSTS if you are certain your site will always use HTTPS. Once a browser receives this header, it will not allow access to your site over HTTP until the max-age expires, even if you disable SSL later.', 'so-ssl') . '</p></div>';
+}
+
+/**
+ * X-Frame-Options section description.
+ */
+function so_ssl_xframe_section_callback() {
+    echo '<p>' . __('X-Frame-Options header controls whether your site can be loaded in an iframe. This helps prevent clickjacking attacks where an attacker might embed your site in their own malicious site.', 'so-ssl') . '</p>';
+}
+
+/**
+ * Force SSL field callback.
+ */
+function so_ssl_force_ssl_callback() {
+    $force_ssl = get_option('so_ssl_force_ssl', 0);
+    
+    echo '<label for="so_ssl_force_ssl">';
+    echo '<input type="checkbox" id="so_ssl_force_ssl" name="so_ssl_force_ssl" value="1" ' . checked(1, $force_ssl, false) . '/>';
+    echo __('Force all traffic to use HTTPS/SSL', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . __('Warning: Only enable this if you have a valid SSL certificate installed.', 'so-ssl') . '</p>';
+}
+
+/**
+ * Enable HSTS field callback.
+ */
+function so_ssl_enable_hsts_callback() {
+    $enable_hsts = get_option('so_ssl_enable_hsts', 0);
+    
+    echo '<label for="so_ssl_enable_hsts">';
+    echo '<input type="checkbox" id="so_ssl_enable_hsts" name="so_ssl_enable_hsts" value="1" ' . checked(1, $enable_hsts, false) . '/>';
+    echo __('Enable HTTP Strict Transport Security (HSTS)', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . __('Adds the Strict-Transport-Security header to tell browsers to always use HTTPS for this domain.', 'so-ssl') . '</p>';
+}
+
+/**
+ * HSTS Max Age field callback.
+ */
+function so_ssl_hsts_max_age_callback() {
+    $max_age = get_option('so_ssl_hsts_max_age', 31536000);
+    
+    echo '<select id="so_ssl_hsts_max_age" name="so_ssl_hsts_max_age">';
+    echo '<option value="86400" ' . selected(86400, $max_age, false) . '>' . __('1 Day (86400 seconds)', 'so-ssl') . '</option>';
+    echo '<option value="604800" ' . selected(604800, $max_age, false) . '>' . __('1 Week (604800 seconds)', 'so-ssl') . '</option>';
+    echo '<option value="2592000" ' . selected(2592000, $max_age, false) . '>' . __('1 Month (2592000 seconds)', 'so-ssl') . '</option>';
+    echo '<option value="31536000" ' . selected(31536000, $max_age, false) . '>' . __('1 Year (31536000 seconds) - Recommended', 'so-ssl') . '</option>';
+    echo '<option value="63072000" ' . selected(63072000, $max_age, false) . '>' . __('2 Years (63072000 seconds)', 'so-ssl') . '</option>';
+    echo '</select>';
+    echo '<p class="description">' . __('How long browsers should remember that this site is only to be accessed using HTTPS.', 'so-ssl') . '</p>';
+}
+
+/**
+ * HSTS Include Subdomains field callback.
+ */
+function so_ssl_hsts_subdomains_callback() {
+    $include_subdomains = get_option('so_ssl_hsts_subdomains', 0);
+    
+    echo '<label for="so_ssl_hsts_subdomains">';
+    echo '<input type="checkbox" id="so_ssl_hsts_subdomains" name="so_ssl_hsts_subdomains" value="1" ' . checked(1, $include_subdomains, false) . '/>';
+    echo __('Apply HSTS to all subdomains', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . __('Warning: Only enable if ALL subdomains have SSL certificates!', 'so-ssl') . '</p>';
+}
+
+/**
+ * HSTS Preload field callback.
+ */
+function so_ssl_hsts_preload_callback() {
+    $preload = get_option('so_ssl_hsts_preload', 0);
+    
+    echo '<label for="so_ssl_hsts_preload">';
+    echo '<input type="checkbox" id="so_ssl_hsts_preload" name="so_ssl_hsts_preload" value="1" ' . checked(1, $preload, false) . '/>';
+    echo __('Add preload flag', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . sprintf(
+        __('This is necessary for submitting to the <a href="%s" target="_blank">HSTS Preload List</a>. Only enable if you intend to submit your site to this list.', 'so-ssl'),
+        'https://hstspreload.org/'
+    ) . '</p>';
+}
+
+/**
+ * Enable X-Frame-Options field callback.
+ */
+function so_ssl_enable_xframe_callback() {
+    $enable_xframe = get_option('so_ssl_enable_xframe', 1);
+    
+    echo '<label for="so_ssl_enable_xframe">';
+    echo '<input type="checkbox" id="so_ssl_enable_xframe" name="so_ssl_enable_xframe" value="1" ' . checked(1, $enable_xframe, false) . '/>';
+    echo __('Enable X-Frame-Options header', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . __('Controls whether your site can be loaded in an iframe (recommended for security).', 'so-ssl') . '</p>';
+}
+
+/**
+ * X-Frame-Options value field callback.
+ */
+function so_ssl_xframe_option_callback() {
+    $xframe_option = get_option('so_ssl_xframe_option', 'sameorigin');
+    
+    echo '<select id="so_ssl_xframe_option" name="so_ssl_xframe_option">';
+    echo '<option value="deny" ' . selected('deny', $xframe_option, false) . '>' . __('DENY - Prevents any site from loading this site in an iframe', 'so-ssl') . '</option>';
+    echo '<option value="sameorigin" ' . selected('sameorigin', $xframe_option, false) . '>' . __('SAMEORIGIN - Only allow same site to frame content (recommended)', 'so-ssl') . '</option>';
+    echo '<option value="allowfrom" ' . selected('allowfrom', $xframe_option, false) . '>' . __('ALLOW-FROM - Allow a specific domain to frame content', 'so-ssl') . '</option>';
+    echo '</select>';
+    echo '<p class="description">' . __('Determines which sites (if any) can load your site in an iframe.', 'so-ssl') . '</p>';
+}
+
+/**
+ * X-Frame-Options Allow-From domain field callback.
+ */
+function so_ssl_xframe_allow_from_callback() {
+    $allow_from = get_option('so_ssl_xframe_allow_from', '');
+    
+    echo '<input type="url" id="so_ssl_xframe_allow_from" name="so_ssl_xframe_allow_from" value="' . esc_attr($allow_from) . '" class="regular-text" placeholder="https://example.com" />';
+    echo '<p class="description">' . __('Enter the full domain that is allowed to load your site in an iframe (only used with ALLOW-FROM option).', 'so-ssl') . '</p>';
+}
+
+/**
+ * Add admin menu for plugin settings.
+ */
+function so_ssl_add_admin_menu() {
+    add_options_page(
+        __('So SSL Settings', 'so-ssl'),
+        __('So SSL', 'so-ssl'),
+        'manage_options',
+        'so-ssl',
+        'so_ssl_options_page'
+    );
+}
+add_action('admin_menu', 'so_ssl_add_admin_menu');
+
+/**
+ * Plugin settings page content.
+ */
+function so_ssl_options_page() {
+    ?>
+    <div class="wrap">
+        <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+        <form action="options.php" method="post">
+            <?php
+            settings_fields('so_ssl_options');
+            do_settings_sections('so-ssl');
+            submit_button();
+            ?>
+        </form>
+    </div>
+    <?php
+}
+
+/**
+ * The core plugin class.
+ */
+require_once SO_SSL_PATH . 'includes/class-so-ssl.php';
+
+/**
+ * Begins execution of the plugin.
+ */
+function run_so_ssl() {
+    $plugin = new So_SSL();
+    $plugin->run();
+}
+run_so_ssl();
