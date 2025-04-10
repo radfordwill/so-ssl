@@ -1,11 +1,18 @@
 === So SSL ===
 Contributors: willrad
+
 Tags: ssl, security, https, hsts, frame-options
+
 Requires at least: 5.0
+
 Tested up to: 6.5
+
 Stable tag: 1.0.0
+
 License: GPLv3 or later
+
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
+
 
 A plugin to activate and enforce SSL on your WordPress site with additional security headers.
 
@@ -24,5 +31,5 @@ Features include:
 3. Use the Settings->So SSL screen to configure the plugin.
 
 == Changelog ==
-= 1.1.0 =
+= 1.0.1 =
 * Initial release and small updates

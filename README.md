@@ -25,5 +25,5 @@ Features include:
 3. Use the Settings->So SSL screen to configure the plugin.
 
 == Changelog ==
-= 1.1.0 =
+= 1.0.1 =
 * Initial release and small updates
