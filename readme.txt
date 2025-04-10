@@ -7,7 +7,7 @@ Requires at least: 5.0
 
 Tested up to: 6.5
 
-Stable tag: 1.0.0
+Stable tag: 1.0.2
 
 License: GPLv3 or later
 
@@ -31,5 +31,10 @@ Features include:
 3. Use the Settings->So SSL screen to configure the plugin.
 
 == Changelog ==
+= 1.0.2 =
+* Code restructuring for improved maintainability
+* Proper implementation of OOP principles
+* Fixed version number discrepancies
+
 = 1.0.1 =
 * Initial release and small updates
