@@ -1,12 +1,12 @@
 
 === So SSL ===
-Contributors: yourname
+Contributors: willrad
 Tags: ssl, security, https, hsts, frame-options
 Requires at least: 5.0
 Tested up to: 6.5
 Stable tag: 1.0.0
-License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+License: GPLv3 or later
+License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 A plugin to activate and enforce SSL on your WordPress site with additional security headers.
 
@@ -17,6 +17,7 @@ Features include:
 * Force SSL redirection
 * HTTP Strict Transport Security (HSTS) implementation
 * X-Frame-Options header to prevent clickjacking
+* Content Security Policy (CSP): frame-ancestors
 
 == Installation ==
 1. Upload the plugin files to the `/wp-content/plugins/so-ssl` directory, or install the plugin through the WordPress plugins screen.
@@ -24,5 +25,5 @@ Features include:
 3. Use the Settings->So SSL screen to configure the plugin.
 
 == Changelog ==
-= 1.0.0 =
-* Initial release
+= 1.1.0 =
+* Initial release and small updates
