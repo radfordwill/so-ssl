@@ -78,10 +78,10 @@ class So_SSL {
     private function define_admin_hooks() {
         // Add admin menu
         add_action('admin_menu', array($this, 'add_admin_menu'));
-        
+
         // Add settings
         add_action('admin_init', array($this, 'register_settings'));
-        
+
         // Admin footer JS
         add_action('admin_footer', array($this, 'admin_footer_js'));
     }
@@ -95,7 +95,7 @@ class So_SSL {
     private function define_public_hooks() {
         // Check SSL and redirect if needed
         add_action('template_redirect', array($this, 'check_ssl'));
-        
+
         // Add security headers
         add_action('send_headers', array($this, 'add_hsts_header'));
         add_action('send_headers', array($this, 'add_xframe_header'));
@@ -145,13 +145,13 @@ class So_SSL {
     public function register_settings() {
         // SSL Settings
         $this->register_ssl_settings();
-        
+
         // HSTS Settings
         $this->register_hsts_settings();
-        
+
         // X-Frame-Options Settings
         $this->register_xframe_settings();
-        
+
         // CSP Frame-Ancestors Settings
         $this->register_csp_settings();
     }
@@ -173,7 +173,7 @@ class So_SSL {
                 'default' => 0,
             )
         );
-        
+
         // SSL Settings Section
         add_settings_section(
             'so_ssl_section',
@@ -181,7 +181,7 @@ class So_SSL {
             array($this, 'ssl_section_callback'),
             'so-ssl'
         );
-        
+
         add_settings_field(
             'so_ssl_force_ssl',
             __('Force SSL', 'so-ssl'),
@@ -208,7 +208,7 @@ class So_SSL {
                 'default' => 0,
             )
         );
-        
+
         register_setting(
             'so_ssl_options',
             'so_ssl_hsts_max_age',
@@ -218,7 +218,7 @@ class So_SSL {
                 'default' => 31536000,
             )
         );
-        
+
         register_setting(
             'so_ssl_options',
             'so_ssl_hsts_subdomains',
@@ -228,7 +228,7 @@ class So_SSL {
                 'default' => 0,
             )
         );
-        
+
         register_setting(
             'so_ssl_options',
             'so_ssl_hsts_preload',
@@ -238,7 +238,7 @@ class So_SSL {
                 'default' => 0,
             )
         );
-        
+
         // HSTS Settings Section
         add_settings_section(
             'so_ssl_hsts_section',
@@ -246,7 +246,7 @@ class So_SSL {
             array($this, 'hsts_section_callback'),
             'so-ssl'
         );
-        
+
         add_settings_field(
             'so_ssl_enable_hsts',
             __('Enable HSTS', 'so-ssl'),
@@ -254,7 +254,7 @@ class So_SSL {
             'so-ssl',
             'so_ssl_hsts_section'
         );
-        
+
         add_settings_field(
             'so_ssl_hsts_max_age',
             __('Max Age', 'so-ssl'),
@@ -262,7 +262,7 @@ class So_SSL {
             'so-ssl',
             'so_ssl_hsts_section'
         );
-        
+
         add_settings_field(
             'so_ssl_hsts_subdomains',
             __('Include Subdomains', 'so-ssl'),
@@ -270,7 +270,7 @@ class So_SSL {
             'so-ssl',
             'so_ssl_hsts_section'
         );
-        
+
         add_settings_field(
             'so_ssl_hsts_preload',
             __('Preload', 'so-ssl'),
@@ -297,7 +297,7 @@ class So_SSL {
                 'default' => 1,
             )
         );
-        
+
         register_setting(
             'so_ssl_options',
             'so_ssl_xframe_option',
@@ -307,7 +307,7 @@ class So_SSL {
                 'default' => 'sameorigin',
             )
         );
-        
+
         register_setting(
             'so_ssl_options',
             'so_ssl_xframe_allow_from',
@@ -317,7 +317,7 @@ class So_SSL {
                 'default' => '',
             )
         );
-        
+
         // X-Frame-Options Settings Section
         add_settings_section(
             'so_ssl_xframe_section',
@@ -325,7 +325,7 @@ class So_SSL {
             array($this, 'xframe_section_callback'),
             'so-ssl'
         );
-        
+
         add_settings_field(
             'so_ssl_enable_xframe',
             __('Enable X-Frame-Options', 'so-ssl'),
@@ -333,7 +333,7 @@ class So_SSL {
             'so-ssl',
             'so_ssl_xframe_section'
         );
-        
+
         add_settings_field(
             'so_ssl_xframe_option',
             __('X-Frame-Options Value', 'so-ssl'),
@@ -341,7 +341,7 @@ class So_SSL {
             'so-ssl',
             'so_ssl_xframe_section'
         );
-        
+
         add_settings_field(
             'so_ssl_xframe_allow_from',
             __('Allow From Domain', 'so-ssl'),
@@ -369,7 +369,7 @@ class So_SSL {
                 'default' => 0,
             )
         );
-        
+
         register_setting(
             'so_ssl_options',
             'so_ssl_csp_frame_ancestors_option',
@@ -379,7 +379,7 @@ class So_SSL {
                 'default' => 'none',
             )
         );
-        
+
         register_setting(
             'so_ssl_options',
             'so_ssl_csp_include_self',
@@ -389,7 +389,7 @@ class So_SSL {
                 'default' => 0,
             )
         );
-        
+
         register_setting(
             'so_ssl_options',
             'so_ssl_csp_frame_ancestors_domains',
@@ -399,7 +399,7 @@ class So_SSL {
                 'default' => '',
             )
         );
-        
+
         // CSP Frame-Ancestors Settings Section
         add_settings_section(
             'so_ssl_csp_section',
@@ -407,7 +407,7 @@ class So_SSL {
             array($this, 'csp_section_callback'),
             'so-ssl'
         );
-        
+
         add_settings_field(
             'so_ssl_enable_csp_frame_ancestors',
             __('Enable CSP Frame-Ancestors', 'so-ssl'),
@@ -415,7 +415,7 @@ class So_SSL {
             'so-ssl',
             'so_ssl_csp_section'
         );
-        
+
         add_settings_field(
             'so_ssl_csp_frame_ancestors_option',
             __('Frame-Ancestors Value', 'so-ssl'),
@@ -423,7 +423,7 @@ class So_SSL {
             'so-ssl',
             'so_ssl_csp_section'
         );
-        
+
         add_settings_field(
             'so_ssl_csp_include_self',
             __('Include Self', 'so-ssl'),
@@ -432,7 +432,7 @@ class So_SSL {
             'so_ssl_csp_section',
             array('class' => 'so_ssl_csp_custom_field')
         );
-        
+
         add_settings_field(
             'so_ssl_csp_frame_ancestors_domains',
             __('Allowed Domains', 'so-ssl'),
@@ -450,7 +450,7 @@ class So_SSL {
      */
     public function ssl_section_callback() {
         echo '<p>' . __('Configure SSL settings for your website.', 'so-ssl') . '</p>';
-        
+
         // Display current SSL status
         if (is_ssl()) {
             echo '<div class="notice notice-success inline"><p>' . __('Your site is currently using SSL/HTTPS.', 'so-ssl') . '</p></div>';
@@ -495,7 +495,7 @@ class So_SSL {
      */
     public function force_ssl_callback() {
         $force_ssl = get_option('so_ssl_force_ssl', 0);
-        
+
         echo '<label for="so_ssl_force_ssl">';
         echo '<input type="checkbox" id="so_ssl_force_ssl" name="so_ssl_force_ssl" value="1" ' . checked(1, $force_ssl, false) . '/>';
         echo __('Force all traffic to use HTTPS/SSL', 'so-ssl');
@@ -510,7 +510,7 @@ class So_SSL {
      */
     public function enable_hsts_callback() {
         $enable_hsts = get_option('so_ssl_enable_hsts', 0);
-        
+
         echo '<label for="so_ssl_enable_hsts">';
         echo '<input type="checkbox" id="so_ssl_enable_hsts" name="so_ssl_enable_hsts" value="1" ' . checked(1, $enable_hsts, false) . '/>';
         echo __('Enable HTTP Strict Transport Security (HSTS)', 'so-ssl');
@@ -525,7 +525,7 @@ class So_SSL {
      */
     public function hsts_max_age_callback() {
         $max_age = get_option('so_ssl_hsts_max_age', 31536000);
-        
+
         echo '<select id="so_ssl_hsts_max_age" name="so_ssl_hsts_max_age">';
         echo '<option value="86400" ' . selected(86400, $max_age, false) . '>' . __('1 Day (86400 seconds)', 'so-ssl') . '</option>';
         echo '<option value="604800" ' . selected(604800, $max_age, false) . '>' . __('1 Week (604800 seconds)', 'so-ssl') . '</option>';
@@ -543,7 +543,7 @@ class So_SSL {
      */
     public function hsts_subdomains_callback() {
         $include_subdomains = get_option('so_ssl_hsts_subdomains', 0);
-        
+
         echo '<label for="so_ssl_hsts_subdomains">';
         echo '<input type="checkbox" id="so_ssl_hsts_subdomains" name="so_ssl_hsts_subdomains" value="1" ' . checked(1, $include_subdomains, false) . '/>';
         echo __('Apply HSTS to all subdomains', 'so-ssl');
@@ -558,7 +558,7 @@ class So_SSL {
      */
     public function hsts_preload_callback() {
         $preload = get_option('so_ssl_hsts_preload', 0);
-        
+
         echo '<label for="so_ssl_hsts_preload">';
         echo '<input type="checkbox" id="so_ssl_hsts_preload" name="so_ssl_hsts_preload" value="1" ' . checked(1, $preload, false) . '/>';
         echo __('Add preload flag', 'so-ssl');
@@ -576,7 +576,7 @@ class So_SSL {
      */
     public function enable_xframe_callback() {
         $enable_xframe = get_option('so_ssl_enable_xframe', 1);
-        
+
         echo '<label for="so_ssl_enable_xframe">';
         echo '<input type="checkbox" id="so_ssl_enable_xframe" name="so_ssl_enable_xframe" value="1" ' . checked(1, $enable_xframe, false) . '/>';
         echo __('Enable X-Frame-Options header', 'so-ssl');
@@ -591,7 +591,7 @@ class So_SSL {
      */
     public function xframe_option_callback() {
         $xframe_option = get_option('so_ssl_xframe_option', 'sameorigin');
-        
+
         echo '<select id="so_ssl_xframe_option" name="so_ssl_xframe_option">';
         echo '<option value="deny" ' . selected('deny', $xframe_option, false) . '>' . __('DENY - Prevents any site from loading this site in an iframe', 'so-ssl') . '</option>';
         echo '<option value="sameorigin" ' . selected('sameorigin', $xframe_option, false) . '>' . __('SAMEORIGIN - Only allow same site to frame content (recommended)', 'so-ssl') . '</option>';
@@ -607,7 +607,7 @@ class So_SSL {
      */
     public function xframe_allow_from_callback() {
         $allow_from = get_option('so_ssl_xframe_allow_from', '');
-        
+
         echo '<input type="url" id="so_ssl_xframe_allow_from" name="so_ssl_xframe_allow_from" value="' . esc_attr($allow_from) . '" class="regular-text" placeholder="https://example.com" />';
         echo '<p class="description">' . __('Enter the full domain that is allowed to load your site in an iframe (only used with ALLOW-FROM option).', 'so-ssl') . '</p>';
     }
@@ -619,7 +619,7 @@ class So_SSL {
      */
     public function enable_csp_frame_ancestors_callback() {
         $enable_csp = get_option('so_ssl_enable_csp_frame_ancestors', 0);
-        
+
         echo '<label for="so_ssl_enable_csp_frame_ancestors">';
         echo '<input type="checkbox" id="so_ssl_enable_csp_frame_ancestors" name="so_ssl_enable_csp_frame_ancestors" value="1" ' . checked(1, $enable_csp, false) . '/>';
         echo __('Enable Content Security Policy: frame-ancestors directive', 'so-ssl');
@@ -634,7 +634,7 @@ class So_SSL {
      */
     public function csp_frame_ancestors_option_callback() {
         $csp_option = get_option('so_ssl_csp_frame_ancestors_option', 'none');
-        
+
         echo '<select id="so_ssl_csp_frame_ancestors_option" name="so_ssl_csp_frame_ancestors_option">';
         echo '<option value="none" ' . selected('none', $csp_option, false) . '>' . __('\'none\' - No site can embed your content (most restrictive)', 'so-ssl') . '</option>';
         echo '<option value="self" ' . selected('self', $csp_option, false) . '>' . __('\'self\' - Only your own site can embed your content', 'so-ssl') . '</option>';
@@ -650,7 +650,7 @@ class So_SSL {
      */
     public function csp_include_self_callback() {
         $include_self = get_option('so_ssl_csp_include_self', 0);
-        
+
         echo '<label for="so_ssl_csp_include_self">';
         echo '<input type="checkbox" id="so_ssl_csp_include_self" name="so_ssl_csp_include_self" value="1" ' . checked(1, $include_self, false) . '/>';
         echo __('Include \'self\' in allowed domains', 'so-ssl');
@@ -665,7 +665,7 @@ class So_SSL {
      */
     public function csp_frame_ancestors_domains_callback() {
         $domains = get_option('so_ssl_csp_frame_ancestors_domains', '');
-        
+
         echo '<textarea id="so_ssl_csp_frame_ancestors_domains" name="so_ssl_csp_frame_ancestors_domains" rows="5" class="large-text" placeholder="https://example.com">' . esc_textarea($domains) . '</textarea>';
         echo '<p class="description">' . __('Enter domains that are allowed to embed your site, one per line. Example: https://example.com', 'so-ssl') . '</p>';
         echo '<p class="description">' . __('You can also use wildcards like *.example.com to allow all subdomains.', 'so-ssl') . '</p>';
@@ -689,7 +689,7 @@ class So_SSL {
                     $('.so_ssl_allow_from_field').hide();
                 }
             }
-            
+
             // CSP Custom Fields toggle
             function toggleCSPCustomFields() {
                 var selected = $('#so_ssl_csp_frame_ancestors_option').val();
@@ -699,16 +699,16 @@ class So_SSL {
                     $('.so_ssl_csp_custom_field').hide();
                 }
             }
-            
+
             // Initial state
             toggleAllowFrom();
             toggleCSPCustomFields();
-            
+
             // On change
             $('#so_ssl_xframe_option').on('change', function() {
                 toggleAllowFrom();
             });
-            
+
             $('#so_ssl_csp_frame_ancestors_option').on('change', function() {
                 toggleCSPCustomFields();
             });
@@ -725,21 +725,21 @@ class So_SSL {
     public function check_ssl() {
         // Check if site has SSL capability
         $has_ssl = is_ssl();
-        
+
         // Get current setting
         $force_ssl = get_option('so_ssl_force_ssl', 0);
-        
+
         // If SSL is forced and we're not on HTTPS, redirect
         if ($force_ssl && !$has_ssl && !is_admin()) {
             // Get current URL
             $current_url = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
             $ssl_url = str_replace('http://', 'https://', $current_url);
-            
+
             // Redirect to HTTPS
             wp_redirect($ssl_url, 301);
             exit;
         }
-        
+
         return $has_ssl;
     }
 
@@ -753,16 +753,16 @@ class So_SSL {
         if (!is_ssl()) {
             return;
         }
-        
+
         $enable_hsts = get_option('so_ssl_enable_hsts', 0);
-        
+
         if ($enable_hsts) {
             $max_age = get_option('so_ssl_hsts_max_age', 31536000);
             $include_subdomains = get_option('so_ssl_hsts_subdomains', 0) ? '; includeSubDomains' : '';
             $preload = get_option('so_ssl_hsts_preload', 0) ? '; preload' : '';
-            
+
             $hsts_header = "max-age=" . intval($max_age) . $include_subdomains . $preload;
-            
+
             header("Strict-Transport-Security: " . $hsts_header);
         }
     }
@@ -774,10 +774,10 @@ class So_SSL {
      */
     public function add_xframe_header() {
         $enable_xframe = get_option('so_ssl_enable_xframe', 1);
-        
+
         if ($enable_xframe) {
             $xframe_option = get_option('so_ssl_xframe_option', 'sameorigin');
-            
+
             // Set header based on selected option
             if ($xframe_option === 'deny') {
                 header('X-Frame-Options: DENY');
@@ -797,11 +797,11 @@ class So_SSL {
      */
     public function add_csp_frame_ancestors_header() {
         $enable_csp_frame_ancestors = get_option('so_ssl_enable_csp_frame_ancestors', 0);
-        
+
         if ($enable_csp_frame_ancestors) {
             $csp_option = get_option('so_ssl_csp_frame_ancestors_option', 'none');
             $csp_value = '';
-            
+
             // Set CSP value based on selected option
             if ($csp_option === 'none') {
                 $csp_value = "frame-ancestors 'none'";
@@ -811,12 +811,12 @@ class So_SSL {
                 $allowed_domains = get_option('so_ssl_csp_frame_ancestors_domains', '');
                 $domains = explode("\n", $allowed_domains);
                 $valid_domains = array();
-                
+
                 // Add 'self' if selected
                 if (get_option('so_ssl_csp_include_self', 0)) {
                     $valid_domains[] = "'self'";
                 }
-                
+
                 // Process and validate each domain
                 foreach ($domains as $domain) {
                     $domain = trim($domain);
@@ -828,17 +828,18 @@ class So_SSL {
                         $valid_domains[] = $domain;
                     }
                 }
-                
+
                 if (!empty($valid_domains)) {
                     $csp_value = "frame-ancestors " . implode(' ', $valid_domains);
                 } else {
                     $csp_value = "frame-ancestors 'none'";  // Default if no valid domains
                 }
             }
-            
+
             // Only add header if we have a value
             if (!empty($csp_value)) {
                 header("Content-Security-Policy: $csp_value");
             }
         }
     }
+  }
