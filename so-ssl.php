@@ -20,7 +20,7 @@ if (!defined('WPINC')) {
 /**
  * Current plugin version.
  */
-define('SO_SSL_VERSION', '1.1.0');
+define('SO_SSL_VERSION', '1.2.0');
 
 /**
  * Plugin path.
@@ -38,27 +38,27 @@ define('SO_SSL_URL', plugin_dir_url(__FILE__));
 function activate_so_ssl() {
     // SSL options
     add_option('so_ssl_force_ssl', 0);
-    
+
     // HSTS options
     add_option('so_ssl_enable_hsts', 0);
     add_option('so_ssl_hsts_max_age', 31536000); // Default: 1 year
     add_option('so_ssl_hsts_subdomains', 0);
     add_option('so_ssl_hsts_preload', 0);
-    
+
     // X-Frame-Options
     add_option('so_ssl_enable_xframe', 1);
     add_option('so_ssl_xframe_option', 'sameorigin');
-    
+
     // CSP Frame-Ancestors
     add_option('so_ssl_enable_csp_frame_ancestors', 0);
     add_option('so_ssl_csp_frame_ancestors_option', 'none');
     add_option('so_ssl_csp_include_self', 0);
     add_option('so_ssl_csp_frame_ancestors_domains', '');
-    
+
     // Referrer Policy
     add_option('so_ssl_enable_referrer_policy', 0);
     add_option('so_ssl_referrer_policy_option', 'strict-origin-when-cross-origin');
-    
+
     // Content Security Policy
     add_option('so_ssl_enable_csp', 0);
     add_option('so_ssl_csp_mode', 'report-only');
@@ -74,10 +74,10 @@ function activate_so_ssl() {
     add_option('so_ssl_csp_base_uri', "'self'");
     add_option('so_ssl_csp_form_action', "'self'");
     add_option('so_ssl_csp_upgrade_insecure_requests', "");
-    
+
     // Permissions Policy
     add_option('so_ssl_enable_permissions_policy', 0);
-    
+
     // Define default permissions
     $permissions = array(
         'accelerometer', 'ambient-light-sensor', 'autoplay', 'battery', 'camera',
@@ -87,14 +87,14 @@ function activate_so_ssl() {
         'publickey-credentials-get', 'screen-wake-lock', 'sync-xhr', 'usb', 'web-share',
         'xr-spatial-tracking'
     );
-    
+
     // Set default values for each permission
     foreach ($permissions as $permission) {
         $option_name = 'so_ssl_permissions_policy_' . str_replace('-', '_', $permission);
         $default_value = ($permission === 'picture-in-picture') ? '*' : 'self';
         add_option($option_name, $default_value);
     }
-    
+
     // Cross-Origin Policies
     add_option('so_ssl_enable_cross_origin_embedder_policy', 0);
     add_option('so_ssl_cross_origin_embedder_policy_value', 'require-corp');
