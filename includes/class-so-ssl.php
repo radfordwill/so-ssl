@@ -1,4 +1,3 @@
-
 <?php
 /**
  * The core plugin class.
@@ -55,9 +54,10 @@ class So_SSL {
      * @since    1.0.2
      * @access   private
      */
-    private function load_dependencies() {
-        // For future use if additional classes are needed
-    }
+     private function load_dependencies() {
+         // Load Two-Factor Authentication
+         $this->load_two_factor_authentication();
+     }
 
     /**
      * Run the loader to execute all hooks.
@@ -82,9 +82,31 @@ class So_SSL {
 
         // Add settings
         add_action('admin_init', array($this, 'register_settings'));
+        add_action('admin_init', array($this, 'initialize_2fa_directories'));
 
         // Admin footer JS
         add_action('admin_footer', array($this, 'admin_footer_js'));
+    }
+
+    /**
+     * Initialize directories needed for 2FA functionality
+     *
+     * @since 1.2.0
+     */
+    public function initialize_2fa_directories() {
+        // Create required directories if they don't exist
+        $directories = array(
+            SO_SSL_PATH . 'includes',
+            SO_SSL_PATH . 'assets',
+            SO_SSL_PATH . 'assets/css',
+            SO_SSL_PATH . 'assets/js'
+        );
+
+        foreach ($directories as $directory) {
+            if (!file_exists($directory)) {
+                wp_mkdir_p($directory);
+            }
+        }
     }
 
     /**
@@ -137,6 +159,7 @@ class So_SSL {
                 <a href="#content-security" class="nav-tab" data-tab="content-security"><?php _e('Content Security', 'so-ssl'); ?></a>
                 <a href="#browser-features" class="nav-tab" data-tab="browser-features"><?php _e('Browser Features', 'so-ssl'); ?></a>
                 <a href="#cross-origin" class="nav-tab" data-tab="cross-origin"><?php _e('Cross-Origin', 'so-ssl'); ?></a>
+                <a href="#two-factor" class="nav-tab" data-tab="two-factor"><?php _e('Two-Factor Auth', 'so-ssl'); ?></a>
             </div>
 
             <form action="options.php" method="post">
@@ -174,6 +197,14 @@ class So_SSL {
                     do_settings_sections('so-ssl-cross-origin');
                     do_settings_sections('so-ssl-xframe');
                     do_settings_sections('so-ssl-csp-frame');
+                    ?>
+                </div>
+
+                <!-- Two-Factor Authentication Tab -->
+                <div id="two-factor" class="settings-tab">
+                    <h2><?php _e('Two-Factor Authentication', 'so-ssl'); ?></h2>
+                    <?php
+                    do_settings_sections('so-ssl-2fa');
                     ?>
                 </div>
 
@@ -237,6 +268,21 @@ class So_SSL {
 
         // CSP Frame-Ancestors Settings
         $this->register_csp_settings();
+
+        // Two-Factor Authentication Settings
+        $this->register_two_factor_settings();
+
+        // Referrer Policy Settings
+        $this->register_referrer_policy_settings();
+
+        // Content Security Policy Settings
+        $this->register_content_security_policy_settings();
+
+        // Permissions Policy Settings
+        $this->register_permissions_policy_settings();
+
+        // Cross-Origin Policy Settings
+        $this->register_cross_origin_policy_settings();
     }
 
     /**
@@ -271,6 +317,82 @@ class So_SSL {
             array($this, 'force_ssl_callback'),
             'so-ssl-ssl',
             'so_ssl_section'
+        );
+    }
+
+    /**
+     * Register Two-Factor Authentication settings.
+     *
+     * @since    1.2.0
+     * @access   private
+     */
+    private function register_two_factor_settings() {
+        // Two-Factor Authentication settings
+        register_setting(
+            'so_ssl_options',
+            'so_ssl_enable_2fa',
+            array(
+                'type' => 'boolean',
+                'sanitize_callback' => 'intval',
+                'default' => 0,
+            )
+        );
+
+        register_setting(
+            'so_ssl_options',
+            'so_ssl_2fa_user_roles',
+            array(
+                'type' => 'array',
+                'sanitize_callback' => function($input) {
+                    if (!is_array($input)) {
+                        return array();
+                    }
+                    return array_map('sanitize_text_field', $input);
+                },
+                'default' => array('administrator'),
+            )
+        );
+
+        register_setting(
+            'so_ssl_options',
+            'so_ssl_2fa_method',
+            array(
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+                'default' => 'email',
+            )
+        );
+
+        // Two-Factor Authentication Settings Section
+        add_settings_section(
+            'so_ssl_2fa_section',
+            __('Two-Factor Authentication Settings', 'so-ssl'),
+            array($this, 'two_factor_section_callback'),
+            'so-ssl-2fa'
+        );
+
+        add_settings_field(
+            'so_ssl_enable_2fa',
+            __('Enable Two-Factor Authentication', 'so-ssl'),
+            array($this, 'enable_two_factor_callback'),
+            'so-ssl-2fa',
+            'so_ssl_2fa_section'
+        );
+
+        add_settings_field(
+            'so_ssl_2fa_user_roles',
+            __('User Roles', 'so-ssl'),
+            array($this, 'two_factor_user_roles_callback'),
+            'so-ssl-2fa',
+            'so_ssl_2fa_section'
+        );
+
+        add_settings_field(
+            'so_ssl_2fa_method',
+            __('Authentication Method', 'so-ssl'),
+            array($this, 'two_factor_method_callback'),
+            'so-ssl-2fa',
+            'so_ssl_2fa_section'
         );
     }
 
@@ -543,6 +665,69 @@ class So_SSL {
     }
 
     /**
+     * Two-Factor Authentication section description.
+     *
+     * @since    1.2.0
+     */
+    public function two_factor_section_callback() {
+        echo '<p>' . __('Configure Two-Factor Authentication (2FA) settings for your WordPress users.', 'so-ssl') . '</p>';
+        echo '<p>' . __('Two-Factor Authentication adds an extra layer of security by requiring a second verification method in addition to the password.', 'so-ssl') . '</p>';
+    }
+
+    /**
+     * Enable Two-Factor Authentication field callback.
+     *
+     * @since    1.2.0
+     */
+    public function enable_two_factor_callback() {
+        $enable_2fa = get_option('so_ssl_enable_2fa', 0);
+
+        echo '<label for="so_ssl_enable_2fa">';
+        echo '<input type="checkbox" id="so_ssl_enable_2fa" name="so_ssl_enable_2fa" value="1" ' . checked(1, $enable_2fa, false) . '/>';
+        echo __('Enable Two-Factor Authentication for users', 'so-ssl');
+        echo '</label>';
+        echo '<p class="description">' . __('Adds an additional security layer to the WordPress login process.', 'so-ssl') . '</p>';
+    }
+
+    /**
+     * Two-Factor Authentication user roles field callback.
+     *
+     * @since    1.2.0
+     */
+    public function two_factor_user_roles_callback() {
+        $selected_roles = get_option('so_ssl_2fa_user_roles', array('administrator'));
+
+        if (!is_array($selected_roles)) {
+            $selected_roles = array('administrator');
+        }
+
+        $roles = wp_roles()->get_names();
+
+        echo '<select multiple id="so_ssl_2fa_user_roles" name="so_ssl_2fa_user_roles[]" class="regular-text">';
+        foreach ($roles as $role_value => $role_name) {
+            $selected = in_array($role_value, $selected_roles) ? 'selected="selected"' : '';
+            echo '<option value="' . esc_attr($role_value) . '" ' . $selected . '>' . esc_html($role_name) . '</option>';
+        }
+        echo '</select>';
+        echo '<p class="description">' . __('Select which user roles will be required to use Two-Factor Authentication. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
+    }
+
+    /**
+     * Two-Factor Authentication method field callback.
+     *
+     * @since    1.2.0
+     */
+    public function two_factor_method_callback() {
+        $method = get_option('so_ssl_2fa_method', 'email');
+
+        echo '<select id="so_ssl_2fa_method" name="so_ssl_2fa_method">';
+        echo '<option value="email" ' . selected('email', $method, false) . '>' . __('Email - Send verification code via email', 'so-ssl') . '</option>';
+        echo '<option value="authenticator" ' . selected('authenticator', $method, false) . '>' . __('Authenticator App - Use Google Authenticator or similar apps', 'so-ssl') . '</option>';
+        echo '</select>';
+        echo '<p class="description">' . __('Select the Two-Factor Authentication method to use.', 'so-ssl') . '</p>';
+    }
+
+    /**
      * HSTS section description.
      *
      * @since    1.0.2
@@ -783,8 +968,6 @@ class So_SSL {
                 }
             }
 
-
-
             // CSP upgrade-insecure-requests handling
             function setupCSPUpgradeRequests() {
                 var $field = $('#so_ssl_csp_upgrade_insecure_requests');
@@ -861,7 +1044,6 @@ class So_SSL {
         </script>
         <?php
     }
-
     /**
      * Check if SSL is available and activate it if needed.
      *
@@ -1103,7 +1285,6 @@ class So_SSL {
             }
         }
     }
-
     /**
      * Register Content Security Policy settings.
      *
@@ -1165,14 +1346,14 @@ class So_SSL {
             'so_ssl_csp_full_section',
             __('Content Security Policy (CSP)', 'so-ssl'),
             array($this, 'csp_full_section_callback'),
-            'so-ssl'
+            'so-ssl-csp'
         );
 
         add_settings_field(
             'so_ssl_enable_csp',
             __('Enable Content Security Policy', 'so-ssl'),
             array($this, 'enable_csp_callback'),
-            'so-ssl',
+            'so-ssl-csp',
             'so_ssl_csp_full_section'
         );
 
@@ -1180,7 +1361,7 @@ class So_SSL {
             'so_ssl_csp_mode',
             __('CSP Mode', 'so-ssl'),
             array($this, 'csp_mode_callback'),
-            'so-ssl',
+            'so-ssl-csp',
             'so_ssl_csp_full_section'
         );
 
@@ -1192,7 +1373,7 @@ class So_SSL {
                 $field_id,
                 $directive,
                 array($this, 'csp_directive_callback'),
-                'so-ssl',
+                'so-ssl-csp',
                 'so_ssl_csp_full_section',
                 array(
                     'label_for' => $field_id,
@@ -1456,7 +1637,6 @@ class So_SSL {
         echo '</label>';
         echo '<p class="description">' . __('Adds the Permissions-Policy header to control browser feature permissions.', 'so-ssl') . '</p>';
     }
-
     /**
      * Permissions Policy option field callback.
      *
@@ -1688,6 +1868,24 @@ class So_SSL {
         }
     }
 
+          /**
+       * Load Two-Factor Authentication functionality
+       *
+       * @since 1.2.0
+       */
+      public function load_two_factor_authentication() {
+          // Only load if 2FA is enabled
+          if (get_option('so_ssl_enable_2fa', 0)) {
+              // Load session handler first
+              require_once SO_SSL_PATH . 'includes/so-ssl-session-handler.php';
+
+              // Load TOTP implementation
+              require_once SO_SSL_PATH . 'includes/totp.php';
+
+              // Load 2FA functionality
+              require_once SO_SSL_PATH . 'includes/so-ssl-two-factor.php';
+          }
+      }
 
 
 }
