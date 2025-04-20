@@ -2138,9 +2138,10 @@ class So_SSL {
         // Check password strength
         $strength = $this->get_password_strength($password, $user->user_login);
 
-        // If the password is weak, return an error
-        if ($strength < 3) {
-            return new WP_Error('weak_password', __('<strong>ERROR</strong>: Your password is too weak. Please choose a stronger password.', 'so-ssl'));
+        // If the password is not strong (less than 4), return an error
+        // Changed from 3 to 4 to enforce strong passwords only
+        if ($strength < 4) {
+            return new WP_Error('weak_password', __('<strong>ERROR</strong>: Your password is not strong enough. Please choose a stronger password with uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
         }
 
         return $user;
@@ -2158,9 +2159,10 @@ class So_SSL {
         if (isset($_POST['pass1']) && !empty($_POST['pass1'])) {
             $strength = $this->get_password_strength($_POST['pass1'], $user->user_login);
 
-            // If the password is weak, add an error
-            if ($strength < 3) {
-                $errors->add('weak_password', __('<strong>ERROR</strong>: Please choose a stronger password. The password should be at least twelve characters long. To make it stronger, use upper and lower case letters, numbers, and symbols like ! " ? $ % ^ &amp; ).', 'so-ssl'));
+            // If the password is not strong (less than 4), add an error
+            // Changed from 3 to 4 to enforce strong passwords only
+            if ($strength < 4) {
+                $errors->add('weak_password', __('<strong>ERROR</strong>: Please choose a stronger password. The password must include uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
             }
         }
     }
@@ -2176,9 +2178,10 @@ class So_SSL {
         if (isset($_POST['pass1']) && !empty($_POST['pass1'])) {
             $strength = $this->get_password_strength($_POST['pass1'], $user->user_login);
 
-            // If the password is weak, add an error
-            if ($strength < 3) {
-                $errors->add('weak_password', __('<strong>ERROR</strong>: Please choose a stronger password. The password should be at least twelve characters long. To make it stronger, use upper and lower case letters, numbers, and symbols like ! " ? $ % ^ &amp; ).', 'so-ssl'));
+            // If the password is not strong (less than 4), add an error
+            // Changed from 3 to 4 to enforce strong passwords only
+            if ($strength < 4) {
+                $errors->add('weak_password', __('<strong>ERROR</strong>: Please choose a stronger password. The password must include uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
             }
         }
     }
