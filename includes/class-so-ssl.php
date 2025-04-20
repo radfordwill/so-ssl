@@ -54,10 +54,29 @@ class So_SSL {
      * @since    1.0.2
      * @access   private
      */
-     private function load_dependencies() {
-         // Load Two-Factor Authentication
-         $this->load_two_factor_authentication();
-     }
+    private function load_dependencies() {
+        // Load Two-Factor Authentication
+        $this->load_two_factor_authentication();
+    }
+
+    /**
+     * Load Two-Factor Authentication functionality
+     *
+     * @since 1.2.0
+     */
+    public function load_two_factor_authentication() {
+        // Only load if 2FA is enabled
+        if (get_option('so_ssl_enable_2fa', 0)) {
+            // Load session handler first
+            require_once SO_SSL_PATH . 'includes/so-ssl-session-handler.php';
+
+            // Load TOTP implementation
+            require_once SO_SSL_PATH . 'includes/totp.php';
+
+            // Load 2FA functionality
+            require_once SO_SSL_PATH . 'includes/so-ssl-two-factor.php';
+        }
+    }
 
     /**
      * Run the loader to execute all hooks.
@@ -82,10 +101,42 @@ class So_SSL {
 
         // Add settings
         add_action('admin_init', array($this, 'register_settings'));
-        add_action('admin_init', array($this, 'initialize_2fa_directories'));
 
         // Admin footer JS
         add_action('admin_footer', array($this, 'admin_footer_js'));
+
+        // Add initialization of 2FA directories
+        add_action('admin_init', array($this, 'initialize_2fa_directories'));
+    }
+
+    /**
+     * Register all of the hooks related to the public-facing functionality.
+     *
+     * @since    1.0.2
+     * @access   private
+     */
+    private function define_public_hooks() {
+        // Check SSL and redirect if needed
+        add_action('template_redirect', array($this, 'check_ssl'));
+
+        // Add security headers
+        add_action('send_headers', array($this, 'add_hsts_header'));
+        add_action('send_headers', array($this, 'add_xframe_header'));
+        add_action('send_headers', array($this, 'add_csp_frame_ancestors_header'));
+        add_action('send_headers', array($this, 'add_referrer_policy_header'));
+        add_action('send_headers', array($this, 'add_content_security_policy_header'));
+        add_action('send_headers', array($this, 'add_permissions_policy_header'));
+        add_action('send_headers', array($this, 'add_cross_origin_policy_headers'));
+
+        // Enforce strong passwords if enabled
+        if (get_option('so_ssl_disable_weak_passwords', 0)) {
+            add_filter('wp_is_application_passwords_available', '__return_false'); // Disable application passwords
+            add_action('login_enqueue_scripts', array($this, 'disable_weak_password_js'));
+            add_action('admin_enqueue_scripts', array($this, 'disable_weak_password_js'));
+            add_action('wp_authenticate_user', array($this, 'check_password_strength'), 10, 2);
+            add_action('user_profile_update_errors', array($this, 'enforce_strong_password'), 10, 3);
+            add_action('validate_password_reset', array($this, 'validate_password_reset'), 10, 2);
+        }
     }
 
     /**
@@ -107,26 +158,6 @@ class So_SSL {
                 wp_mkdir_p($directory);
             }
         }
-    }
-
-    /**
-     * Register all of the hooks related to the public-facing functionality.
-     *
-     * @since    1.0.2
-     * @access   private
-     */
-    private function define_public_hooks() {
-        // Check SSL and redirect if needed
-        add_action('template_redirect', array($this, 'check_ssl'));
-
-        // Add security headers
-        add_action('send_headers', array($this, 'add_hsts_header'));
-        add_action('send_headers', array($this, 'add_xframe_header'));
-        add_action('send_headers', array($this, 'add_csp_frame_ancestors_header'));
-        add_action('send_headers', array($this, 'add_referrer_policy_header'));
-        add_action('send_headers', array($this, 'add_content_security_policy_header'));
-        add_action('send_headers', array($this, 'add_permissions_policy_header'));
-        add_action('send_headers', array($this, 'add_cross_origin_policy_headers'));
     }
 
     /**
@@ -154,12 +185,42 @@ class So_SSL {
         <div class="wrap">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
 
+            <?php
+            // Check for active tab from form submission
+            $active_tab = isset($_POST['active_tab']) ? sanitize_text_field($_POST['active_tab']) : '';
+
+            // If we have an active tab from POST, add JavaScript to set it
+            if (!empty($active_tab)) {
+                echo "<script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Set active tab based on form submission
+                        var activeTab = '" . esc_js($active_tab) . "';
+                        jQuery('.nav-tab').removeClass('nav-tab-active');
+                        jQuery('.settings-tab').removeClass('active');
+                        jQuery('[data-tab=\"' + activeTab + '\"]').addClass('nav-tab-active');
+                        jQuery('#' + activeTab).addClass('active');
+
+                        // Update localStorage
+                        localStorage.setItem('so_ssl_active_tab', activeTab);
+
+                        // Update URL hash
+                        if (history.pushState) {
+                            history.pushState(null, null, '#' + activeTab);
+                        } else {
+                            window.location.hash = activeTab;
+                        }
+                    });
+                </script>";
+            }
+            ?>
+
             <div class="nav-tab-wrapper">
                 <a href="#ssl-settings" class="nav-tab nav-tab-active" data-tab="ssl-settings"><?php _e('SSL Settings', 'so-ssl'); ?></a>
                 <a href="#content-security" class="nav-tab" data-tab="content-security"><?php _e('Content Security', 'so-ssl'); ?></a>
                 <a href="#browser-features" class="nav-tab" data-tab="browser-features"><?php _e('Browser Features', 'so-ssl'); ?></a>
                 <a href="#cross-origin" class="nav-tab" data-tab="cross-origin"><?php _e('Cross-Origin', 'so-ssl'); ?></a>
                 <a href="#two-factor" class="nav-tab" data-tab="two-factor"><?php _e('Two-Factor Auth', 'so-ssl'); ?></a>
+                <a href="#login-protection" class="nav-tab" data-tab="login-protection"><?php _e('Login Protection', 'so-ssl'); ?></a>
             </div>
 
             <form action="options.php" method="post">
@@ -208,6 +269,17 @@ class So_SSL {
                     ?>
                 </div>
 
+                <!-- Login Protection Tab -->
+                <div id="login-protection" class="settings-tab">
+                    <h2><?php _e('Login Protection Settings', 'so-ssl'); ?></h2>
+                    <?php
+                    do_settings_sections('so-ssl-login-protection');
+                    ?>
+                </div>
+
+                <!-- Add hidden input for active tab -->
+                <input type="hidden" name="active_tab" id="active_tab" value="ssl-settings">
+
                 <?php submit_button(); ?>
             </form>
         </div>
@@ -245,7 +317,46 @@ class So_SSL {
 
                     // Show corresponding tab content
                     $('#' + $(this).data('tab')).addClass('active');
+
+                    // Update hidden input
+                    $('#active_tab').val($(this).data('tab'));
+
+                    // Save to localStorage
+                    localStorage.setItem('so_ssl_active_tab', $(this).data('tab'));
+
+                    // Update URL hash without scrolling
+                    if (history.pushState) {
+                        history.pushState(null, null, '#' + $(this).data('tab'));
+                    } else {
+                        window.location.hash = $(this).data('tab');
+                    }
                 });
+
+                // Get the current tab from URL hash or localStorage
+                function getCurrentTab() {
+                    // First try to get from URL hash
+                    let hash = window.location.hash;
+                    if (hash && hash.length > 1) {
+                        return hash.substring(1); // Remove the # character
+                    }
+
+                    // Then try localStorage
+                    const savedTab = localStorage.getItem('so_ssl_active_tab');
+                    if (savedTab) {
+                        return savedTab;
+                    }
+
+                    // Default to first tab
+                    return 'ssl-settings';
+                }
+
+                // Initialize with the correct tab
+                const activeTab = getCurrentTab();
+                $('.nav-tab').removeClass('nav-tab-active');
+                $('.settings-tab').removeClass('active');
+                $('[data-tab="' + activeTab + '"]').addClass('nav-tab-active');
+                $('#' + activeTab).addClass('active');
+                $('#active_tab').val(activeTab);
             });
         </script>
         <?php
@@ -283,6 +394,9 @@ class So_SSL {
 
         // Cross-Origin Policy Settings
         $this->register_cross_origin_policy_settings();
+
+        // Login Protection Settings
+        $this->register_login_protection_settings();
     }
 
     /**
@@ -397,6 +511,41 @@ class So_SSL {
     }
 
     /**
+     * Register Login Protection settings.
+     *
+     * @since    1.3.0
+     * @access   private
+     */
+    private function register_login_protection_settings() {
+        // Password security setting
+        register_setting(
+            'so_ssl_options',
+            'so_ssl_disable_weak_passwords',
+            array(
+                'type' => 'boolean',
+                'sanitize_callback' => 'intval',
+                'default' => 0,
+            )
+        );
+
+        // Password Security Settings Section
+        add_settings_section(
+            'so_ssl_password_security_section',
+            __('Password Security', 'so-ssl'),
+            array($this, 'password_security_section_callback'),
+            'so-ssl-login-protection'
+        );
+
+        add_settings_field(
+            'so_ssl_disable_weak_passwords',
+            __('Enforce Strong Passwords', 'so-ssl'),
+            array($this, 'disable_weak_passwords_callback'),
+            'so-ssl-login-protection',
+            'so_ssl_password_security_section'
+        );
+    }
+
+    /**
      * Register HSTS settings.
      *
      * @since    1.0.2
@@ -432,7 +581,7 @@ class So_SSL {
                 'sanitize_callback' => 'intval',
                 'default' => 0,
             )
-        );
+          );
 
         register_setting(
             'so_ssl_options',
@@ -675,6 +824,15 @@ class So_SSL {
     }
 
     /**
+     * Password Security section description.
+     *
+     * @since    1.3.0
+     */
+    public function password_security_section_callback() {
+        echo '<p>' . __('Configure password security settings to enforce stronger passwords and improve login security.', 'so-ssl') . '</p>';
+    }
+
+    /**
      * Enable Two-Factor Authentication field callback.
      *
      * @since    1.2.0
@@ -687,6 +845,21 @@ class So_SSL {
         echo __('Enable Two-Factor Authentication for users', 'so-ssl');
         echo '</label>';
         echo '<p class="description">' . __('Adds an additional security layer to the WordPress login process.', 'so-ssl') . '</p>';
+    }
+
+    /**
+     * Disable Weak Passwords field callback.
+     *
+     * @since    1.3.0
+     */
+    public function disable_weak_passwords_callback() {
+        $disable_weak_passwords = get_option('so_ssl_disable_weak_passwords', 0);
+
+        echo '<label for="so_ssl_disable_weak_passwords">';
+        echo '<input type="checkbox" id="so_ssl_disable_weak_passwords" name="so_ssl_disable_weak_passwords" value="1" ' . checked(1, $disable_weak_passwords, false) . '/>';
+        echo __('Enforce strong passwords for all users', 'so-ssl');
+        echo '</label>';
+        echo '<p class="description">' . __('Disable the "confirm use of weak password" checkbox and prevent users from setting weak passwords.', 'so-ssl') . '</p>';
     }
 
     /**
@@ -1868,24 +2041,190 @@ class So_SSL {
         }
     }
 
-          /**
-       * Load Two-Factor Authentication functionality
-       *
-       * @since 1.2.0
-       */
-      public function load_two_factor_authentication() {
-          // Only load if 2FA is enabled
-          if (get_option('so_ssl_enable_2fa', 0)) {
-              // Load session handler first
-              require_once SO_SSL_PATH . 'includes/so-ssl-session-handler.php';
+    /**
+     * Add JavaScript to disable the weak password checkbox
+     *
+     * @since    1.3.0
+     */
+    public function disable_weak_password_js() {
+        ?>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find and disable the confirm weak password checkbox
+            var weakPwCheckbox = document.querySelector('.pw-weak');
+            if (weakPwCheckbox) {
+                weakPwCheckbox.style.display = 'none';
+            }
 
-              // Load TOTP implementation
-              require_once SO_SSL_PATH . 'includes/totp.php';
+            // Hide the weak password confirmation message
+            var weakPwConfirm = document.getElementById('pw-weak-text-message');
+            if (weakPwConfirm) {
+                weakPwConfirm.style.display = 'none';
+            }
 
-              // Load 2FA functionality
-              require_once SO_SSL_PATH . 'includes/so-ssl-two-factor.php';
-          }
-      }
+            // Override the weak password confirmation JS function
+            if (typeof wp !== 'undefined' && wp.passwordStrength && wp.passwordStrength.userInputDisallowedList) {
+                // Store the original checkPasswordStrength function
+                var originalCheckPasswordStrength = wp.passwordStrength.checkPasswordStrength;
 
+                // Override the function
+                wp.passwordStrength.checkPasswordStrength = function(password, blacklist, username, strengthResult) {
+                    var result = originalCheckPasswordStrength(password, blacklist, username, strengthResult);
 
+                    // If the password is weak (2 or less), disable the submit button
+                    if (result < 3) {
+                        var submitButton = document.querySelector('input[type="submit"]');
+                        if (submitButton) {
+                            submitButton.disabled = true;
+                        }
+
+                        // Add a message about strong password requirement
+                        var strengthMeter = document.querySelector('.password-strength-meter');
+                        if (strengthMeter) {
+                            var messageDiv = document.createElement('div');
+                            messageDiv.className = 'strong-password-message';
+                            messageDiv.style.color = '#dc3232';
+                            messageDiv.style.marginTop = '5px';
+                            messageDiv.textContent = '<?php echo esc_js(__('Strong password is required. Please choose a stronger password.', 'so-ssl')); ?>';
+
+                            // Remove any existing message before adding a new one
+                            var existingMessage = document.querySelector('.strong-password-message');
+                            if (existingMessage) {
+                                existingMessage.remove();
+                            }
+
+                            strengthMeter.parentNode.appendChild(messageDiv);
+                        }
+                    } else {
+                        var submitButton = document.querySelector('input[type="submit"]');
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                        }
+
+                        // Remove the message if password is strong enough
+                        var existingMessage = document.querySelector('.strong-password-message');
+                        if (existingMessage) {
+                            existingMessage.remove();
+                        }
+                    }
+
+                    return result;
+                };
+            }
+        });
+        </script>
+        <?php
+    }
+
+    /**
+     * Check password strength on login
+     *
+     * @since    1.3.0
+     * @param WP_User $user The user object
+     * @param string $password The password
+     * @return WP_User|WP_Error The user object or error
+     */
+    public function check_password_strength($user, $password) {
+        // If already errored, return the error
+        if (is_wp_error($user)) {
+            return $user;
+        }
+
+        // Skip for password reset or non-login actions
+        if (!isset($_POST['log']) || !isset($_POST['pwd'])) {
+            return $user;
+        }
+
+        // Check password strength
+        $strength = $this->get_password_strength($password, $user->user_login);
+
+        // If the password is weak, return an error
+        if ($strength < 3) {
+            return new WP_Error('weak_password', __('<strong>ERROR</strong>: Your password is too weak. Please choose a stronger password.', 'so-ssl'));
+        }
+
+        return $user;
+    }
+
+    /**
+     * Enforce strong password on user profile update
+     *
+     * @since    1.3.0
+     * @param WP_Error $errors The error object
+     * @param bool $update Whether this is an update
+     * @param WP_User $user The user object
+     */
+    public function enforce_strong_password($errors, $update, $user) {
+        if (isset($_POST['pass1']) && !empty($_POST['pass1'])) {
+            $strength = $this->get_password_strength($_POST['pass1'], $user->user_login);
+
+            // If the password is weak, add an error
+            if ($strength < 3) {
+                $errors->add('weak_password', __('<strong>ERROR</strong>: Please choose a stronger password. The password should be at least twelve characters long. To make it stronger, use upper and lower case letters, numbers, and symbols like ! " ? $ % ^ &amp; ).', 'so-ssl'));
+            }
+        }
+    }
+
+    /**
+     * Validate password strength on password reset
+     *
+     * @since    1.3.0
+     * @param WP_Error $errors The error object
+     * @param WP_User $user The user object
+     */
+    public function validate_password_reset($errors, $user) {
+        if (isset($_POST['pass1']) && !empty($_POST['pass1'])) {
+            $strength = $this->get_password_strength($_POST['pass1'], $user->user_login);
+
+            // If the password is weak, add an error
+            if ($strength < 3) {
+                $errors->add('weak_password', __('<strong>ERROR</strong>: Please choose a stronger password. The password should be at least twelve characters long. To make it stronger, use upper and lower case letters, numbers, and symbols like ! " ? $ % ^ &amp; ).', 'so-ssl'));
+            }
+        }
+    }
+
+    /**
+     * Get password strength
+     *
+     * @since    1.3.0
+     * @param string $password The password
+     * @param string $username The username
+     * @return int The password strength (0-4)
+     */
+    public function get_password_strength($password, $username) {
+        // Check password length
+        if (strlen($password) < 8) {
+            return 1; // Very weak
+        }
+
+        // Check if password contains username
+        if (strpos(strtolower($password), strtolower($username)) !== false) {
+            return 1; // Very weak
+        }
+
+        // Calculate password strength
+        $strength = 0;
+
+        // Has lowercase letters
+        if (preg_match('/[a-z]/', $password)) {
+            $strength++;
+        }
+
+        // Has uppercase letters
+        if (preg_match('/[A-Z]/', $password)) {
+            $strength++;
+        }
+
+        // Has numbers
+        if (preg_match('/[0-9]/', $password)) {
+            $strength++;
+        }
+
+        // Has special characters
+        if (preg_match('/[^a-zA-Z0-9]/', $password)) {
+            $strength++;
+        }
+
+        return $strength;
+    }
 }

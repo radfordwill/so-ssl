@@ -3,7 +3,7 @@
  * Plugin Name: So SSL
  * Plugin URI: https://example.com/plugins/so-ssl
  * Description: A plugin to activate and enforce SSL on your WordPress site with additional security headers.
- * Version: 1.2.0
+ * Version: 1.3.0
  * Author: Will Radford
  * Author URI: https://github.com/radfordwill/
  * License: GPL-3.0+
@@ -20,7 +20,7 @@ if (!defined('WPINC')) {
 /**
  * Current plugin version.
  */
-define('SO_SSL_VERSION', '1.2.0');
+define('SO_SSL_VERSION', '1.3.0');
 
 /**
  * Plugin path.
@@ -82,6 +82,9 @@ function activate_so_ssl() {
     add_option('so_ssl_enable_2fa', 0);
     add_option('so_ssl_2fa_user_roles', array('administrator'));
     add_option('so_ssl_2fa_method', 'email');
+
+    // Login Protection
+    add_option('so_ssl_disable_weak_passwords', 0);
 
     // Define default permissions
     $permissions = array(
