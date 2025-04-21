@@ -1,5 +1,5 @@
 === So SSL ===
-Contributors: radfordwill
+Contributors: willradford
 Tags: ssl, security, headers, https, two-factor, 2fa, authentication, passwords, login, protection
 Requires at least: 5.0
 Tested up to: 6.4
