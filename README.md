@@ -21,10 +21,14 @@ So SSL provides a comprehensive set of tools to enhance the security of your Wor
   - Multiple authentication methods (Email, Authenticator App)
   - Role-based implementation
   - Backup codes for account recovery
-- **Login Protection**:
-  - Enforce strong passwords for all users
+- **Strong Password Enforcement**:
+  - Enforce strong passwords for all users (requires all four criteria: uppercase, lowercase, numbers, and special characters)
   - Disable "confirm use of weak password" checkbox
-  - Prevent users from configuring weak passwords during registration or password change
+  - Prevent users from setting medium or weak passwords during:
+    - Registration
+    - Password reset
+    - Profile updates
+  - Real-time password strength validation with helpful error messages
 
 ## Installation
 
@@ -58,16 +62,17 @@ Add an extra layer of security to your WordPress login process:
 4. **User Setup**: Users can configure 2FA in their profile settings
 5. **Backup Codes**: Generate and store backup codes for emergency access
 
-### Login Protection
+### Strong Password Enforcement
 
 Strengthen your site's login security by enforcing strong passwords:
 
 1. **Enable Strong Passwords**: Go to the "Login Protection" tab and enable the feature
 2. **Automatic Enforcement**: The plugin will automatically:
    - Hide the "confirm use of weak password" checkbox
-   - Prevent users from setting weak passwords during registration
-   - Enforce strong passwords during password changes
+   - Prevent users from setting weak or medium passwords during registration
+   - Enforce strong passwords during password resets and changes
    - Display helpful error messages guiding users to create stronger passwords
+   - Require all four password criteria: uppercase letters, lowercase letters, numbers, and special characters
 
 ## Frequently Asked Questions
 
@@ -85,44 +90,17 @@ If you're unable to log in, you can use your backup codes for emergency access. 
 
 ### What makes a password "strong" according to the plugin?
 
-The plugin considers a password strong when it:
-- Is at least 8 characters long
+The plugin enforces truly strong passwords that must meet all of the following criteria:
+- At least 8 characters long
 - Does not contain the username
-- Includes a mix of uppercase letters, lowercase letters, numbers, and special characters
+- Includes uppercase letters
+- Includes lowercase letters
+- Includes numbers
+- Includes special characters
 
 ### Will enforcing strong passwords affect existing user accounts?
 
 Enforcing strong passwords only affects new password creations and changes. Existing users won't be forced to change their passwords immediately, but will need to create a strong password when they next update it.
-
-## Changelog
-
-### 1.3.0
-- Added Login Protection feature to enforce strong passwords
-- Added option to disable the "confirm use of weak password" checkbox
-- Added prevention of weak password creation during registration or password change
-
-### 1.2.0
-- Added Two-Factor Authentication for enhanced login security
-- Added support for Email and Authenticator App verification methods
-- Added backup codes for account recovery
-- Added role-based 2FA implementation
-
-### 1.1.0
-- Added Content Security Policy support
-- Added Permissions Policy support
-- Added Cross-Origin Policy headers
-- Improved settings page with tabbed interface
-
-### 1.0.2
-- Added X-Frame-Options header
-- Added HSTS support
-- Improved SSL redirection
-
-### 1.0.1
-- Bug fixes and performance improvements
-
-### 1.0.0
-- Initial release with basic SSL enforcement
 
 ## Credits
 
