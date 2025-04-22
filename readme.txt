@@ -1,13 +1,13 @@
 === So SSL ===
-Contributors: willradford
+Contributors: radfordwill
 Tags: ssl, security, headers, https, two-factor, 2fa, authentication, passwords, login, protection
 Requires at least: 5.0
 Tested up to: 6.4
-Stable tag: 1.3.1
+Stable tag: 1.3.0
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-Activate and enforce SSL on your WordPress site with additional security headers, two-factor authentication, and strong password protection.
+Activate and enforce SSL on your WordPress site with additional security headers, two-factor authentication, and login protection.
 
 == Description ==
 
@@ -28,14 +28,10 @@ So SSL provides a comprehensive set of tools to enhance the security of your Wor
   * Multiple authentication methods (Email, Authenticator App)
   * Role-based implementation
   * Backup codes for account recovery
-* **Strong Password Enforcement**:
-  * Enforce truly strong passwords requiring all four criteria (uppercase, lowercase, numbers, and special characters)
+* **Login Protection**:
+  * Enforce strong passwords for all users
   * Disable "confirm use of weak password" checkbox
-  * Prevent users from configuring weak or medium passwords during:
-    * Registration
-    * Password reset
-    * Profile updates
-  * Real-time password strength validation with clear error messages
+  * Prevent users from configuring weak passwords during registration or password change
 
 == Installation ==
 
@@ -69,17 +65,16 @@ Add an extra layer of security to your WordPress login process:
 4. **User Setup**: Users can configure 2FA in their profile settings
 5. **Backup Codes**: Generate and store backup codes for emergency access
 
-= Strong Password Enforcement =
+= Login Protection =
 
 Strengthen your site's login security by enforcing strong passwords:
 
 1. **Enable Strong Passwords**: Go to the "Login Protection" tab and enable the feature
 2. **Automatic Enforcement**: The plugin will automatically:
    * Hide the "confirm use of weak password" checkbox
-   * Prevent users from setting weak or medium passwords during registration
-   * Enforce strong passwords during password resets and changes
+   * Prevent users from setting weak passwords during registration
+   * Enforce strong passwords during password changes
    * Display helpful error messages guiding users to create stronger passwords
-   * Require all four password criteria: uppercase letters, lowercase letters, numbers, and special characters
 
 == Frequently Asked Questions ==
 
@@ -97,13 +92,10 @@ If you're unable to log in, you can use your backup codes for emergency access. 
 
 = What makes a password "strong" according to the plugin? =
 
-The plugin enforces truly strong passwords that must meet all of the following criteria:
-* At least 8 characters long
+The plugin considers a password strong when it:
+* Is at least 8 characters long
 * Does not contain the username
-* Includes uppercase letters
-* Includes lowercase letters
-* Includes numbers
-* Includes special characters
+* Includes a mix of uppercase letters, lowercase letters, numbers, and special characters
 
 = Will enforcing strong passwords affect existing user accounts? =
 
@@ -121,16 +113,8 @@ The current version focuses on password strength and two-factor authentication. 
 4. Login Protection Settings
 5. User Profile 2FA Setup
 6. Login Screen with 2FA Prompt
-7. Strong Password Enforcement
 
 == Changelog ==
-
-= 1.3.1 =
-* Enhanced password strength enforcement to require truly strong passwords (level 4)
-* Added strong password validation on registration forms
-* Added strong password validation on password reset forms
-* Improved error messages and real-time feedback for password requirements
-* Fixed compatibility issues with various form types
 
 = 1.3.0 =
 * Added Login Protection feature to enforce strong passwords
@@ -161,9 +145,6 @@ The current version focuses on password strength and two-factor authentication. 
 * Initial release with basic SSL enforcement
 
 == Upgrade Notice ==
-
-= 1.3.1 =
-This version enhances password security by requiring truly strong passwords (level 4) with all four criteria (uppercase, lowercase, numbers, and special characters) across all forms, including registration and password reset.
 
 = 1.3.0 =
 This version adds Login Protection features to enhance password security. After upgrading, visit the new "Login Protection" tab in the plugin settings to enforce strong passwords.
