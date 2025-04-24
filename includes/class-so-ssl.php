@@ -290,7 +290,7 @@ class So_SSL {
 
                 <!-- Login Limiting Tab -->
                 <div id="login-limit" class="settings-tab">
-                    <h2><?php _e('Login Attempts', 'so-ssl'); ?></h2>                    
+                    <h2><?php _e('Login Attempts', 'so-ssl'); ?></h2>
                     <?php
                     do_settings_sections('so-ssl-login-limit-tab');
                     ?>

@@ -16,6 +16,10 @@ class So_SSL_Login_Limit {
             return;
         }
 
+        // Enqueue scripts and styles
+        add_action('login_enqueue_scripts', array(__CLASS__, 'enqueue_scripts'));
+        add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_scripts'));
+
         // Add hooks for login attempt limiting
         add_filter('authenticate', array(__CLASS__, 'check_login_attempts'), 30, 3);
         add_action('wp_login_failed', array(__CLASS__, 'log_failed_login'), 10, 1);
@@ -382,8 +386,8 @@ class So_SSL_Login_Limit {
             return;
         }
 
-        wp_enqueue_style('so-ssl-login-limit', SO_SSL_URL . 'assets/css/so-ssl-login-limit.css', array(), SO_SSL_VERSION);
-        wp_enqueue_script('so-ssl-login-limit', SO_SSL_URL . 'assets/js/so-ssl-login-limit.js', array('jquery'), SO_SSL_VERSION, true);
+        //wp_enqueue_style('so-ssl-login-limit', SO_SSL_URL . 'assets/css/so-ssl-login-limit.css', array(), SO_SSL_VERSION);
+        //wp_enqueue_script('so-ssl-login-limit', SO_SSL_URL . 'assets/js/so-ssl-login-limit.js', array('jquery'), SO_SSL_VERSION, true);
         wp_localize_script('so-ssl-login-limit', 'soSslLoginLimit', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('so_ssl_login_limit_nonce'),
@@ -734,6 +738,14 @@ class So_SSL_Login_Limit {
             });
         </script>
         <?php
+    }
+
+    /**
+     * Enqueue scripts and styles
+     */
+    public static function enqueue_scripts() {
+        wp_enqueue_style('so-ssl-login-limit', SO_SSL_URL . 'assets/css/so-ssl-login-limit.css', array(), SO_SSL_VERSION);
+        wp_enqueue_script('so-ssl-login-limit', SO_SSL_URL . 'assets/js/so-ssl-login-limit.js', array('jquery'), SO_SSL_VERSION, true);
     }
 
     /**

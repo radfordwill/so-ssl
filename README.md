@@ -138,6 +138,9 @@ Yes, you can add your IP address to the whitelist in the Settings > Login Securi
 
 ## Changelog
 
+### 1.4.1
+- Fixes for missing js and css files
+
 ### 1.4.0
 - Added User Sessions Management feature
 - Added Login Attempt Limiting feature

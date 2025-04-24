@@ -3,7 +3,7 @@ Contributors: radfordwill
 Tags: ssl, security, headers, https, two-factor, 2fa, authentication, passwords, login, protection, brute force
 Requires at least: 5.0
 Tested up to: 6.4
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -161,6 +161,9 @@ Yes, the Login Attempt Limiting feature provides comprehensive brute force prote
 
 == Changelog ==
 
+= 1.4.1 =
+Fixes for missing js and css files
+
 = 1.4.0 =
 * Added User Sessions Management feature
 * Added Login Attempt Limiting feature
@@ -200,6 +203,9 @@ Yes, the Login Attempt Limiting feature provides comprehensive brute force prote
 * Initial release with basic SSL enforcement
 
 == Upgrade Notice ==
+
+= 1.4.1 =
+Fixes for missing js and css files
 
 = 1.4.0 =
 This version adds User Sessions Management and Login Attempt Limiting features to enhance security. After upgrading, visit the new "User Sessions" and "Login Limiting" tabs in the plugin settings to configure these new security features.
