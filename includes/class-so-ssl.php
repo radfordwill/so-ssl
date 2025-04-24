@@ -107,6 +107,7 @@ class So_SSL {
 
         // Add initialization of 2FA directories
         add_action('admin_init', array($this, 'initialize_2fa_directories'));
+
     }
 
     /**
@@ -221,6 +222,8 @@ class So_SSL {
                 <a href="#cross-origin" class="nav-tab" data-tab="cross-origin"><?php _e('Cross-Origin', 'so-ssl'); ?></a>
                 <a href="#two-factor" class="nav-tab" data-tab="two-factor"><?php _e('Two-Factor Auth', 'so-ssl'); ?></a>
                 <a href="#login-protection" class="nav-tab" data-tab="login-protection"><?php _e('Login Protection', 'so-ssl'); ?></a>
+                <a href="#user-sessions" class="nav-tab" data-tab="user-sessions"><?php _e('User Sessions', 'so-ssl'); ?></a>
+                <a href="#login-limit" class="nav-tab" data-tab="login-limit"><?php _e('Login Limiting', 'so-ssl'); ?></a>
             </div>
 
             <form action="options.php" method="post">
@@ -275,6 +278,23 @@ class So_SSL {
                     <?php
                     do_settings_sections('so-ssl-login-protection');
                     ?>
+                </div>
+
+                <!-- User Sessions Tab -->
+                <div id="user-sessions" class="settings-tab">
+                    <h2><?php _e('User Sessions', 'so-ssl'); ?></h2>
+                    <?php
+                    do_settings_sections('so-ssl-user-sessions');
+                    ?>
+                </div>
+
+                <!-- Login Limiting Tab -->
+                <div id="login-limit" class="settings-tab">
+                    <h2><?php _e('Login Attempts', 'so-ssl'); ?></h2>                    
+                    <?php
+                    do_settings_sections('so-ssl-login-limit-tab');
+                    ?>
+                    <p><?php printf(__('For detailed settings and statistics, visit the <a href="%s">Login Security</a> page.', 'so-ssl'), admin_url('options-general.php?page=so-ssl-login-limit')); ?></p>
                 </div>
 
                 <!-- Add hidden input for active tab -->
@@ -397,6 +417,60 @@ class So_SSL {
 
         // Login Protection Settings
         $this->register_login_protection_settings();
+
+        // User Sessions Management Settings
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_enable_user_sessions',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        )
+    );
+
+    // Login Limiting Settings
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_enable_login_limit',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        )
+    );
+
+    // Register User Sessions Management tab
+    add_settings_section(
+        'so_ssl_user_sessions_section',
+        __('User Sessions Management', 'so-ssl'),
+        array($this, 'user_sessions_section_callback'),
+        'so-ssl-user-sessions'
+    );
+
+    add_settings_field(
+        'so_ssl_enable_user_sessions',
+        __('Enable User Sessions Management', 'so-ssl'),
+        array($this, 'enable_user_sessions_callback'),
+        'so-ssl-user-sessions',
+        'so_ssl_user_sessions_section'
+    );
+
+    // Register Login Limiting tab
+    add_settings_section(
+        'so_ssl_login_limit_section_tab',
+        __('Login Attempt Limiting', 'so-ssl'),
+        array($this, 'login_limit_section_callback'),
+        'so-ssl-login-limit-tab'
+    );
+
+    add_settings_field(
+        'so_ssl_enable_login_limit',
+        __('Enable Login Limiting', 'so-ssl'),
+        array($this, 'enable_login_limit_callback'),
+        'so-ssl-login-limit-tab',
+        'so_ssl_login_limit_section_tab'
+    );
     }
 
     /**
@@ -2230,4 +2304,52 @@ class So_SSL {
 
         return $strength;
     }
+
+ /**
+ * User Sessions section description.
+ */
+public function user_sessions_section_callback() {
+    echo '<p>' . __('Configure user session management to enhance security by controlling and monitoring active sessions.', 'so-ssl') . '</p>';
+}
+
+/**
+ * Enable user sessions management field callback.
+ */
+public function enable_user_sessions_callback() {
+    $enable_user_sessions = get_option('so_ssl_enable_user_sessions', 0);
+
+    echo '<label for="so_ssl_enable_user_sessions">';
+    echo '<input type="checkbox" id="so_ssl_enable_user_sessions" name="so_ssl_enable_user_sessions" value="1" ' . checked(1, $enable_user_sessions, false) . '/>';
+    echo __('Enable user sessions management', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . __('Adds the ability to view and manage user login sessions across devices.', 'so-ssl') . '</p>';
+
+    if ($enable_user_sessions) {
+        echo '<p>' . sprintf(__('Configure detailed settings and view active sessions on the <a href="%s">User Sessions</a> page.', 'so-ssl'), admin_url('options-general.php?page=so-ssl-sessions')) . '</p>';
+    }
+}
+
+  /**
+   * Login limit section description.
+   */
+  public function login_limit_section_callback() {
+      echo '<p>' . __('Configure login attempt limiting to protect your site from brute force attacks.', 'so-ssl') . '</p>';
+  }
+
+  /**
+   * Enable login limit field callback.
+   */
+  public function enable_login_limit_callback() {
+      $enable_login_limit = get_option('so_ssl_enable_login_limit', 0);
+
+      echo '<label for="so_ssl_enable_login_limit">';
+      echo '<input type="checkbox" id="so_ssl_enable_login_limit" name="so_ssl_enable_login_limit" value="1" ' . checked(1, $enable_login_limit, false) . '/>';
+      echo __('Enable login attempt limiting', 'so-ssl');
+      echo '</label>';
+      echo '<p class="description">' . __('Limits the number of failed login attempts allowed per IP address.', 'so-ssl') . '</p>';
+
+      if ($enable_login_limit) {
+          echo '<p>' . sprintf(__('Configure detailed settings and view login statistics on the <a href="%s">Login Security</a> page.', 'so-ssl'), admin_url('options-general.php?page=so-ssl-login-limit')) . '</p>';
+      }
+  }
 }

@@ -25,6 +25,19 @@ So SSL provides a comprehensive set of tools to enhance the security of your Wor
   - Enforce strong passwords for all users
   - Disable "confirm use of weak password" checkbox
   - Prevent users from configuring weak passwords during registration or password change
+- **User Sessions Management**:
+  - View and manage all active user sessions
+  - Terminate individual or all sessions
+  - Set maximum sessions per user
+  - Limit session duration
+  - Manage sessions across multiple devices
+- **Login Attempt Limiting**:
+  - Protect against brute force attacks
+  - Customize maximum login attempts
+  - Configurable lockout duration
+  - IP whitelist and blacklist
+  - Detailed login statistics
+  - Email notifications for lockouts
 
 ## Installation
 
@@ -69,6 +82,27 @@ Strengthen your site's login security by enforcing strong passwords:
    - Enforce strong passwords during password changes
    - Display helpful error messages guiding users to create stronger passwords
 
+### User Sessions Management
+
+Monitor and control active user sessions across devices:
+
+1. **Enable Session Management**: Go to the "User Sessions" tab and enable the feature
+2. **View Active Sessions**: See all active sessions for each user
+3. **Session Details**: View login time, IP address, browser, expiration time
+4. **Terminate Sessions**: End individual sessions or all sessions for a user
+5. **Session Limits**: Set maximum number of concurrent sessions per user
+6. **Duration Limits**: Set maximum session lifetime
+
+### Login Attempt Limiting
+
+Protect against brute force attacks by limiting login attempts:
+
+1. **Enable Login Limiting**: Go to the "Login Limiting" tab and enable the feature
+2. **Configure Settings**: Set maximum attempts, lockout duration, and other parameters
+3. **IP Management**: Whitelist and blacklist IPs as needed
+4. **View Statistics**: Monitor login attempts and lockouts
+5. **Notifications**: Receive email alerts for suspicious activity
+
 ## Frequently Asked Questions
 
 ### Is this plugin compatible with multisite installations?
@@ -94,7 +128,25 @@ The plugin considers a password strong when it:
 
 Enforcing strong passwords only affects new password creations and changes. Existing users won't be forced to change their passwords immediately, but will need to create a strong password when they next update it.
 
+### How do I unlock an IP that has been blacklisted?
+
+Administrators can go to Settings > Login Security > Blacklist tab and remove the IP address from the blacklist.
+
+### Can I whitelist my own IP address to prevent lockouts?
+
+Yes, you can add your IP address to the whitelist in the Settings > Login Security > Whitelist tab to ensure you never get locked out.
+
 ## Changelog
+
+### 1.4.0
+- Added User Sessions Management feature
+- Added Login Attempt Limiting feature
+- Added IP whitelisting and blacklisting
+- Added detailed statistics for login attempts
+
+### 1.3.1
+- Minor fixes
+* Better login Protection
 
 ### 1.3.0
 - Added Login Protection feature to enforce strong passwords

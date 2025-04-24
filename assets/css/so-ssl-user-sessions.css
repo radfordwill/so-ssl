@@ -1,0 +1,49 @@
+/* User Sessions Management Styles */
+.so-ssl-sessions-table {
+    margin-top: 15px;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.so-ssl-sessions-table th,
+.so-ssl-sessions-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.so-ssl-sessions-table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+}
+
+.so-ssl-current-session {
+    background-color: #f0f8ff;
+}
+
+.so-ssl-current-session-label {
+    display: inline-block;
+    margin-left: 10px;
+    color: #0073aa;
+    font-style: italic;
+}
+
+.so-ssl-session-actions {
+    margin-bottom: 15px;
+}
+
+.so-ssl-session-actions button {
+    margin-right: 10px;
+}
+
+.so-ssl-user-sessions-container {
+    margin-bottom: 30px;
+    background: #fff;
+    padding: 15px;
+    border: 1px solid #e5e5e5;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.so-ssl-session-settings {
+    margin-bottom: 30px;
+}

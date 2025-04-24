@@ -3,7 +3,7 @@
  * Plugin Name: So SSL
  * Plugin URI: https://example.com/plugins/so-ssl
  * Description: A plugin to activate and enforce SSL on your WordPress site with additional security headers.
- * Version: 1.3.0
+ * Version: 1.4.0
  * Author: Will Radford
  * Author URI: https://github.com/radfordwill/
  * License: GPL-3.0+
@@ -20,7 +20,7 @@ if (!defined('WPINC')) {
 /**
  * Current plugin version.
  */
-define('SO_SSL_VERSION', '1.3.0');
+define('SO_SSL_VERSION', '1.4.0');
 
 /**
  * Plugin path.
@@ -86,6 +86,23 @@ function activate_so_ssl() {
     // Login Protection
     add_option('so_ssl_disable_weak_passwords', 0);
 
+    // User Sessions Management
+    add_option('so_ssl_enable_user_sessions', 0);
+    add_option('so_ssl_max_sessions_per_user', 0);
+    add_option('so_ssl_max_session_duration', 0);
+
+    // Login Limiting
+    add_option('so_ssl_enable_login_limit', 0);
+    add_option('so_ssl_max_login_attempts', 5);
+    add_option('so_ssl_lockout_duration', 15);
+    add_option('so_ssl_long_lockout_count', 3);
+    add_option('so_ssl_long_lockout_duration', 24);
+    add_option('so_ssl_auto_blacklist', 0);
+    add_option('so_ssl_lockout_notify', 0);
+    add_option('so_ssl_block_type', 'message');
+    add_option('so_ssl_ip_whitelist', array());
+    add_option('so_ssl_ip_blacklist', array());
+
     // Define default permissions
     $permissions = array(
         'accelerometer', 'ambient-light-sensor', 'autoplay', 'battery', 'camera',
@@ -126,6 +143,16 @@ register_deactivation_hook(__FILE__, 'deactivate_so_ssl');
  * The core plugin class.
  */
 require_once SO_SSL_PATH . 'includes/class-so-ssl.php';
+
+/**
+ * User Sessions Management functionality.
+ */
+require_once SO_SSL_PATH . 'includes/so-ssl-user-sessions.php';
+
+/**
+ * Login Limiting functionality.
+ */
+require_once SO_SSL_PATH . 'includes/so-ssl-login-limit.php';
 
 /**
  * Begins execution of the plugin.
