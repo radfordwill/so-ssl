@@ -2,7 +2,7 @@
 Contributors: radfordwill
 Tags: ssl, security, headers, https, two-factor, 2fa, authentication, passwords, login, protection, brute force
 Requires at least: 5.0
-Tested up to: 6.4
+Tested up to: 6.8
 Stable tag: 1.4.2
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
