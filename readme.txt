@@ -3,7 +3,7 @@ Contributors: radfordwill
 Tags: ssl, security, headers, https, two-factor, 2fa, authentication, passwords, login, protection, brute force
 Requires at least: 5.0
 Tested up to: 6.4
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -150,16 +150,14 @@ Yes, the Login Attempt Limiting feature provides comprehensive brute force prote
 == Screenshots ==
 
 1. SSL Settings
-2. Security Headers Configuration
-3. Two-Factor Authentication Settings
-4. Login Protection Settings
-5. User Profile 2FA Setup
-6. Login Screen with 2FA Prompt
-7. User Sessions Management
-8. Login Attempt Limiting Dashboard
-9. IP Whitelist and Blacklist Management
+2. Login Screen with 2FA Prompt
+3. User Sessions Management
+4. Login Attempt Limiting Dashboard
 
 == Changelog ==
+
+= 1.4.2 =
+* add translation file and image files for plugin
 
 = 1.4.1 =
 Fixes for missing js and css files
@@ -171,7 +169,7 @@ Fixes for missing js and css files
 * Added detailed statistics for login attempts
 
 = 1.3.1 =
-- Minor fixes
+* Minor fixes
 * Better login Protection
 
 = 1.3.0 =
@@ -203,6 +201,9 @@ Fixes for missing js and css files
 * Initial release with basic SSL enforcement
 
 == Upgrade Notice ==
+
+= 1.4.2 =
+- menu fixes and add image files for plugin
 
 = 1.4.1 =
 Fixes for missing js and css files
