@@ -70,7 +70,25 @@ class So_SSL_Session_Handler {
      */
     public static function get($key, $default = null) {
         self::start_session();
-        return isset($_SESSION[$key]) ? $_SESSION[$key] : $default;
+
+        // Ensure $key is a string and sanitize it
+        $sanitized_key = is_string($key) ? sanitize_key($key) : '';
+
+        // Get the value and sanitize it before returning
+        if (isset($_SESSION[$sanitized_key])) {
+            $value = sanitize_key($_SESSION[$sanitized_key]);
+
+            // Sanitize based on the value type
+            if (is_string($value)) {
+                return sanitize_text_field($value);
+            } elseif (is_array($value)) {
+                return array_map('sanitize_text_field', $value);
+            } else {
+                return $value; // Numeric or boolean values
+            }
+        }
+
+        return $default;
     }
 
     /**
@@ -127,42 +145,43 @@ class So_SSL_Session_Handler {
      * @param bool $remove Whether to remove the value
      * @return mixed The session value or null
      */
-    public static function cookie_session($key, $value = null, $remove = false) {
-        $session_name = 'so_ssl_2fa_' . $key;
+     public static function cookie_session($key, $value = null, $remove = false) {
+     $session_name = 'so_ssl_2fa_' . $key;
 
-        // Get value
-        if ($value === null && !$remove) {
-            return isset($_COOKIE[$session_name]) ? sanitize_text_field($_COOKIE[$session_name]) : null;
-        }
+     // Get value
+     if ($value === null && !$remove) {
+         return isset($_COOKIE[$session_name]) ?
+             sanitize_text_field(wp_unslash($_COOKIE[$session_name])) : null;
+     }
 
-        // Remove value
-        if ($remove) {
-            setcookie(
-                $session_name,
-                '',
-                time() - 3600,
-                COOKIEPATH,
-                COOKIE_DOMAIN,
-                is_ssl(),
-                true
-            );
-            return null;
-        }
+     // Remove value
+     if ($remove) {
+         setcookie(
+             $session_name,
+             '',
+             time() - 3600,
+             COOKIEPATH,
+             COOKIE_DOMAIN,
+             is_ssl(),
+             true
+         );
+         return null;
+     }
 
-        // Set value
-        setcookie(
-            $session_name,
-            $value,
-            time() + 900, // 15 minutes
-            COOKIEPATH,
-            COOKIE_DOMAIN,
-            is_ssl(),
-            true
-        );
+     // Set value
+     setcookie(
+         $session_name,
+         $value,
+         time() + 900, // 15 minutes
+         COOKIEPATH,
+         COOKIE_DOMAIN,
+         is_ssl(),
+         true
+     );
+     return $value;
+   }
 
-        return $value;
-    }
-}
+ }
 
 // Initialize the session handler
 So_SSL_Session_Handler::init();

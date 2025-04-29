@@ -91,38 +91,41 @@ class So_SSL_Two_Factor {
         $method = get_option('so_ssl_2fa_method', 'email');
 
         ?>
-        <h2><?php _e('Two-Factor Authentication', 'so-ssl'); ?></h2>
-        <table class="form-table">
+        <h2><?php esc_html_e('Two-Factor Authentication', 'so-ssl'); ?></h2>        <table class="form-table">
             <tr>
-                <th><label for="so_ssl_2fa_enabled"><?php _e('Enable Two-Factor Authentication', 'so-ssl'); ?></label></th>
+                <th><label for="so_ssl_2fa_enabled"><?php esc_html_e('Enable Two-Factor Authentication', 'so-ssl'); ?></label></th>
                 <td>
                     <input type="checkbox" name="so_ssl_2fa_enabled" id="so_ssl_2fa_enabled" value="1" <?php checked($enabled, '1'); ?> />
-                    <p class="description"><?php _e('Enable two-factor authentication for your account.', 'so-ssl'); ?></p>
+                    <p class="description"><?php esc_html_e('Enable two-factor authentication for your account.', 'so-ssl'); ?></p>
                 </td>
             </tr>
 
             <?php if ($method === 'authenticator'): ?>
-            <tr id="so_ssl_2fa_authenticator_row" style="<?php echo ($enabled !== '1') ? 'display:none;' : ''; ?>">
-                <th><?php _e('Authenticator App Setup', 'so-ssl'); ?></th>
-                <td>
-                    <?php self::display_authenticator_setup($user); ?>
-                </td>
-            </tr>
+                <tr id="so_ssl_2fa_authenticator_row" style="<?php echo ($enabled !== '1') ? 'display:none;' : ''; ?>">
+                    <th><?php esc_html_e('Authenticator App Setup', 'so-ssl'); ?></th>
+                    <td>
+                        <?php self::display_authenticator_setup($user); ?>
+                    </td>
+                </tr>
             <?php else: ?>
-            <tr id="so_ssl_2fa_email_row" style="<?php echo ($enabled !== '1') ? 'display:none;' : ''; ?>">
-                <th><?php _e('Email Authentication', 'so-ssl'); ?></th>
+                <tr id="so_ssl_2fa_email_row" style="<?php echo esc_attr(($enabled !== '1') ? 'display:none;' : ''); ?>"
+                <th><?php esc_html_e('Email Authentication', 'so-ssl'); ?></th>
                 <td>
-                    <p><?php printf(__('Verification codes will be sent to your email address: <strong>%s</strong>', 'so-ssl'), $user->user_email); ?></p>
+                    <p><?php
+                        /* translators: %s: User email address */
+                        printf(esc_html__('Verification codes will be sent to your email address: %s', 'so-ssl'), esc_html($user->user_email));
+                        ?>
+                    </p>
                 </td>
-            </tr>
+                </tr>
             <?php endif; ?>
 
             <tr id="so_ssl_2fa_backup_codes_row" style="<?php echo ($enabled !== '1') ? 'display:none;' : ''; ?>">
-                <th><?php _e('Backup Codes', 'so-ssl'); ?></th>
+                <th><?php esc_html_e('Backup Codes', 'so-ssl'); ?></th>
                 <td>
-                    <button type="button" id="so_ssl_generate_backup_codes" class="button"><?php _e('Generate Backup Codes', 'so-ssl'); ?></button>
+                    <button type="button" id="so_ssl_generate_backup_codes" class="button"><?php esc_html_e('Generate Backup Codes', 'so-ssl'); ?></button>
                     <div id="so_ssl_backup_codes_container" style="display:none; margin-top: 10px;">
-                        <p><?php _e('Save these backup codes in a safe place. They can be used if you lose access to your authentication method.', 'so-ssl'); ?></p>
+                        <p><?php esc_html_e('Save these backup codes in a safe place. They can be used if you lose access to your authentication method.', 'so-ssl'); ?></p>
                         <div id="so_ssl_backup_codes"></div>
                     </div>
                 </td>
@@ -130,34 +133,34 @@ class So_SSL_Two_Factor {
         </table>
 
         <script>
-        jQuery(document).ready(function($) {
-            // Toggle 2FA fields when checkbox changes
-            $('#so_ssl_2fa_enabled').on('change', function() {
-                if ($(this).is(':checked')) {
-                    $('#so_ssl_2fa_authenticator_row, #so_ssl_2fa_email_row, #so_ssl_2fa_backup_codes_row').show();
-                } else {
-                    $('#so_ssl_2fa_authenticator_row, #so_ssl_2fa_email_row, #so_ssl_2fa_backup_codes_row').hide();
-                }
-            });
-
-            // Handle backup codes generation
-            $('#so_ssl_generate_backup_codes').on('click', function() {
-                var data = {
-                    'action': 'so_ssl_generate_backup_codes',
-                    'user_id': <?php echo $user->ID; ?>,
-                    'nonce': '<?php echo wp_create_nonce('so_ssl_2fa_nonce'); ?>'
-                };
-
-                $.post(ajaxurl, data, function(response) {
-                    if (response.success) {
-                        $('#so_ssl_backup_codes').html(response.data.codes_html);
-                        $('#so_ssl_backup_codes_container').show();
+            jQuery(document).ready(function($) {
+                // Toggle 2FA fields when checkbox changes
+                $('#so_ssl_2fa_enabled').on('change', function() {
+                    if ($(this).is(':checked')) {
+                        $('#so_ssl_2fa_authenticator_row, #so_ssl_2fa_email_row, #so_ssl_2fa_backup_codes_row').show();
                     } else {
-                        alert(response.data.message);
+                        $('#so_ssl_2fa_authenticator_row, #so_ssl_2fa_email_row, #so_ssl_2fa_backup_codes_row').hide();
                     }
                 });
+
+                // Handle backup codes generation
+                $('#so_ssl_generate_backup_codes').on('click', function() {
+                    var data = {
+                        'action': 'so_ssl_generate_backup_codes',
+                        'user_id': <?php echo esc_js($user->ID); ?>,
+                        'nonce': '<?php echo esc_js(wp_create_nonce('so_ssl_2fa_nonce')); ?>'
+                    };
+
+                    $.post(ajaxurl, data, function(response) {
+                        if (response.success) {
+                            $('#so_ssl_backup_codes').html(response.data.codes_html);
+                            $('#so_ssl_backup_codes_container').show();
+                        } else {
+                            alert(response.data.message);
+                        }
+                    });
+                });
             });
-        });
         </script>
         <?php
     }
@@ -190,40 +193,40 @@ class So_SSL_Two_Factor {
 
         ?>
         <div class="so-ssl-authenticator-setup">
-            <p><?php _e('Scan this QR code with your authenticator app (like Google Authenticator, Authy, or Microsoft Authenticator).', 'so-ssl'); ?></p>
+            <p><?php esc_html_e('Scan this QR code with your authenticator app (like Google Authenticator, Authy, or Microsoft Authenticator).', 'so-ssl'); ?></p>
             <div class="so-ssl-qr-code">
-                <img src="<?php echo esc_url($qr_code_url); ?>" alt="<?php _e('QR Code', 'so-ssl'); ?>" />
+                <img src="<?php echo esc_url($qr_code_url); ?>" alt="<?php esc_html_e('QR Code', 'so-ssl'); ?>" />
             </div>
-            <p><?php _e('Or manually enter this code into your app:', 'so-ssl'); ?> <code><?php echo esc_html($secret); ?></code></p>
+            <p><?php esc_html_e('Or manually enter this code into your app:', 'so-ssl'); ?> <code><?php echo esc_html($secret); ?></code></p>
 
             <div class="so-ssl-verify-code">
-                <p><?php _e('Verify that your authenticator app is working by entering a code below:', 'so-ssl'); ?></p>
+                <p><?php esc_html_e('Verify that your authenticator app is working by entering a code below:', 'so-ssl'); ?></p>
                 <input type="text" id="so_ssl_verify_code" name="so_ssl_verify_code" class="regular-text" />
-                <button type="button" id="so_ssl_verify_code_button" class="button"><?php _e('Verify Code', 'so-ssl'); ?></button>
+                <button type="button" id="so_ssl_verify_code_button" class="button"><?php esc_html_e('Verify Code', 'so-ssl'); ?></button>
                 <div id="so_ssl_verify_result"></div>
             </div>
         </div>
 
         <script>
-        jQuery(document).ready(function($) {
-            $('#so_ssl_verify_code_button').on('click', function() {
-                var code = $('#so_ssl_verify_code').val();
-                var data = {
-                    'action': 'so_ssl_verify_totp_code',
-                    'user_id': <?php echo $user->ID; ?>,
-                    'code': code,
-                    'nonce': '<?php echo wp_create_nonce('so_ssl_2fa_nonce'); ?>'
-                };
+            jQuery(document).ready(function($) {
+                $('#so_ssl_verify_code_button').on('click', function() {
+                    var code = $('#so_ssl_verify_code').val();
+                    var data = {
+                        'action': 'so_ssl_verify_totp_code',
+                        'user_id': <?php echo esc_js($user->ID); ?>,
+                        'code': code,
+                        'nonce': '<?php echo esc_js(wp_create_nonce('so_ssl_2fa_nonce')); ?>'
+                    };
 
-                $.post(ajaxurl, data, function(response) {
-                    if (response.success) {
-                        $('#so_ssl_verify_result').html('<span style="color:green;">' + response.data.message + '</span>');
-                    } else {
-                        $('#so_ssl_verify_result').html('<span style="color:red;">' + response.data.message + '</span>');
-                    }
+                    $.post(ajaxurl, data, function(response) {
+                        if (response.success) {
+                            $('#so_ssl_verify_result').html('<span style="color:green;">' + response.data.message + '</span>');
+                        } else {
+                            $('#so_ssl_verify_result').html('<span style="color:red;">' + response.data.message + '</span>');
+                        }
+                    });
                 });
             });
-        });
         </script>
         <?php
     }
@@ -234,6 +237,11 @@ class So_SSL_Two_Factor {
      * @param int $user_id The user ID
      */
     public static function save_2fa_user_fields($user_id) {
+        // Check for nonce - explicitly for code analyzer
+        if (!isset($_POST['_wpnonce'])) {
+            return;
+        }
+
         if (!current_user_can('edit_user', $user_id)) {
             return;
         }
@@ -244,7 +252,10 @@ class So_SSL_Two_Factor {
             return;
         }
 
-        // Save 2FA enabled status
+        // Verify nonce
+        check_admin_referer('update-user_' . $user_id);
+
+        // Save 2FA enabled status - note no need to unslash as we're just checking if it's set
         $enabled = isset($_POST['so_ssl_2fa_enabled']) ? '1' : '0';
         update_user_meta($user_id, 'so_ssl_2fa_enabled', $enabled);
     }
@@ -253,14 +264,16 @@ class So_SSL_Two_Factor {
      * Add 2FA fields to login form
      */
     public static function add_2fa_login_fields() {
-        // Get session information
-        $requires_2fa = isset($_SESSION['so_ssl_2fa_required']) ? $_SESSION['so_ssl_2fa_required'] : false;
+        // Get session information - Sanitize when retrieving
+        $requires_2fa = isset($_SESSION['so_ssl_2fa_required']) ? (bool)$_SESSION['so_ssl_2fa_required'] : false;
 
         if ($requires_2fa) {
+            // Add nonce field for CSRF protection
+            wp_nonce_field('so_ssl_2fa_verification', 'so_ssl_2fa_nonce');
             ?>
             <p>
-                <label for="so_ssl_2fa_code"><?php _e('Authentication Code', 'so-ssl'); ?><br />
-                <input type="text" name="so_ssl_2fa_code" id="so_ssl_2fa_code" class="input" size="20" autocomplete="off" />
+                <label for="so_ssl_2fa_code"><?php esc_html_e('Authentication Code', 'so-ssl'); ?><br />
+                    <input type="text" name="so_ssl_2fa_code" id="so_ssl_2fa_code" class="input" size="20" autocomplete="off" />
                 </label>
             </p>
             <?php
@@ -274,11 +287,11 @@ class So_SSL_Two_Factor {
      * @return string Modified login message
      */
     public static function login_message($message) {
-        // Get session information
-        $requires_2fa = isset($_SESSION['so_ssl_2fa_required']) ? $_SESSION['so_ssl_2fa_required'] : false;
+        // Get session information - Sanitize when retrieving
+        $requires_2fa = isset($_SESSION['so_ssl_2fa_required']) ? (bool)$_SESSION['so_ssl_2fa_required'] : false;
 
         if ($requires_2fa) {
-            $user_id = isset($_SESSION['so_ssl_2fa_user_id']) ? $_SESSION['so_ssl_2fa_user_id'] : 0;
+            $user_id = isset($_SESSION['so_ssl_2fa_user_id']) ? absint($_SESSION['so_ssl_2fa_user_id']) : 0;
             $method = get_option('so_ssl_2fa_method', 'email');
 
             if ($method === 'email') {
@@ -295,9 +308,74 @@ class So_SSL_Two_Factor {
     }
 
     /**
+     * Modify authentication logic to include 2FA
+     *
+     * @param WP_User|WP_Error|null $user User object, WP_Error, or null
+     * @param string $username The username
+     * @param string $password The password
+     * @return WP_User|WP_Error User object or error
+     */
+    public static function authenticate_2fa($user, $username, $password) {
+        // If already errored, return the error
+        if (is_wp_error($user)) {
+            return $user;
+        }
+
+        // If not a user object, return as is
+        if (!is_a($user, 'WP_User')) {
+            return $user;
+        }
+
+        // Check if 2FA is enabled and required for this user
+        $user_2fa_enabled = get_user_meta($user->ID, 'so_ssl_2fa_enabled', true);
+
+        if (!self::is_2fa_required_for_user($user) || $user_2fa_enabled !== '1') {
+            return $user;
+        }
+
+        // Start session for 2FA
+        if (!session_id()) {
+            session_start();
+        }
+
+        // Check if this is a 2FA verification attempt
+        if (isset($_POST['so_ssl_2fa_code'])) {
+            // Verify nonce before processing the 2FA code
+            // Unslash and sanitize the nonce
+            if (!isset($_POST['so_ssl_2fa_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_2fa_nonce'])), 'so_ssl_2fa_verification')) {
+                return new WP_Error('invalid_nonce', __('<strong>ERROR</strong>: Security verification failed. Please try again.', 'so-ssl'));
+            }
+
+            // Unslash before sanitizing
+            $code = sanitize_text_field(wp_unslash($_POST['so_ssl_2fa_code']));
+
+            // Verify the code
+            if (self::is_verification_code_valid($user->ID, $code) || self::is_backup_code_valid($user->ID, $code)) {
+                // Code is valid, clear session data
+                unset($_SESSION['so_ssl_2fa_required']);
+                unset($_SESSION['so_ssl_2fa_user_id']);
+
+                // Allow login
+                return $user;
+            } else {
+                // Invalid code
+                return new WP_Error('invalid_2fa_code', __('<strong>ERROR</strong>: Invalid verification code.', 'so-ssl'));
+            }
+        } else {
+            // Set session data for 2FA verification - Sanitize when setting
+            $_SESSION['so_ssl_2fa_required'] = true; // Boolean value is inherently safe
+            $_SESSION['so_ssl_2fa_user_id'] = absint($user->ID); // Use absint to ensure it's a positive integer
+
+            // Prevent login until 2FA is verified
+            return new WP_Error('2fa_required', __('<strong>INFO</strong>: Please enter your two-factor authentication code.', 'so-ssl'));
+        }
+    }
+
+    /**
      * Send verification code via email
      *
      * @param int $user_id The user ID
+     * @return bool Success or failure
      */
     public static function send_verification_email($user_id) {
         $user = get_userdata($user_id);
@@ -306,19 +384,39 @@ class So_SSL_Two_Factor {
         }
 
         // Generate a code
-        $code = mt_rand(100000, 999999);
+        $code = wp_rand(100000, 999999);
 
         // Store code in user meta with expiration
         update_user_meta($user_id, 'so_ssl_2fa_email_code', $code);
         update_user_meta($user_id, 'so_ssl_2fa_email_code_time', time());
 
         // Prepare email
-        $subject = sprintf(__('[%s] Your login verification code', 'so-ssl'), get_bloginfo('name'));
-        $message = sprintf(__('Hello %s,', 'so-ssl'), $user->display_name) . "\n\n";
-        $message .= sprintf(__('Your verification code for logging into %s is:', 'so-ssl'), get_bloginfo('name')) . "\n\n";
+        $subject = sprintf(
+        /* translators: %s: Site name */
+            __('[%s] Your login verification code', 'so-ssl'),
+            get_bloginfo('name')
+        );
+
+        $message = sprintf(
+            /* translators: %s: User's display name */
+                __('Hello %s,', 'so-ssl'),
+                $user->display_name
+            ) . "\n\n";
+
+        $message .= sprintf(
+            /* translators: %s: Site name */
+                __('Your verification code for logging into %s is:', 'so-ssl'),
+                get_bloginfo('name')
+            ) . "\n\n";
+
         $message .= $code . "\n\n";
         $message .= __('This code will expire in 10 minutes.', 'so-ssl') . "\n\n";
-        $message .= sprintf(__('If you did not attempt to log in to %s, please contact your site administrator immediately.', 'so-ssl'), get_bloginfo('name'));
+
+        $message .= sprintf(
+        /* translators: %s: Site name */
+            __('If you did not attempt to log in to %s, please contact your site administrator immediately.', 'so-ssl'),
+            get_bloginfo('name')
+        );
 
         // Send email
         return wp_mail($user->user_email, $subject, $message);
@@ -390,63 +488,6 @@ class So_SSL_Two_Factor {
     }
 
     /**
-     * Modify authentication logic to include 2FA
-     *
-     * @param WP_User|WP_Error|null $user User object, WP_Error, or null
-     * @param string $username The username
-     * @param string $password The password
-     * @return WP_User|WP_Error User object or error
-     */
-    public static function authenticate_2fa($user, $username, $password) {
-        // If already errored, return the error
-        if (is_wp_error($user)) {
-            return $user;
-        }
-
-        // If not a user object, return as is
-        if (!is_a($user, 'WP_User')) {
-            return $user;
-        }
-
-        // Check if 2FA is enabled and required for this user
-        $user_2fa_enabled = get_user_meta($user->ID, 'so_ssl_2fa_enabled', true);
-
-        if (!self::is_2fa_required_for_user($user) || $user_2fa_enabled !== '1') {
-            return $user;
-        }
-
-        // Start session for 2FA
-        if (!session_id()) {
-            session_start();
-        }
-
-        // Check if this is a 2FA verification attempt
-        if (isset($_POST['so_ssl_2fa_code'])) {
-            $code = $_POST['so_ssl_2fa_code'];
-
-            // Verify the code
-            if (self::is_verification_code_valid($user->ID, $code) || self::is_backup_code_valid($user->ID, $code)) {
-                // Code is valid, clear session data
-                unset($_SESSION['so_ssl_2fa_required']);
-                unset($_SESSION['so_ssl_2fa_user_id']);
-
-                // Allow login
-                return $user;
-            } else {
-                // Invalid code
-                return new WP_Error('invalid_2fa_code', __('<strong>ERROR</strong>: Invalid verification code.', 'so-ssl'));
-            }
-        } else {
-            // Set session data for 2FA verification
-            $_SESSION['so_ssl_2fa_required'] = true;
-            $_SESSION['so_ssl_2fa_user_id'] = $user->ID;
-
-            // Prevent login until 2FA is verified
-            return new WP_Error('2fa_required', __('<strong>INFO</strong>: Please enter your two-factor authentication code.', 'so-ssl'));
-        }
-    }
-
-    /**
      * Verify 2FA during login
      *
      * @param string $user_login The username
@@ -505,7 +546,7 @@ class So_SSL_Two_Factor {
         $code = '';
 
         for ($i = 0; $i < 10; $i++) {
-            $code .= $chars[mt_rand(0, strlen($chars) - 1)];
+            $code .= $chars[wp_rand(0, strlen($chars) - 1)];
         }
 
         return $code;
@@ -518,7 +559,8 @@ class So_SSL_Two_Factor {
         check_ajax_referer('so_ssl_2fa_nonce', 'nonce');
 
         $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
-        $code = isset($_POST['code']) ? trim($_POST['code']) : '';
+        // Unslash before sanitizing
+        $code = isset($_POST['code']) ? sanitize_text_field(wp_unslash($_POST['code'])) : '';
 
         if (!current_user_can('edit_user', $user_id)) {
             wp_send_json_error(array('message' => __('You do not have permission to perform this action.', 'so-ssl')));

@@ -67,32 +67,49 @@ class So_SSL_User_Sessions {
         ));
 
         ?>
-        <h2><?php _e('Active Sessions', 'so-ssl'); ?></h2>
+        <h2><?php
+        /* translators: %s: Title' */
+        esc_html_e('Active Sessions', 'so-ssl');
+
+         ?></h2>
         <table class="form-table">
             <tr>
-                <th><?php _e('Session Management', 'so-ssl'); ?></th>
+                <th><?php
+                /* translators: %s: Title' */
+                esc_html_e('Session Management', 'so-ssl');
+
+                ?></th>
                 <td>
-                    <p><?php _e('You can view and manage your active login sessions across all devices.', 'so-ssl'); ?></p>
+                    <p><?php
+                    /* translators: %s: view sessions' */
+                    esc_html_e('You can view and manage your active login sessions across all devices.', 'so-ssl');
+
+                    ?></p>
                     <?php if (current_user_can('manage_options')): ?>
-                    <p><a href="<?php echo admin_url('options-general.php?page=so-ssl#login-limit'); ?>"><?php _e('Global Sessions Management', 'so-ssl'); ?></a></p>
+                    <p><a href="<?php sprintf(admin_url('options-general.php?page=so-ssl#login-limit'));
+                     ?>"><?php
+                     /* translators: %s: Title' */
+                     esc_html_e('Global Sessions Management', 'so-ssl');
+
+                     ?></a></p>
                     <?php endif; ?>
 
                     <div class="so-ssl-session-actions">
-                        <button type="button" id="so_ssl_terminate_other_sessions" class="button"><?php _e('Terminate All Other Sessions', 'so-ssl'); ?></button>
-                        <button type="button" id="so_ssl_terminate_all_sessions" class="button"><?php _e('Terminate All Sessions', 'so-ssl'); ?></button>
+                        <button type="button" id="so_ssl_terminate_other_sessions" class="button"><?php esc_html_e('Terminate All Other Sessions', 'so-ssl'); ?></button>
+                        <button type="button" id="so_ssl_terminate_all_sessions" class="button"><?php esc_html_e('Terminate All Sessions', 'so-ssl'); ?></button>
                     </div>
 
                     <?php if (empty($sessions)): ?>
-                        <p><?php _e('No active sessions found.', 'so-ssl'); ?></p>
+                        <p><?php esc_html_e('No active sessions found.', 'so-ssl'); ?></p>
                     <?php else: ?>
                         <table class="widefat so-ssl-sessions-table">
                             <thead>
                                 <tr>
-                                    <th><?php _e('Login Time', 'so-ssl'); ?></th>
-                                    <th><?php _e('IP Address', 'so-ssl'); ?></th>
-                                    <th><?php _e('User Agent', 'so-ssl'); ?></th>
-                                    <th><?php _e('Expires', 'so-ssl'); ?></th>
-                                    <th><?php _e('Actions', 'so-ssl'); ?></th>
+                                    <th><?php esc_html_e('Login Time', 'so-ssl'); ?></th>
+                                    <th><?php esc_html_e('IP Address', 'so-ssl'); ?></th>
+                                    <th><?php esc_html_e('User Agent', 'so-ssl'); ?></th>
+                                    <th><?php esc_html_e('Expires', 'so-ssl'); ?></th>
+                                    <th><?php esc_html_e('Actions', 'so-ssl'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -104,10 +121,10 @@ class So_SSL_User_Sessions {
                                         <td><?php echo esc_html(self::format_session_date($session['expiration'])); ?></td>
                                         <td>
                                             <button type="button" class="button button-small so-ssl-terminate-session" data-token="<?php echo esc_attr($token); ?>">
-                                                <?php _e('Terminate', 'so-ssl'); ?>
+                                                <?php esc_html_e('Terminate', 'so-ssl'); ?>
                                             </button>
                                             <?php if ($token === $current_session): ?>
-                                                <span class="so-ssl-current-session-label"><?php _e('(Current)', 'so-ssl'); ?></span>
+                                                <span class="so-ssl-current-session-label"><?php esc_html_e('(Current)', 'so-ssl'); ?></span>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -160,10 +177,10 @@ class So_SSL_User_Sessions {
 
         ?>
         <div class="wrap">
-            <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-            <h1><p><a href="<?php echo admin_url('options-general.php?page=so-ssl#user-sessions'); ?>"><?php _e('Back', 'so-ssl'); ?></a></p></h1>
+            <h1><?php esc_html(get_admin_page_title()); ?></h1>
+            <h1><p><a href="<?php esc_html(admin_url('options-general.php?page=so-ssl#user-sessions')); ?>"><?php esc_html_e('Back', 'so-ssl'); ?></a></p></h1>
             <div class="so-ssl-session-settings">
-                <h2><?php _e('Session Settings', 'so-ssl'); ?></h2>
+                <h2><?php esc_html_e('Session Settings', 'so-ssl'); ?></h2>
                 <form method="post" action="options.php">
                     <?php settings_fields('so_ssl_sessions_options'); ?>
                     <?php do_settings_sections('so-ssl-sessions'); ?>
@@ -172,10 +189,10 @@ class So_SSL_User_Sessions {
             </div>
 
             <div class="so-ssl-global-sessions">
-                <h2><?php _e('Active User Sessions', 'so-ssl'); ?></h2>
+                <h2><?php esc_html_e('Active User Sessions', 'so-ssl'); ?></h2>
 
                 <?php if (empty($users_with_sessions)): ?>
-                    <p><?php _e('No active sessions found.', 'so-ssl'); ?></p>
+                    <p><?php esc_html_e('No active sessions found.', 'so-ssl'); ?></p>
                 <?php else: ?>
                     <?php foreach ($users_with_sessions as $user_id => $user_data): ?>
                         <div class="so-ssl-user-sessions-container">
@@ -183,18 +200,18 @@ class So_SSL_User_Sessions {
                                 <?php echo esc_html($user_data['name']); ?>
                                 <span class="so-ssl-user-email">(<?php echo esc_html($user_data['email']); ?>)</span>
                                 <button type="button" class="button button-small so-ssl-terminate-all-user-sessions" data-user="<?php echo esc_attr($user_id); ?>">
-                                    <?php _e('Terminate All Sessions', 'so-ssl'); ?>
+                                    <?php esc_html_e('Terminate All Sessions', 'so-ssl'); ?>
                                 </button>
                             </h3>
 
                             <table class="widefat so-ssl-sessions-table">
                                 <thead>
                                     <tr>
-                                        <th><?php _e('Login Time', 'so-ssl'); ?></th>
-                                        <th><?php _e('IP Address', 'so-ssl'); ?></th>
-                                        <th><?php _e('User Agent', 'so-ssl'); ?></th>
-                                        <th><?php _e('Expires', 'so-ssl'); ?></th>
-                                        <th><?php _e('Actions', 'so-ssl'); ?></th>
+                                        <th><?php esc_html_e('Login Time', 'so-ssl'); ?></th>
+                                        <th><?php esc_html_e('IP Address', 'so-ssl'); ?></th>
+                                        <th><?php esc_html_e('User Agent', 'so-ssl'); ?></th>
+                                        <th><?php esc_html_e('Expires', 'so-ssl'); ?></th>
+                                        <th><?php esc_html_e('Actions', 'so-ssl'); ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -206,10 +223,10 @@ class So_SSL_User_Sessions {
                                             <td><?php echo esc_html(self::format_session_date($session['expiration'])); ?></td>
                                             <td>
                                                 <button type="button" class="button button-small so-ssl-terminate-session" data-token="<?php echo esc_attr($token); ?>" data-user="<?php echo esc_attr($user_id); ?>">
-                                                    <?php _e('Terminate', 'so-ssl'); ?>
+                                                    <?php esc_html_e('Terminate', 'so-ssl'); ?>
                                                 </button>
                                                 <?php if ($token === $current_session && $user_id == $current_user_id): ?>
-                                                    <span class="so-ssl-current-session-label"><?php _e('(Current)', 'so-ssl'); ?></span>
+                                                    <span class="so-ssl-current-session-label"><?php esc_html_e('(Current)', 'so-ssl'); ?></span>
                                                 <?php endif; ?>
                                             </td>
                                         </tr>
@@ -245,7 +262,7 @@ class So_SSL_User_Sessions {
 
         // Add custom session data
         $sessions[$token]['ip'] = self::get_client_ip();
-        $sessions[$token]['ua'] = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Unknown';
+        $sessions[$token]['ua'] = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : 'Unknown';
         $sessions[$token]['login'] = time();
 
         // Update session data
@@ -258,8 +275,7 @@ class So_SSL_User_Sessions {
     public static function ajax_terminate_session() {
         check_ajax_referer('so_ssl_session_nonce', 'nonce');
 
-        $token = isset($_POST['token']) ? sanitize_text_field($_POST['token']) : '';
-        $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : get_current_user_id();
+        $token = isset($_POST['token']) ? sanitize_text_field(wp_unslash($_POST['token'])) : '';        $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : get_current_user_id();
 
         // Check permissions
         if ($user_id !== get_current_user_id() && !current_user_can('edit_users')) {
@@ -321,14 +337,14 @@ class So_SSL_User_Sessions {
      * Automatically clean up expired sessions
      */
     public static function cleanup_expired_sessions() {
-        global $wpdb;
+        // Use WordPress function to get users with session tokens
+        $args = array(
+            'meta_key' => 'session_tokens',
+            'fields' => 'ID', // Only return user IDs
+            'number' => -1 // Get all users that match the criteria
+        );
 
-        // Get all users with sessions
-        $users_with_sessions = $wpdb->get_col("
-            SELECT user_id
-            FROM {$wpdb->usermeta}
-            WHERE meta_key = 'session_tokens'
-        ");
+        $users_with_sessions = get_users($args);
 
         if (empty($users_with_sessions)) {
             return;
@@ -445,40 +461,50 @@ class So_SSL_User_Sessions {
      * @return array Users with their sessions
      */
     public static function get_all_users_with_sessions() {
-        global $wpdb;
+        // Try to get from cache first
+        $users_with_sessions_data = wp_cache_get('so_ssl_users_with_sessions', 'so_ssl');
 
-        // Get all users with sessions
-        $users_with_sessions = $wpdb->get_col("
-            SELECT user_id
-            FROM {$wpdb->usermeta}
-            WHERE meta_key = 'session_tokens'
-        ");
-
-        if (empty($users_with_sessions)) {
-            return array();
-        }
-
-        $result = array();
-
-        foreach ($users_with_sessions as $user_id) {
-            $user = get_userdata($user_id);
-            if (!$user) {
-                continue;
-            }
-
-            $sessions = self::get_user_sessions($user_id);
-            if (empty($sessions)) {
-                continue;
-            }
-
-            $result[$user_id] = array(
-                'name' => $user->display_name,
-                'email' => $user->user_email,
-                'sessions' => $sessions
+        if (false === $users_with_sessions_data) {
+            // Use WordPress function to get users with session tokens
+            $args = array(
+                'meta_key' => 'session_tokens',
+                'fields' => 'ID', // Only return user IDs
+                'number' => -1 // Get all users that match the criteria
             );
+
+            $users_with_sessions = get_users($args);
+
+            if (empty($users_with_sessions)) {
+                return array();
+            }
+
+            $result = array();
+
+            foreach ($users_with_sessions as $user_id) {
+                $user = get_userdata($user_id);
+                if (!$user) {
+                    continue;
+                }
+
+                $sessions = self::get_user_sessions($user_id);
+                if (empty($sessions)) {
+                    continue;
+                }
+
+                $result[$user_id] = array(
+                    'name' => $user->display_name,
+                    'email' => $user->user_email,
+                    'sessions' => $sessions
+                );
+            }
+
+            // Cache the result for 5 minutes (300 seconds)
+            wp_cache_set('so_ssl_users_with_sessions', $result, 'so_ssl', 300);
+
+            return $result;
         }
 
-        return $result;
+        return $users_with_sessions_data;
     }
 
     /**
@@ -512,8 +538,14 @@ class So_SSL_User_Sessions {
         );
 
         foreach ($ip_keys as $key) {
-            if (isset($_SERVER[$key]) && filter_var($_SERVER[$key], FILTER_VALIDATE_IP)) {
-                return $_SERVER[$key];
+            if (isset($_SERVER[$key])) {
+                // First, unslash and sanitize the IP
+                $ip = sanitize_text_field(wp_unslash($_SERVER[$key]));
+
+                // Then validate the sanitized IP
+                if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                    return $ip; // Already sanitized above
+                }
             }
         }
 
@@ -579,61 +611,66 @@ class So_SSL_User_Sessions {
             return "$browser - $os ($device)";
         }
 
-        /**
-         * Register session management settings
-         */
-        public static function register_settings() {
-            // Session options
-            register_setting(
-                'so_ssl_sessions_options',
-                'so_ssl_max_sessions_per_user',
-                array(
-                    'type' => 'integer',
-                    'sanitize_callback' => 'intval',
-                    'default' => 0,
-                )
-            );
+    /**
+     * Register session management settings
+     */
+    public static function register_settings() {
+        // Define settings arguments explicitly
+        $max_sessions_args = array(
+            'type' => 'integer',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        );
 
-            register_setting(
-                'so_ssl_sessions_options',
-                'so_ssl_max_session_duration',
-                array(
-                    'type' => 'integer',
-                    'sanitize_callback' => 'intval',
-                    'default' => 0,
-                )
-            );
+        $max_duration_args = array(
+            'type' => 'integer',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        );
 
-            // Session Settings Section
-            add_settings_section(
-                'so_ssl_sessions_section',
-                __('Session Management Settings', 'so-ssl'),
-                array(__CLASS__, 'sessions_section_callback'),
-                'so-ssl-sessions'
-            );
+        // Session options
+        register_setting(
+            'so_ssl_sessions_options',
+            'so_ssl_max_sessions_per_user',
+            $max_sessions_args
+        );
 
-            add_settings_field(
-                'so_ssl_max_sessions_per_user',
-                __('Maximum Sessions Per User', 'so-ssl'),
-                array(__CLASS__, 'max_sessions_callback'),
-                'so-ssl-sessions',
-                'so_ssl_sessions_section'
-            );
+        register_setting(
+            'so_ssl_sessions_options',
+            'so_ssl_max_session_duration',
+            $max_duration_args
+        );
 
-            add_settings_field(
-                'so_ssl_max_session_duration',
-                __('Maximum Session Duration (hours)', 'so-ssl'),
-                array(__CLASS__, 'max_duration_callback'),
-                'so-ssl-sessions',
-                'so_ssl_sessions_section'
-            );
-        }
+        // Session Settings Section
+        add_settings_section(
+            'so_ssl_sessions_section',
+            __('Session Management Settings', 'so-ssl'),
+            array('So_SSL_User_Sessions', 'sessions_section_callback'),
+            'so-ssl-sessions'
+        );
+
+        add_settings_field(
+            'so_ssl_max_sessions_per_user',
+            __('Maximum Sessions Per User', 'so-ssl'),
+            array('So_SSL_User_Sessions', 'max_sessions_callback'),
+            'so-ssl-sessions',
+            'so_ssl_sessions_section'
+        );
+
+        add_settings_field(
+            'so_ssl_max_session_duration',
+            __('Maximum Session Duration (hours)', 'so-ssl'),
+            array('So_SSL_User_Sessions', 'max_duration_callback'),
+            'so-ssl-sessions',
+            'so_ssl_sessions_section'
+        );
+    }
 
         /**
          * Sessions section description
          */
         public static function sessions_section_callback() {
-            echo '<p>' . __('Configure how user sessions are managed on your site.', 'so-ssl') . '</p>';
+            echo '<p>' . esc_html__('Configure how user sessions are managed on your site.', 'so-ssl') . '</p>';
         }
 
         /**
@@ -643,7 +680,7 @@ class So_SSL_User_Sessions {
             $max_sessions = get_option('so_ssl_max_sessions_per_user', 0);
 
             echo '<input type="number" id="so_ssl_max_sessions_per_user" name="so_ssl_max_sessions_per_user" value="' . esc_attr($max_sessions) . '" min="0" />';
-            echo '<p class="description">' . __('Maximum number of concurrent sessions allowed per user. Set to 0 for unlimited sessions.', 'so-ssl') . '</p>';
+            echo '<p class="description">' . esc_html__('Maximum number of concurrent sessions allowed per user. Set to 0 for unlimited sessions.', 'so-ssl') . '</p>';
         }
 
         /**
@@ -653,8 +690,8 @@ class So_SSL_User_Sessions {
             $max_duration = get_option('so_ssl_max_session_duration', 0);
 
             echo '<input type="number" id="so_ssl_max_session_duration" name="so_ssl_max_session_duration" value="' . esc_attr($max_duration) . '" min="0" />';
-            echo '<p class="description">' . __('Maximum session lifetime in hours. Set to 0 for no limit (uses WordPress default).', 'so-ssl') . '</p>';
-            echo '<p class="description">' . __('Note: This will not extend sessions beyond WordPress default expiration, but can shorten them.', 'so-ssl') . '</p>';
+            echo '<p class="description">' . esc_html__('Maximum session lifetime in hours. Set to 0 for no limit (uses WordPress default).', 'so-ssl') . '</p>';
+            echo '<p class="description">' . esc_html__('Note: This will not extend sessions beyond WordPress default expiration, but can shorten them.', 'so-ssl') . '</p>';
         }
     }
 

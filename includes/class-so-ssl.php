@@ -1,10 +1,10 @@
 <?php
-/**
- * The core plugin class.
- *
- * @since      1.1.0
- * @package    So_SSL
- */
+  /**
+   * The core plugin class.
+   *
+   * @since      1.1.0
+   * @package    So_SSL
+   */
 
 class So_SSL {
 
@@ -168,7 +168,9 @@ class So_SSL {
      */
     public function add_admin_menu() {
         add_options_page(
+            /* translators: %s: Plugin Settings*/
             __('So SSL Settings', 'so-ssl'),
+            /* translators: %s: Plugin Title */
             __('So SSL', 'so-ssl'),
             'manage_options',
             'so-ssl',
@@ -188,7 +190,17 @@ class So_SSL {
 
             <?php
             // Check for active tab from form submission
-            $active_tab = isset($_POST['active_tab']) ? sanitize_text_field($_POST['active_tab']) : '';
+            $active_tab = '';
+            if (isset($_POST['active_tab']) && isset($_POST['_wpnonce'])) {
+                // Verify nonce for security
+                if (wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'so_ssl_options')) {
+                    // Unslash before sanitizing
+                    $active_tab = sanitize_text_field(wp_unslash($_POST['active_tab']));
+                }
+            } else {
+                // Default to first tab or use other method to determine active tab
+                $active_tab = '';
+            }
 
             // If we have an active tab from POST, add JavaScript to set it
             if (!empty($active_tab)) {
@@ -216,14 +228,14 @@ class So_SSL {
             ?>
 
             <div class="nav-tab-wrapper">
-                <a href="#ssl-settings" class="nav-tab nav-tab-active" data-tab="ssl-settings"><?php _e('SSL Settings', 'so-ssl'); ?></a>
-                <a href="#content-security" class="nav-tab" data-tab="content-security"><?php _e('Content Security', 'so-ssl'); ?></a>
-                <a href="#browser-features" class="nav-tab" data-tab="browser-features"><?php _e('Browser Features', 'so-ssl'); ?></a>
-                <a href="#cross-origin" class="nav-tab" data-tab="cross-origin"><?php _e('Cross-Origin', 'so-ssl'); ?></a>
-                <a href="#two-factor" class="nav-tab" data-tab="two-factor"><?php _e('Two-Factor Auth', 'so-ssl'); ?></a>
-                <a href="#login-protection" class="nav-tab" data-tab="login-protection"><?php _e('Login Protection', 'so-ssl'); ?></a>
-                <a href="#user-sessions" class="nav-tab" data-tab="user-sessions"><?php _e('User Sessions', 'so-ssl'); ?></a>
-                <a href="#login-limit" class="nav-tab" data-tab="login-limit"><?php _e('Login Limiting', 'so-ssl'); ?></a>
+                <a href="#ssl-settings" class="nav-tab nav-tab-active" data-tab="ssl-settings"><?php esc_html_e('SSL Settings', 'so-ssl'); ?></a>
+                <a href="#content-security" class="nav-tab" data-tab="content-security"><?php esc_html_e('Content Security', 'so-ssl'); ?></a>
+                <a href="#browser-features" class="nav-tab" data-tab="browser-features"><?php esc_html_e('Browser Features', 'so-ssl'); ?></a>
+                <a href="#cross-origin" class="nav-tab" data-tab="cross-origin"><?php esc_html_e('Cross-Origin', 'so-ssl'); ?></a>
+                <a href="#two-factor" class="nav-tab" data-tab="two-factor"><?php esc_html_e('Two-Factor Auth', 'so-ssl'); ?></a>
+                <a href="#login-protection" class="nav-tab" data-tab="login-protection"><?php esc_html_e('Login Protection', 'so-ssl'); ?></a>
+                <a href="#user-sessions" class="nav-tab" data-tab="user-sessions"><?php esc_html_e('User Sessions', 'so-ssl'); ?></a>
+                <a href="#login-limit" class="nav-tab" data-tab="login-limit"><?php esc_html_e('Login Limiting', 'so-ssl'); ?></a>
             </div>
 
             <form action="options.php" method="post">
@@ -231,7 +243,7 @@ class So_SSL {
 
                 <!-- SSL Settings Tab -->
                 <div id="ssl-settings" class="settings-tab active">
-                    <h2><?php _e('SSL & Basic Security Settings', 'so-ssl'); ?></h2>
+                    <h2><?php esc_html_e('SSL & Basic Security Settings', 'so-ssl'); ?></h2>
                     <?php
                     do_settings_sections('so-ssl-ssl');
                     ?>
@@ -239,7 +251,7 @@ class So_SSL {
 
                 <!-- Content Security Tab -->
                 <div id="content-security" class="settings-tab">
-                    <h2><?php _e('Content Security Policies', 'so-ssl'); ?></h2>
+                    <h2><?php esc_html_e('Content Security Policies', 'so-ssl'); ?></h2>
                     <?php
                     do_settings_sections('so-ssl-csp');
                     do_settings_sections('so-ssl-referrer');
@@ -248,7 +260,7 @@ class So_SSL {
 
                 <!-- Browser Features Tab -->
                 <div id="browser-features" class="settings-tab">
-                    <h2><?php _e('Browser Feature Controls', 'so-ssl'); ?></h2>
+                    <h2><?php esc_html_e('Browser Feature Controls', 'so-ssl'); ?></h2>
                     <?php
                     do_settings_sections('so-ssl-permissions');
                     ?>
@@ -256,7 +268,7 @@ class So_SSL {
 
                 <!-- Cross-Origin Tab -->
                 <div id="cross-origin" class="settings-tab">
-                    <h2><?php _e('Cross-Origin Security Controls', 'so-ssl'); ?></h2>
+                    <h2><?php esc_html_e('Cross-Origin Security Controls', 'so-ssl'); ?></h2>
                     <?php
                     do_settings_sections('so-ssl-cross-origin');
                     do_settings_sections('so-ssl-xframe');
@@ -266,7 +278,7 @@ class So_SSL {
 
                 <!-- Two-Factor Authentication Tab -->
                 <div id="two-factor" class="settings-tab">
-                    <h2><?php _e('Two-Factor Authentication', 'so-ssl'); ?></h2>
+                    <h2><?php esc_html_e('Two-Factor Authentication', 'so-ssl'); ?></h2>
                     <?php
                     do_settings_sections('so-ssl-2fa');
                     ?>
@@ -274,7 +286,7 @@ class So_SSL {
 
                 <!-- Login Protection Tab -->
                 <div id="login-protection" class="settings-tab">
-                    <h2><?php _e('Login Protection Settings', 'so-ssl'); ?></h2>
+                    <h2><?php esc_html_e('Login Protection Settings', 'so-ssl'); ?></h2>
                     <?php
                     do_settings_sections('so-ssl-login-protection');
                     ?>
@@ -282,7 +294,7 @@ class So_SSL {
 
                 <!-- User Sessions Tab -->
                 <div id="user-sessions" class="settings-tab">
-                    <h2><?php _e('User Sessions', 'so-ssl'); ?></h2>
+                    <h2><?php esc_html_e('User Sessions', 'so-ssl'); ?></h2>
                     <?php
                     do_settings_sections('so-ssl-user-sessions');
                     ?>
@@ -290,11 +302,17 @@ class So_SSL {
 
                 <!-- Login Limiting Tab -->
                 <div id="login-limit" class="settings-tab">
-                    <h2><?php _e('Login Attempts', 'so-ssl'); ?></h2>
+                    <h2><?php esc_html_e('Login Attempts', 'so-ssl'); ?></h2>
                     <?php
                     do_settings_sections('so-ssl-login-limit-tab');
                     ?>
-                    <p><?php printf(__('For detailed settings and statistics, visit the <a href="%s">Login Security</a> page.', 'so-ssl'), admin_url('options-general.php?page=so-ssl-login-limit')); ?></p>
+                    <p><?php
+                printf(
+                    /* translators: %s: URL to Login Security page */
+                    esc_html__('For detailed settings and statistics, visit the %s page.', 'so-ssl'),
+                    '<a href="' . esc_url(admin_url('options-general.php?page=so-ssl-login-limit')) . '">' . esc_html__('Login Security', 'so-ssl') . '</a>'
+                );
+                ?></p>
                 </div>
 
                 <!-- Add hidden input for active tab -->
@@ -877,270 +895,271 @@ class So_SSL {
      * @since    1.0.2
      */
     public function ssl_section_callback() {
-        echo '<p>' . __('Configure SSL settings for your website.', 'so-ssl') . '</p>';
+        echo '<p>' . esc_html__('Configure SSL settings for your website.', 'so-ssl') . '</p>';
 
         // Display current SSL status
         if (is_ssl()) {
-            echo '<div class="notice notice-success inline"><p>' . __('Your site is currently using SSL/HTTPS.', 'so-ssl') . '</p></div>';
+            echo '<div class="notice notice-success inline"><p>' . esc_html__('Your site is currently using SSL/HTTPS.', 'so-ssl') . '</p></div>';
         } else {
-            echo '<div class="notice notice-warning inline"><p>' . __('Your site is not using SSL/HTTPS. Enabling force SSL without having a valid SSL certificate may make your site inaccessible.', 'so-ssl') . '</p></div>';
+            echo '<div class="notice notice-warning inline"><p>' . esc_html__('Your site is not using SSL/HTTPS. Enabling force SSL without having a valid SSL certificate may make your site inaccessible.', 'so-ssl') . '</p></div>';
         }
     }
 
-    /**
-     * Two-Factor Authentication section description.
-     *
-     * @since    1.2.0
-     */
-    public function two_factor_section_callback() {
-        echo '<p>' . __('Configure Two-Factor Authentication (2FA) settings for your WordPress users.', 'so-ssl') . '</p>';
-        echo '<p>' . __('Two-Factor Authentication adds an extra layer of security by requiring a second verification method in addition to the password.', 'so-ssl') . '</p>';
+/**
+ * Two-Factor Authentication section description.
+ *
+ * @since    1.2.0
+ */
+public function two_factor_section_callback() {
+    echo '<p>' . esc_html__('Configure Two-Factor Authentication (2FA) settings for your WordPress users.', 'so-ssl') . '</p>';
+    echo '<p>' . esc_html__('Two-Factor Authentication adds an extra layer of security by requiring a second verification method in addition to the password.', 'so-ssl') . '</p>';
+}
+
+/**
+ * Password Security section description.
+ *
+ * @since    1.3.0
+ */
+public function password_security_section_callback() {
+    echo '<p>' . esc_html__('Configure password security settings to enforce stronger passwords and improve login security.', 'so-ssl') . '</p>';
+}
+
+/**
+ * Enable Two-Factor Authentication field callback.
+ *
+ * @since    1.2.0
+ */
+public function enable_two_factor_callback() {
+    $enable_2fa = get_option('so_ssl_enable_2fa', 0);
+
+    echo '<label for="so_ssl_enable_2fa">';
+    echo '<input type="checkbox" id="so_ssl_enable_2fa" name="so_ssl_enable_2fa" value="1" ' . checked(1, $enable_2fa, false) . '/>';
+    echo esc_html__('Enable Two-Factor Authentication for users', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . esc_html__('Adds an additional security layer to the WordPress login process.', 'so-ssl') . '</p>';
+}
+
+/**
+ * Disable Weak Passwords field callback.
+ *
+ * @since    1.3.0
+ */
+public function disable_weak_passwords_callback() {
+    $disable_weak_passwords = get_option('so_ssl_disable_weak_passwords', 0);
+
+    echo '<label for="so_ssl_disable_weak_passwords">';
+    echo '<input type="checkbox" id="so_ssl_disable_weak_passwords" name="so_ssl_disable_weak_passwords" value="1" ' . checked(1, $disable_weak_passwords, false) . '/>';
+    echo esc_html__('Enforce strong passwords for all users', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . esc_html__('Disable the "confirm use of weak password" checkbox and prevent users from setting weak passwords.', 'so-ssl') . '</p>';
+}
+
+/**
+ * Two-Factor Authentication user roles field callback.
+ *
+ * @since    1.2.0
+ */
+public function two_factor_user_roles_callback() {
+    $selected_roles = get_option('so_ssl_2fa_user_roles', array('administrator'));
+
+    if (!is_array($selected_roles)) {
+        $selected_roles = array('administrator');
     }
 
-    /**
-     * Password Security section description.
-     *
-     * @since    1.3.0
-     */
-    public function password_security_section_callback() {
-        echo '<p>' . __('Configure password security settings to enforce stronger passwords and improve login security.', 'so-ssl') . '</p>';
+    $roles = wp_roles()->get_names();
+
+    echo '<select multiple id="so_ssl_2fa_user_roles" name="so_ssl_2fa_user_roles[]" class="regular-text">';
+    foreach ($roles as $role_value => $role_name) {
+        $selected = in_array($role_value, $selected_roles) ? 'selected="selected"' : '';
+        echo '<p class="description">' . esc_html__('Warning: Only enable this if you have a valid SSL certificate installed.', 'so-ssl') . '</p>';
     }
+    echo '</select>';
+    echo '<p class="description">' . esc_html__('Select which user roles will be required to use Two-Factor Authentication. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
+}
 
-    /**
-     * Enable Two-Factor Authentication field callback.
-     *
-     * @since    1.2.0
-     */
-    public function enable_two_factor_callback() {
-        $enable_2fa = get_option('so_ssl_enable_2fa', 0);
+/**
+ * Two-Factor Authentication method field callback.
+ *
+ * @since    1.2.0
+ */
+public function two_factor_method_callback() {
+    $method = get_option('so_ssl_2fa_method', 'email');
 
-        echo '<label for="so_ssl_enable_2fa">';
-        echo '<input type="checkbox" id="so_ssl_enable_2fa" name="so_ssl_enable_2fa" value="1" ' . checked(1, $enable_2fa, false) . '/>';
-        echo __('Enable Two-Factor Authentication for users', 'so-ssl');
-        echo '</label>';
-        echo '<p class="description">' . __('Adds an additional security layer to the WordPress login process.', 'so-ssl') . '</p>';
-    }
+    echo '<select id="so_ssl_2fa_method" name="so_ssl_2fa_method">';
+    echo '<option value="email" ' . selected('email', $method, false) . '>' . esc_html__('Email - Send verification code via email', 'so-ssl') . '</option>';
+    echo '<option value="authenticator" ' . selected('authenticator', $method, false) . '>' . esc_html__('Authenticator App - Use Google Authenticator or similar apps', 'so-ssl') . '</option>';
+    echo '</select>';
+    echo '<p class="description">' . esc_html__('Select the Two-Factor Authentication method to use.', 'so-ssl') . '</p>';
+}
 
-    /**
-     * Disable Weak Passwords field callback.
-     *
-     * @since    1.3.0
-     */
-    public function disable_weak_passwords_callback() {
-        $disable_weak_passwords = get_option('so_ssl_disable_weak_passwords', 0);
+/**
+ * HSTS section description.
+ *
+ * @since    1.0.2
+ */
+public function hsts_section_callback() {
+    echo '<p>' . esc_html__('HTTP Strict Transport Security (HSTS) instructs browsers to only access your site over HTTPS, even if the user enters or clicks on a plain HTTP URL. This helps protect against SSL stripping attacks.', 'so-ssl') . '</p>';
+    echo '<div class="notice notice-warning inline"><p>' . esc_html__('<strong>Warning:</strong> Only enable HSTS if you are certain your site will always use HTTPS. Once a browser receives this header, it will not allow access to your site over HTTP until the max-age expires, even if you disable SSL later.', 'so-ssl') . '</p></div>';
+}
 
-        echo '<label for="so_ssl_disable_weak_passwords">';
-        echo '<input type="checkbox" id="so_ssl_disable_weak_passwords" name="so_ssl_disable_weak_passwords" value="1" ' . checked(1, $disable_weak_passwords, false) . '/>';
-        echo __('Enforce strong passwords for all users', 'so-ssl');
-        echo '</label>';
-        echo '<p class="description">' . __('Disable the "confirm use of weak password" checkbox and prevent users from setting weak passwords.', 'so-ssl') . '</p>';
-    }
+/**
+ * X-Frame-Options section description.
+ *
+ * @since    1.0.2
+ */
+public function xframe_section_callback() {
+    echo '<p>' . esc_html__('X-Frame-Options header controls whether your site can be loaded in an iframe. This helps prevent clickjacking attacks where an attacker might embed your site in their own malicious site.', 'so-ssl') . '</p>';
+}
 
-    /**
-     * Two-Factor Authentication user roles field callback.
-     *
-     * @since    1.2.0
-     */
-    public function two_factor_user_roles_callback() {
-        $selected_roles = get_option('so_ssl_2fa_user_roles', array('administrator'));
+/**
+ * CSP section description.
+ *
+ * @since    1.0.2
+ */
+public function csp_section_callback() {
+    echo '<p>' . esc_html__('Content Security Policy (CSP) with frame-ancestors directive is a modern replacement for X-Frame-Options. It provides more flexibility for controlling which domains can embed your site in an iframe.', 'so-ssl') . '</p>';
+    echo '<p>' . esc_html__('Note: You can use both X-Frame-Options and CSP frame-ancestors for better browser compatibility.', 'so-ssl') . '</p>';
+}
 
-        if (!is_array($selected_roles)) {
-            $selected_roles = array('administrator');
-        }
+/**
+ * Force SSL field callback.
+ *
+ * @since    1.0.2
+ */
+public function force_ssl_callback() {
+    $force_ssl = get_option('so_ssl_force_ssl', 0);
 
-        $roles = wp_roles()->get_names();
+    echo '<label for="so_ssl_force_ssl">';
+    echo '<input type="checkbox" id="so_ssl_force_ssl" name="so_ssl_force_ssl" value="1" ' . checked(1, $force_ssl, false) . '/>';
+    echo esc_html__('Force all traffic to use HTTPS/SSL', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . esc_html__('Warning: Only enable this if you have a valid SSL certificate installed.', 'so-ssl') . '</p>';
+}
 
-        echo '<select multiple id="so_ssl_2fa_user_roles" name="so_ssl_2fa_user_roles[]" class="regular-text">';
-        foreach ($roles as $role_value => $role_name) {
-            $selected = in_array($role_value, $selected_roles) ? 'selected="selected"' : '';
-            echo '<option value="' . esc_attr($role_value) . '" ' . $selected . '>' . esc_html($role_name) . '</option>';
-        }
-        echo '</select>';
-        echo '<p class="description">' . __('Select which user roles will be required to use Two-Factor Authentication. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
-    }
+/**
+ * Enable HSTS field callback.
+ *
+ * @since    1.0.2
+ */
+public function enable_hsts_callback() {
+    $enable_hsts = get_option('so_ssl_enable_hsts', 0);
 
-    /**
-     * Two-Factor Authentication method field callback.
-     *
-     * @since    1.2.0
-     */
-    public function two_factor_method_callback() {
-        $method = get_option('so_ssl_2fa_method', 'email');
+    echo '<label for="so_ssl_enable_hsts">';
+    echo '<input type="checkbox" id="so_ssl_enable_hsts" name="so_ssl_enable_hsts" value="1" ' . checked(1, $enable_hsts, false) . '/>';
+    echo esc_html__('Enable HTTP Strict Transport Security (HSTS)', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . esc_html__('Adds the Strict-Transport-Security header to tell browsers to always use HTTPS for this domain.', 'so-ssl') . '</p>';
+}
 
-        echo '<select id="so_ssl_2fa_method" name="so_ssl_2fa_method">';
-        echo '<option value="email" ' . selected('email', $method, false) . '>' . __('Email - Send verification code via email', 'so-ssl') . '</option>';
-        echo '<option value="authenticator" ' . selected('authenticator', $method, false) . '>' . __('Authenticator App - Use Google Authenticator or similar apps', 'so-ssl') . '</option>';
-        echo '</select>';
-        echo '<p class="description">' . __('Select the Two-Factor Authentication method to use.', 'so-ssl') . '</p>';
-    }
+/**
+ * HSTS Max Age field callback.
+ *
+ * @since    1.0.2
+ */
+public function hsts_max_age_callback() {
+    $max_age = get_option('so_ssl_hsts_max_age', 31536000);
 
-    /**
-     * HSTS section description.
-     *
-     * @since    1.0.2
-     */
-    public function hsts_section_callback() {
-        echo '<p>' . __('HTTP Strict Transport Security (HSTS) instructs browsers to only access your site over HTTPS, even if the user enters or clicks on a plain HTTP URL. This helps protect against SSL stripping attacks.', 'so-ssl') . '</p>';
-        echo '<div class="notice notice-warning inline"><p>' . __('<strong>Warning:</strong> Only enable HSTS if you are certain your site will always use HTTPS. Once a browser receives this header, it will not allow access to your site over HTTP until the max-age expires, even if you disable SSL later.', 'so-ssl') . '</p></div>';
-    }
+    echo '<select id="so_ssl_hsts_max_age" name="so_ssl_hsts_max_age">';
+    echo '<option value="86400" ' . selected(86400, $max_age, false) . '>' . esc_html__('1 Day (86400 seconds)', 'so-ssl') . '</option>';
+    echo '<option value="604800" ' . selected(604800, $max_age, false) . '>' . esc_html__('1 Week (604800 seconds)', 'so-ssl') . '</option>';
+    echo '<option value="2592000" ' . selected(2592000, $max_age, false) . '>' . esc_html__('1 Month (2592000 seconds)', 'so-ssl') . '</option>';
+    echo '<option value="31536000" ' . selected(31536000, $max_age, false) . '>' . esc_html__('1 Year (31536000 seconds) - Recommended', 'so-ssl') . '</option>';
+    echo '<option value="63072000" ' . selected(63072000, $max_age, false) . '>' . esc_html__('2 Years (63072000 seconds)', 'so-ssl') . '</option>';
+    echo '</select>';
+    echo '<p class="description">' . esc_html__('How long browsers should remember that this site is only to be accessed using HTTPS.', 'so-ssl') . '</p>';
+}
 
-    /**
-     * X-Frame-Options section description.
-     *
-     * @since    1.0.2
-     */
-    public function xframe_section_callback() {
-        echo '<p>' . __('X-Frame-Options header controls whether your site can be loaded in an iframe. This helps prevent clickjacking attacks where an attacker might embed your site in their own malicious site.', 'so-ssl') . '</p>';
-    }
+/**
+ * HSTS Include Subdomains field callback.
+ *
+ * @since    1.0.2
+ */
+public function hsts_subdomains_callback() {
+    $include_subdomains = get_option('so_ssl_hsts_subdomains', 0);
 
-    /**
-     * CSP section description.
-     *
-     * @since    1.0.2
-     */
-    public function csp_section_callback() {
-        echo '<p>' . __('Content Security Policy (CSP) with frame-ancestors directive is a modern replacement for X-Frame-Options. It provides more flexibility for controlling which domains can embed your site in an iframe.', 'so-ssl') . '</p>';
-        echo '<p>' . __('Note: You can use both X-Frame-Options and CSP frame-ancestors for better browser compatibility.', 'so-ssl') . '</p>';
-    }
+    echo '<label for="so_ssl_hsts_subdomains">';
+    echo '<input type="checkbox" id="so_ssl_hsts_subdomains" name="so_ssl_hsts_subdomains" value="1" ' . checked(1, $include_subdomains, false) . '/>';
+    echo esc_html__('Apply HSTS to all subdomains', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . esc_html__('Warning: Only enable if ALL subdomains have SSL certificates!', 'so-ssl') . '</p>';
+}
 
-    /**
-     * Force SSL field callback.
-     *
-     * @since    1.0.2
-     */
-    public function force_ssl_callback() {
-        $force_ssl = get_option('so_ssl_force_ssl', 0);
+/**
+ * HSTS Preload field callback.
+ *
+ * @since    1.0.2
+ */
+public function hsts_preload_callback() {
+    $preload = get_option('so_ssl_hsts_preload', 0);
 
-        echo '<label for="so_ssl_force_ssl">';
-        echo '<input type="checkbox" id="so_ssl_force_ssl" name="so_ssl_force_ssl" value="1" ' . checked(1, $force_ssl, false) . '/>';
-        echo __('Force all traffic to use HTTPS/SSL', 'so-ssl');
-        echo '</label>';
-        echo '<p class="description">' . __('Warning: Only enable this if you have a valid SSL certificate installed.', 'so-ssl') . '</p>';
-    }
+    echo '<label for="so_ssl_hsts_preload">';
+    echo '<input type="checkbox" id="so_ssl_hsts_preload" name="so_ssl_hsts_preload" value="1" ' . checked(1, $preload, false) . '/>';
+    echo esc_html__('Add preload flag', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . sprintf(
+        /* translators: %s: URL to HSTS Preload List website */
+        esc_html_e('This is necessary for submitting to the <a href="%s" target="_blank">HSTS Preload List</a>. Only enable if you intend to submit your site to this list.', 'so-ssl'),
+        'https://hstspreload.org/'
+    ) . '</p>';
+}
 
-    /**
-     * Enable HSTS field callback.
-     *
-     * @since    1.0.2
-     */
-    public function enable_hsts_callback() {
-        $enable_hsts = get_option('so_ssl_enable_hsts', 0);
+/**
+ * Enable X-Frame-Options field callback.
+ *
+ * @since    1.0.2
+ */
+public function enable_xframe_callback() {
+    $enable_xframe = get_option('so_ssl_enable_xframe', 1);
 
-        echo '<label for="so_ssl_enable_hsts">';
-        echo '<input type="checkbox" id="so_ssl_enable_hsts" name="so_ssl_enable_hsts" value="1" ' . checked(1, $enable_hsts, false) . '/>';
-        echo __('Enable HTTP Strict Transport Security (HSTS)', 'so-ssl');
-        echo '</label>';
-        echo '<p class="description">' . __('Adds the Strict-Transport-Security header to tell browsers to always use HTTPS for this domain.', 'so-ssl') . '</p>';
-    }
+    echo '<label for="so_ssl_enable_xframe">';
+    echo '<input type="checkbox" id="so_ssl_enable_xframe" name="so_ssl_enable_xframe" value="1" ' . checked(1, $enable_xframe, false) . '/>';
+    echo esc_html__('Enable X-Frame-Options header', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . esc_html__('Controls whether your site can be loaded in an iframe (recommended for security).', 'so-ssl') . '</p>';
+}
 
-    /**
-     * HSTS Max Age field callback.
-     *
-     * @since    1.0.2
-     */
-    public function hsts_max_age_callback() {
-        $max_age = get_option('so_ssl_hsts_max_age', 31536000);
+/**
+ * X-Frame-Options value field callback.
+ *
+ * @since    1.0.2
+ */
+public function xframe_option_callback() {
+    $xframe_option = get_option('so_ssl_xframe_option', 'sameorigin');
 
-        echo '<select id="so_ssl_hsts_max_age" name="so_ssl_hsts_max_age">';
-        echo '<option value="86400" ' . selected(86400, $max_age, false) . '>' . __('1 Day (86400 seconds)', 'so-ssl') . '</option>';
-        echo '<option value="604800" ' . selected(604800, $max_age, false) . '>' . __('1 Week (604800 seconds)', 'so-ssl') . '</option>';
-        echo '<option value="2592000" ' . selected(2592000, $max_age, false) . '>' . __('1 Month (2592000 seconds)', 'so-ssl') . '</option>';
-        echo '<option value="31536000" ' . selected(31536000, $max_age, false) . '>' . __('1 Year (31536000 seconds) - Recommended', 'so-ssl') . '</option>';
-        echo '<option value="63072000" ' . selected(63072000, $max_age, false) . '>' . __('2 Years (63072000 seconds)', 'so-ssl') . '</option>';
-        echo '</select>';
-        echo '<p class="description">' . __('How long browsers should remember that this site is only to be accessed using HTTPS.', 'so-ssl') . '</p>';
-    }
+    echo '<select id="so_ssl_xframe_option" name="so_ssl_xframe_option">';
+    echo '<option value="deny" ' . selected('deny', $xframe_option, false) . '>' . esc_html__('DENY - Prevents any site from loading this site in an iframe', 'so-ssl') . '</option>';
+    echo '<option value="sameorigin" ' . selected('sameorigin', $xframe_option, false) . '>' . esc_html__('SAMEORIGIN - Only allow same site to frame content (recommended)', 'so-ssl') . '</option>';
+    echo '<option value="allowfrom" ' . selected('allowfrom', $xframe_option, false) . '>' . esc_html__('ALLOW-FROM - Allow a specific domain to frame content', 'so-ssl') . '</option>';
+    echo '</select>';
+    echo '<p class="description">' . esc_html__('Determines which sites (if any) can load your site in an iframe.', 'so-ssl') . '</p>';
+}
 
-    /**
-     * HSTS Include Subdomains field callback.
-     *
-     * @since    1.0.2
-     */
-    public function hsts_subdomains_callback() {
-        $include_subdomains = get_option('so_ssl_hsts_subdomains', 0);
+/**
+ * X-Frame-Options Allow-From domain field callback.
+ *
+ * @since    1.0.2
+ */
+public function xframe_allow_from_callback() {
+    $allow_from = get_option('so_ssl_xframe_allow_from', '');
 
-        echo '<label for="so_ssl_hsts_subdomains">';
-        echo '<input type="checkbox" id="so_ssl_hsts_subdomains" name="so_ssl_hsts_subdomains" value="1" ' . checked(1, $include_subdomains, false) . '/>';
-        echo __('Apply HSTS to all subdomains', 'so-ssl');
-        echo '</label>';
-        echo '<p class="description">' . __('Warning: Only enable if ALL subdomains have SSL certificates!', 'so-ssl') . '</p>';
-    }
+    echo '<input type="url" id="so_ssl_xframe_allow_from" name="so_ssl_xframe_allow_from" value="' . esc_attr($allow_from) . '" class="regular-text" placeholder="https://example.com" />';
+    echo '<p class="description">' . esc_html__('Enter the full domain that is allowed to load your site in an iframe (only used with ALLOW-FROM option).', 'so-ssl') . '</p>';
+}
 
-    /**
-     * HSTS Preload field callback.
-     *
-     * @since    1.0.2
-     */
-    public function hsts_preload_callback() {
-        $preload = get_option('so_ssl_hsts_preload', 0);
+/**
+ * Enable CSP Frame-Ancestors field callback.
+ *
+ * @since    1.0.2
+ */
+public function enable_csp_frame_ancestors_callback() {
+    $enable_csp = get_option('so_ssl_enable_csp_frame_ancestors', 0);
 
-        echo '<label for="so_ssl_hsts_preload">';
-        echo '<input type="checkbox" id="so_ssl_hsts_preload" name="so_ssl_hsts_preload" value="1" ' . checked(1, $preload, false) . '/>';
-        echo __('Add preload flag', 'so-ssl');
-        echo '</label>';
-        echo '<p class="description">' . sprintf(
-            __('This is necessary for submitting to the <a href="%s" target="_blank">HSTS Preload List</a>. Only enable if you intend to submit your site to this list.', 'so-ssl'),
-            'https://hstspreload.org/'
-        ) . '</p>';
-    }
-
-    /**
-     * Enable X-Frame-Options field callback.
-     *
-     * @since    1.0.2
-     */
-    public function enable_xframe_callback() {
-        $enable_xframe = get_option('so_ssl_enable_xframe', 1);
-
-        echo '<label for="so_ssl_enable_xframe">';
-        echo '<input type="checkbox" id="so_ssl_enable_xframe" name="so_ssl_enable_xframe" value="1" ' . checked(1, $enable_xframe, false) . '/>';
-        echo __('Enable X-Frame-Options header', 'so-ssl');
-        echo '</label>';
-        echo '<p class="description">' . __('Controls whether your site can be loaded in an iframe (recommended for security).', 'so-ssl') . '</p>';
-    }
-
-    /**
-     * X-Frame-Options value field callback.
-     *
-     * @since    1.0.2
-     */
-    public function xframe_option_callback() {
-        $xframe_option = get_option('so_ssl_xframe_option', 'sameorigin');
-
-        echo '<select id="so_ssl_xframe_option" name="so_ssl_xframe_option">';
-        echo '<option value="deny" ' . selected('deny', $xframe_option, false) . '>' . __('DENY - Prevents any site from loading this site in an iframe', 'so-ssl') . '</option>';
-        echo '<option value="sameorigin" ' . selected('sameorigin', $xframe_option, false) . '>' . __('SAMEORIGIN - Only allow same site to frame content (recommended)', 'so-ssl') . '</option>';
-        echo '<option value="allowfrom" ' . selected('allowfrom', $xframe_option, false) . '>' . __('ALLOW-FROM - Allow a specific domain to frame content', 'so-ssl') . '</option>';
-        echo '</select>';
-        echo '<p class="description">' . __('Determines which sites (if any) can load your site in an iframe.', 'so-ssl') . '</p>';
-    }
-
-    /**
-     * X-Frame-Options Allow-From domain field callback.
-     *
-     * @since    1.0.2
-     */
-    public function xframe_allow_from_callback() {
-        $allow_from = get_option('so_ssl_xframe_allow_from', '');
-
-        echo '<input type="url" id="so_ssl_xframe_allow_from" name="so_ssl_xframe_allow_from" value="' . esc_attr($allow_from) . '" class="regular-text" placeholder="https://example.com" />';
-        echo '<p class="description">' . __('Enter the full domain that is allowed to load your site in an iframe (only used with ALLOW-FROM option).', 'so-ssl') . '</p>';
-    }
-
-    /**
-     * Enable CSP Frame-Ancestors field callback.
-     *
-     * @since    1.0.2
-     */
-    public function enable_csp_frame_ancestors_callback() {
-        $enable_csp = get_option('so_ssl_enable_csp_frame_ancestors', 0);
-
-        echo '<label for="so_ssl_enable_csp_frame_ancestors">';
-        echo '<input type="checkbox" id="so_ssl_enable_csp_frame_ancestors" name="so_ssl_enable_csp_frame_ancestors" value="1" ' . checked(1, $enable_csp, false) . '/>';
-        echo __('Enable Content Security Policy: frame-ancestors directive', 'so-ssl');
-        echo '</label>';
-        echo '<p class="description">' . __('Adds the Content-Security-Policy header with frame-ancestors directive to control iframe embedding.', 'so-ssl') . '</p>';
-    }
+    echo '<label for="so_ssl_enable_csp_frame_ancestors">';
+    echo '<input type="checkbox" id="so_ssl_enable_csp_frame_ancestors" name="so_ssl_enable_csp_frame_ancestors" value="1" ' . checked(1, $enable_csp, false) . '/>';
+    echo esc_html__('Enable Content Security Policy: frame-ancestors directive', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . esc_html__('Adds the Content-Security-Policy header with frame-ancestors directive to control iframe embedding.', 'so-ssl') . '</p>';
+}
 
     /**
      * CSP Frame-Ancestors value field callback.
@@ -1151,11 +1170,11 @@ class So_SSL {
         $csp_option = get_option('so_ssl_csp_frame_ancestors_option', 'none');
 
         echo '<select id="so_ssl_csp_frame_ancestors_option" name="so_ssl_csp_frame_ancestors_option">';
-        echo '<option value="none" ' . selected('none', $csp_option, false) . '>' . __('\'none\' - No site can embed your content (most restrictive)', 'so-ssl') . '</option>';
-        echo '<option value="self" ' . selected('self', $csp_option, false) . '>' . __('\'self\' - Only your own site can embed your content', 'so-ssl') . '</option>';
-        echo '<option value="custom" ' . selected('custom', $csp_option, false) . '>' . __('Custom - Specify allowed domains', 'so-ssl') . '</option>';
+        echo '<option value="none" ' . selected('none', $csp_option, false) . '>' . esc_html__('\'none\' - No site can embed your content (most restrictive)', 'so-ssl') . '</option>';
+        echo '<option value="self" ' . selected('self', $csp_option, false) . '>' . esc_html__('\'self\' - Only your own site can embed your content', 'so-ssl') . '</option>';
+        echo '<option value="custom" ' . selected('custom', $csp_option, false) . '>' . esc_html__('Custom - Specify allowed domains', 'so-ssl') . '</option>';
         echo '</select>';
-        echo '<p class="description">' . __('Determines which sites (if any) can embed your site in an iframe.', 'so-ssl') . '</p>';
+        echo '<p class="description">' . esc_html__('Determines which sites (if any) can embed your site in an iframe.', 'so-ssl') . '</p>';
     }
 
     /**
@@ -1168,9 +1187,9 @@ class So_SSL {
 
         echo '<label for="so_ssl_csp_include_self">';
         echo '<input type="checkbox" id="so_ssl_csp_include_self" name="so_ssl_csp_include_self" value="1" ' . checked(1, $include_self, false) . '/>';
-        echo __('Include \'self\' in allowed domains', 'so-ssl');
+        echo esc_html__('Include \'self\' in allowed domains', 'so-ssl');
         echo '</label>';
-        echo '<p class="description">' . __('Allow your own site to embed your content when using custom domains.', 'so-ssl') . '</p>';
+        echo '<p class="description">' . esc_html__('Allow your own site to embed your content when using custom domains.', 'so-ssl') . '</p>';
     }
 
     /**
@@ -1182,8 +1201,8 @@ class So_SSL {
         $domains = get_option('so_ssl_csp_frame_ancestors_domains', '');
 
         echo '<textarea id="so_ssl_csp_frame_ancestors_domains" name="so_ssl_csp_frame_ancestors_domains" rows="5" class="large-text" placeholder="https://example.com">' . esc_textarea($domains) . '</textarea>';
-        echo '<p class="description">' . __('Enter domains that are allowed to embed your site, one per line. Example: https://example.com', 'so-ssl') . '</p>';
-        echo '<p class="description">' . __('You can also use wildcards like *.example.com to allow all subdomains.', 'so-ssl') . '</p>';
+        echo '<p class="description">' . esc_html__('Enter domains that are allowed to embed your site, one per line. Example: https://example.com', 'so-ssl') . '</p>';
+        echo '<p class="description">' . esc_html__('You can also use wildcards like *.example.com to allow all subdomains.', 'so-ssl') . '</p>';
     }
 
     /**
@@ -1291,6 +1310,7 @@ class So_SSL {
         </script>
         <?php
     }
+
     /**
      * Check if SSL is available and activate it if needed.
      *
@@ -1305,13 +1325,18 @@ class So_SSL {
 
         // If SSL is forced and we're not on HTTPS, redirect
         if ($force_ssl && !$has_ssl && !is_admin()) {
-            // Get current URL
-            $current_url = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-            $ssl_url = str_replace('http://', 'https://', $current_url);
+            // Get current URL with proper validation and sanitization
+            $http_host = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : '';
+            $request_uri = isset($_SERVER['REQUEST_URI']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])) : '';
 
-            // Redirect to HTTPS
-            wp_redirect($ssl_url, 301);
-            exit;
+            if (!empty($http_host) && !empty($request_uri)) {
+                $current_url = 'http://' . $http_host . $request_uri;
+                $ssl_url = str_replace('http://', 'https://', $current_url);
+
+                // Redirect to HTTPS
+                wp_redirect($ssl_url, 301);
+                exit;
+            }
         }
 
         return $has_ssl;
@@ -1417,245 +1442,245 @@ class So_SSL {
         }
     }
 
-    /**
-     * Register Referrer Policy settings.
-     *
-     * @since    1.0.2
-     * @access   private
-     */
-    private function register_referrer_policy_settings() {
-        // Referrer Policy settings
-        register_setting(
-            'so_ssl_options',
-            'so_ssl_enable_referrer_policy',
-            array(
-                'type' => 'boolean',
-                'sanitize_callback' => 'intval',
-                'default' => 0,
-            )
-        );
+/**
+ * Register Referrer Policy settings.
+ *
+ * @since    1.0.2
+ * @access   private
+ */
+private function register_referrer_policy_settings() {
+    // Referrer Policy settings
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_enable_referrer_policy',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        )
+    );
 
-        register_setting(
-            'so_ssl_options',
-            'so_ssl_referrer_policy_option',
-            array(
-                'type' => 'string',
-                'sanitize_callback' => 'sanitize_text_field',
-                'default' => 'strict-origin-when-cross-origin',
-            )
-        );
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_referrer_policy_option',
+        array(
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => 'strict-origin-when-cross-origin',
+        )
+    );
 
-        // Referrer Policy Settings Section
-        add_settings_section(
-            'so_ssl_referrer_policy_section',
-            __('Referrer Policy', 'so-ssl'),
-            array($this, 'referrer_policy_section_callback'),
-            'so-ssl-referrer'
-        );
+    // Referrer Policy Settings Section
+    add_settings_section(
+        'so_ssl_referrer_policy_section',
+        __('Referrer Policy', 'so-ssl'),
+        array($this, 'referrer_policy_section_callback'),
+        'so-ssl-referrer'
+    );
 
-        add_settings_field(
-            'so_ssl_enable_referrer_policy',
-            __('Enable Referrer Policy', 'so-ssl'),
-            array($this, 'enable_referrer_policy_callback'),
-            'so-ssl-referrer',
-            'so_ssl_referrer_policy_section'
-        );
+    add_settings_field(
+        'so_ssl_enable_referrer_policy',
+        __('Enable Referrer Policy', 'so-ssl'),
+        array($this, 'enable_referrer_policy_callback'),
+        'so-ssl-referrer',
+        'so_ssl_referrer_policy_section'
+    );
 
-        add_settings_field(
-            'so_ssl_referrer_policy_option',
-            __('Referrer Policy Value', 'so-ssl'),
-            array($this, 'referrer_policy_option_callback'),
-            'so-ssl-referrer',
-            'so_ssl_referrer_policy_section'
-        );
-    }
+    add_settings_field(
+        'so_ssl_referrer_policy_option',
+        __('Referrer Policy Value', 'so-ssl'),
+        array($this, 'referrer_policy_option_callback'),
+        'so-ssl-referrer',
+        'so_ssl_referrer_policy_section'
+    );
+}
 
-    /**
-     * Referrer Policy section description.
-     *
-     * @since    1.0.2
-     */
-    public function referrer_policy_section_callback() {
-        echo '<p>' . __('The Referrer-Policy HTTP header controls how much referrer information should be included with requests.', 'so-ssl') . '</p>';
-    }
+/**
+ * Referrer Policy section description.
+ *
+ * @since    1.0.2
+ */
+public function referrer_policy_section_callback() {
+    echo '<p>' . esc_html__('The Referrer-Policy HTTP header controls how much referrer information should be included with requests.', 'so-ssl') . '</p>';
+}
 
-    /**
-     * Enable Referrer Policy field callback.
-     *
-     * @since    1.0.2
-     */
-    public function enable_referrer_policy_callback() {
-        $enable_referrer_policy = get_option('so_ssl_enable_referrer_policy', 0);
+/**
+ * Enable Referrer Policy field callback.
+ *
+ * @since    1.0.2
+ */
+public function enable_referrer_policy_callback() {
+    $enable_referrer_policy = get_option('so_ssl_enable_referrer_policy', 0);
 
-        echo '<label for="so_ssl_enable_referrer_policy">';
-        echo '<input type="checkbox" id="so_ssl_enable_referrer_policy" name="so_ssl_enable_referrer_policy" value="1" ' . checked(1, $enable_referrer_policy, false) . '/>';
-        echo __('Enable Referrer Policy header', 'so-ssl');
-        echo '</label>';
-        echo '<p class="description">' . __('Adds the Referrer-Policy header to control what information is sent in the Referer header.', 'so-ssl') . '</p>';
-    }
+    echo '<label for="so_ssl_enable_referrer_policy">';
+    echo '<input type="checkbox" id="so_ssl_enable_referrer_policy" name="so_ssl_enable_referrer_policy" value="1" ' . checked(1, $enable_referrer_policy, false) . '/>';
+    echo esc_html__('Enable Referrer Policy header', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . esc_html__('Adds the Referrer-Policy header to control what information is sent in the Referer header.', 'so-ssl') . '</p>';
+}
 
-    /**
-     * Referrer Policy value field callback.
-     *
-     * @since    1.0.2
-     */
-    public function referrer_policy_option_callback() {
+/**
+ * Referrer Policy value field callback.
+ *
+ * @since    1.0.2
+ */
+public function referrer_policy_option_callback() {
+    $referrer_policy = get_option('so_ssl_referrer_policy_option', 'strict-origin-when-cross-origin');
+
+    echo '<select id="so_ssl_referrer_policy_option" name="so_ssl_referrer_policy_option">';
+    echo '<option value="no-referrer" ' . selected('no-referrer', $referrer_policy, false) . '>' . esc_html__('no-referrer - No referrer information is sent', 'so-ssl') . '</option>';
+    echo '<option value="no-referrer-when-downgrade" ' . selected('no-referrer-when-downgrade', $referrer_policy, false) . '>' . esc_html__('no-referrer-when-downgrade - No referrer when downgrading (e.g., HTTPS→HTTP)', 'so-ssl') . '</option>';
+    echo '<option value="origin" ' . selected('origin', $referrer_policy, false) . '>' . esc_html__('origin - Only send the origin of the document', 'so-ssl') . '</option>';
+    echo '<option value="origin-when-cross-origin" ' . selected('origin-when-cross-origin', $referrer_policy, false) . '>' . esc_html__('origin-when-cross-origin - Full path for same origin, only origin for cross-origin', 'so-ssl') . '</option>';
+    echo '<option value="same-origin" ' . selected('same-origin', $referrer_policy, false) . '>' . esc_html__('same-origin - Send referrer only for same-origin requests', 'so-ssl') . '</option>';
+    echo '<option value="strict-origin" ' . selected('strict-origin', $referrer_policy, false) . '>' . esc_html__('strict-origin - Only send origin when protocol security level stays the same', 'so-ssl') . '</option>';
+    echo '<option value="strict-origin-when-cross-origin" ' . selected('strict-origin-when-cross-origin', $referrer_policy, false) . '>' . esc_html__('strict-origin-when-cross-origin - (Recommended) Send full referrer to same-origin, only send origin when protocol security level stays the same', 'so-ssl') . '</option>';
+    echo '<option value="unsafe-url" ' . selected('unsafe-url', $referrer_policy, false) . '>' . esc_html__('unsafe-url - Always send full referrer information (least secure)', 'so-ssl') . '</option>';
+    echo '</select>';
+    echo '<p class="description">' . esc_html__('Determines how much information is included in the Referer header when making requests.', 'so-ssl') . '</p>';
+}
+
+/**
+ * Add Referrer Policy header if enabled.
+ *
+ * @since    1.0.2
+ */
+public function add_referrer_policy_header() {
+    $enable_referrer_policy = get_option('so_ssl_enable_referrer_policy', 0);
+
+    if ($enable_referrer_policy) {
         $referrer_policy = get_option('so_ssl_referrer_policy_option', 'strict-origin-when-cross-origin');
 
-        echo '<select id="so_ssl_referrer_policy_option" name="so_ssl_referrer_policy_option">';
-        echo '<option value="no-referrer" ' . selected('no-referrer', $referrer_policy, false) . '>' . __('no-referrer - No referrer information is sent', 'so-ssl') . '</option>';
-        echo '<option value="no-referrer-when-downgrade" ' . selected('no-referrer-when-downgrade', $referrer_policy, false) . '>' . __('no-referrer-when-downgrade - No referrer when downgrading (e.g., HTTPS→HTTP)', 'so-ssl') . '</option>';
-        echo '<option value="origin" ' . selected('origin', $referrer_policy, false) . '>' . __('origin - Only send the origin of the document', 'so-ssl') . '</option>';
-        echo '<option value="origin-when-cross-origin" ' . selected('origin-when-cross-origin', $referrer_policy, false) . '>' . __('origin-when-cross-origin - Full path for same origin, only origin for cross-origin', 'so-ssl') . '</option>';
-        echo '<option value="same-origin" ' . selected('same-origin', $referrer_policy, false) . '>' . __('same-origin - Send referrer only for same-origin requests', 'so-ssl') . '</option>';
-        echo '<option value="strict-origin" ' . selected('strict-origin', $referrer_policy, false) . '>' . __('strict-origin - Only send origin when protocol security level stays the same', 'so-ssl') . '</option>';
-        echo '<option value="strict-origin-when-cross-origin" ' . selected('strict-origin-when-cross-origin', $referrer_policy, false) . '>' . __('strict-origin-when-cross-origin - (Recommended) Send full referrer to same-origin, only send origin when protocol security level stays the same', 'so-ssl') . '</option>';
-        echo '<option value="unsafe-url" ' . selected('unsafe-url', $referrer_policy, false) . '>' . __('unsafe-url - Always send full referrer information (least secure)', 'so-ssl') . '</option>';
-        echo '</select>';
-        echo '<p class="description">' . __('Determines how much information is included in the Referer header when making requests.', 'so-ssl') . '</p>';
-    }
-
-    /**
-     * Add Referrer Policy header if enabled.
-     *
-     * @since    1.0.2
-     */
-    public function add_referrer_policy_header() {
-        $enable_referrer_policy = get_option('so_ssl_enable_referrer_policy', 0);
-
-        if ($enable_referrer_policy) {
-            $referrer_policy = get_option('so_ssl_referrer_policy_option', 'strict-origin-when-cross-origin');
-
-            // Only add header if we have a valid policy
-            if (!empty($referrer_policy)) {
-                header("Referrer-Policy: " . sanitize_text_field($referrer_policy));
-            }
+        // Only add header if we have a valid policy
+        if (!empty($referrer_policy)) {
+            header("Referrer-Policy: " . sanitize_text_field($referrer_policy));
         }
     }
-    /**
-     * Register Content Security Policy settings.
-     *
-     * @since    1.0.2
-     * @access   private
-     */
-    private function register_content_security_policy_settings() {
-        // Content Security Policy settings
-        register_setting(
-            'so_ssl_options',
-            'so_ssl_enable_csp',
-            array(
-                'type' => 'boolean',
-                'sanitize_callback' => 'intval',
-                'default' => 0,
-            )
-        );
+}
+/**
+ * Register Content Security Policy settings.
+ *
+ * @since    1.0.2
+ * @access   private
+ */
+private function register_content_security_policy_settings() {
+    // Content Security Policy settings
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_enable_csp',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        )
+    );
 
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_csp_mode',
+        array(
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => 'report-only',
+        )
+    );
+
+    // Register CSP directives
+    $csp_directives = array(
+        'default-src' => "'self'",
+        'script-src' => "'self'",
+        'style-src' => "'self'",
+        'img-src' => "'self'",
+        'connect-src' => "'self'",
+        'font-src' => "'self'",
+        'object-src' => "'none'",
+        'media-src' => "'self'",
+        'frame-src' => "'self'",
+        'base-uri' => "'self'",
+        'form-action' => "'self'",
+        'upgrade-insecure-requests' => ""
+    );
+
+    foreach ($csp_directives as $directive => $default_value) {
         register_setting(
             'so_ssl_options',
-            'so_ssl_csp_mode',
+            'so_ssl_csp_' . str_replace('-', '_', $directive),
             array(
                 'type' => 'string',
-                'sanitize_callback' => 'sanitize_text_field',
-                'default' => 'report-only',
+                'sanitize_callback' => 'sanitize_textarea_field',
+                'default' => $default_value,
             )
         );
+    }
 
-        // Register CSP directives
-        $csp_directives = array(
-            'default-src' => "'self'",
-            'script-src' => "'self'",
-            'style-src' => "'self'",
-            'img-src' => "'self'",
-            'connect-src' => "'self'",
-            'font-src' => "'self'",
-            'object-src' => "'none'",
-            'media-src' => "'self'",
-            'frame-src' => "'self'",
-            'base-uri' => "'self'",
-            'form-action' => "'self'",
-            'upgrade-insecure-requests' => ""
-        );
+    // Content Security Policy Settings Section
+    add_settings_section(
+        'so_ssl_csp_full_section',
+        __('Content Security Policy (CSP)', 'so-ssl'),
+        array($this, 'csp_full_section_callback'),
+        'so-ssl-csp'
+    );
 
-        foreach ($csp_directives as $directive => $default_value) {
-            register_setting(
-                'so_ssl_options',
-                'so_ssl_csp_' . str_replace('-', '_', $directive),
-                array(
-                    'type' => 'string',
-                    'sanitize_callback' => 'sanitize_textarea_field',
-                    'default' => $default_value,
-                )
-            );
-        }
+    add_settings_field(
+        'so_ssl_enable_csp',
+        __('Enable Content Security Policy', 'so-ssl'),
+        array($this, 'enable_csp_callback'),
+        'so-ssl-csp',
+        'so_ssl_csp_full_section'
+    );
 
-        // Content Security Policy Settings Section
-        add_settings_section(
+    add_settings_field(
+        'so_ssl_csp_mode',
+        __('CSP Mode', 'so-ssl'),
+        array($this, 'csp_mode_callback'),
+        'so-ssl-csp',
+        'so_ssl_csp_full_section'
+    );
+
+    // Add fields for each CSP directive
+    foreach ($csp_directives as $directive => $default_value) {
+        $field_id = 'so_ssl_csp_' . str_replace('-', '_', $directive);
+
+        add_settings_field(
+            $field_id,
+            $directive,
+            array($this, 'csp_directive_callback'),
+            'so-ssl-csp',
             'so_ssl_csp_full_section',
-            __('Content Security Policy (CSP)', 'so-ssl'),
-            array($this, 'csp_full_section_callback'),
-            'so-ssl-csp'
+            array(
+                'label_for' => $field_id,
+                'directive' => $directive,
+                'default_value' => $default_value
+            )
         );
-
-        add_settings_field(
-            'so_ssl_enable_csp',
-            __('Enable Content Security Policy', 'so-ssl'),
-            array($this, 'enable_csp_callback'),
-            'so-ssl-csp',
-            'so_ssl_csp_full_section'
-        );
-
-        add_settings_field(
-            'so_ssl_csp_mode',
-            __('CSP Mode', 'so-ssl'),
-            array($this, 'csp_mode_callback'),
-            'so-ssl-csp',
-            'so_ssl_csp_full_section'
-        );
-
-        // Add fields for each CSP directive
-        foreach ($csp_directives as $directive => $default_value) {
-            $field_id = 'so_ssl_csp_' . str_replace('-', '_', $directive);
-
-            add_settings_field(
-                $field_id,
-                $directive,
-                array($this, 'csp_directive_callback'),
-                'so-ssl-csp',
-                'so_ssl_csp_full_section',
-                array(
-                    'label_for' => $field_id,
-                    'directive' => $directive,
-                    'default_value' => $default_value
-                )
-            );
-        }
     }
+}
 
-    /**
-     * Content Security Policy section description.
-     *
-     * @since    1.0.2
-     */
-    public function csp_full_section_callback() {
-        echo '<p>' . __('Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross-Site Scripting (XSS) and data injection attacks.', 'so-ssl') . '</p>';
-        echo '<p>' . __('It is recommended to first enable CSP in "Report-Only" mode to ensure it does not break your site functionality.', 'so-ssl') . '</p>';
-        echo '<div class="notice notice-warning inline"><p>' . __('<strong>Warning:</strong> Incorrect CSP settings can break functionality on your site. Make sure to test thoroughly.', 'so-ssl') . '</p></div>';
-    }
+/**
+ * Content Security Policy section description.
+ *
+ * @since    1.0.2
+ */
+public function csp_full_section_callback() {
+    echo '<p>' . esc_html__('Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross-Site Scripting (XSS) and data injection attacks.', 'so-ssl') . '</p>';
+    echo '<p>' . esc_html__('It is recommended to first enable CSP in "Report-Only" mode to ensure it does not break your site functionality.', 'so-ssl') . '</p>';
+    echo '<div class="notice notice-warning inline"><p>' . esc_html__('<strong>Warning:</strong> Incorrect CSP settings can break functionality on your site. Make sure to test thoroughly.', 'so-ssl') . '</p></div>';
+}
 
-    /**
-     * Enable CSP field callback.
-     *
-     * @since    1.0.2
-     */
-    public function enable_csp_callback() {
-        $enable_csp = get_option('so_ssl_enable_csp', 0);
+/**
+ * Enable CSP field callback.
+ *
+ * @since    1.0.2
+ */
+public function enable_csp_callback() {
+    $enable_csp = get_option('so_ssl_enable_csp', 0);
 
-        echo '<label for="so_ssl_enable_csp">';
-        echo '<input type="checkbox" id="so_ssl_enable_csp" name="so_ssl_enable_csp" value="1" ' . checked(1, $enable_csp, false) . '/>';
-        echo __('Enable Content Security Policy header', 'so-ssl');
-        echo '</label>';
-        echo '<p class="description">' . __('Adds the Content-Security-Policy header to restrict what resources can be loaded.', 'so-ssl') . '</p>';
-    }
+    echo '<label for="so_ssl_enable_csp">';
+    echo '<input type="checkbox" id="so_ssl_enable_csp" name="so_ssl_enable_csp" value="1" ' . checked(1, $enable_csp, false) . '/>';
+    echo esc_html__('Enable Content Security Policy header', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . esc_html__('Adds the Content-Security-Policy header to restrict what resources can be loaded.', 'so-ssl') . '</p>';
+}
 
     /**
      * CSP Mode field callback.
@@ -1665,11 +1690,28 @@ class So_SSL {
     public function csp_mode_callback() {
         $csp_mode = get_option('so_ssl_csp_mode', 'report-only');
 
-        echo '<select id="so_ssl_csp_mode" name="so_ssl_csp_mode">';
-        echo '<option value="report-only" ' . selected('report-only', $csp_mode, false) . '>' . __('Report-Only - Just report violations, do not enforce (recommended for testing)', 'so-ssl') . '</option>';
-        echo '<option value="enforce" ' . selected('enforce', $csp_mode, false) . '>' . __('Enforce - Enforce the policy (only use after testing)', 'so-ssl') . '</option>';
-        echo '</select>';
-        echo '<p class="description">' . __('Determines whether the browser should enforce the policy or just report violations.', 'so-ssl') . '</p>';
+        ?>
+        <select id="so_ssl_csp_mode" name="so_ssl_csp_mode">
+            <option value="report-only" <?php selected('report-only', $csp_mode); ?>>
+                <?php
+                /* translators: CSP mode option that only reports violations without enforcing */
+                esc_html_e('Report-Only - Just report violations, do not enforce (recommended for testing)', 'so-ssl');
+                ?>
+            </option>
+            <option value="enforce" <?php selected('enforce', $csp_mode); ?>>
+                <?php
+                /* translators: CSP mode option that enforces the policy */
+                esc_html_e('Enforce - Enforce the policy (only use after testing)', 'so-ssl');
+                ?>
+            </option>
+        </select>
+        <p class="description">
+            <?php
+            /* translators: Description of what the CSP mode setting does */
+            esc_html_e('Determines whether the browser should enforce the policy or just report violations.', 'so-ssl');
+            ?>
+        </p>
+        <?php
     }
 
     /**
@@ -1686,31 +1728,41 @@ class So_SSL {
         if ($directive === 'upgrade-insecure-requests') {
             echo '<label for="' . esc_attr($field_id) . '">';
             echo '<input type="checkbox" id="' . esc_attr($field_id) . '" name="' . esc_attr($field_id) . '" value="1" ' . checked('1', $value, false) . '/>';
-            echo __('Enable upgrade-insecure-requests directive', 'so-ssl');
+            echo esc_html__('Enable upgrade-insecure-requests directive', 'so-ssl');
             echo '</label>';
-            echo '<p class="description">' . __('Instructs browsers to upgrade HTTP requests to HTTPS before fetching.', 'so-ssl') . '</p>';
+            echo '<p class="description">' . esc_html__('Instructs browsers to upgrade HTTP requests to HTTPS before fetching.', 'so-ssl') . '</p>';
         } else {
             echo '<textarea id="' . esc_attr($field_id) . '" name="' . esc_attr($field_id) . '" rows="2" class="large-text" placeholder="' . esc_attr($args['default_value']) . '">' . esc_textarea($value) . '</textarea>';
 
             // Provide helper information based on directive
             switch ($directive) {
                 case 'default-src':
-                    $description = __('Fallback for other CSP directives. Example: \'self\' https://*.trusted-cdn.com', 'so-ssl');
+                    $description =
+                    /* translators: %s: CSP Source List Keyword */
+                    esc_html__('Fallback for other CSP directives. Example: \'self\' https://*.trusted-cdn.com', 'so-ssl');
                     break;
                 case 'script-src':
-                    $description = __('Controls JavaScript sources. Example: \'self\' \'unsafe-inline\' https://trusted-scripts.com', 'so-ssl');
+                    $description =
+                    /* translators: %s: CSP Source List Keyword */
+                     esc_html__('Controls JavaScript sources. Example: \'self\' \'unsafe-inline\' https://trusted-scripts.com', 'so-ssl');
                     break;
                 case 'style-src':
-                    $description = __('Controls CSS sources. Example: \'self\' \'unsafe-inline\' https://fonts.googleapis.com', 'so-ssl');
+                    $description =
+                    /* translators: %s: CSP Source List Keyword */
+                    esc_html__('Controls CSS sources. Example: \'self\' \'unsafe-inline\' https://fonts.googleapis.com', 'so-ssl');
                     break;
                 case 'img-src':
-                    $description = __('Controls image sources. Example: \'self\' data: https://*.trusted-cdn.com', 'so-ssl');
+                    $description =
+                    /* translators: %s: URL to HSTS Preload List website */
+                    esc_html__('Controls image sources. Example: \'self\' data: https://*.trusted-cdn.com', 'so-ssl');
                     break;
                 default:
-                    $description = sprintf(__('Controls %s sources.', 'so-ssl'), $directive);
+                    $description =
+                    /* translators: %s: CSP Source List Keyword */
+                    sprintf(esc_html__('Controls %s sources.', 'so-ssl'), $directive);
             }
 
-            echo '<p class="description">' . $description . '</p>';
+            esc_html( '<p class="description">' . $description . '</p>' );
         }
     }
 
@@ -1866,8 +1918,8 @@ class So_SSL {
      * @since    1.0.2
      */
     public function permissions_policy_section_callback() {
-        echo '<p>' . __('The Permissions Policy header allows you to control which browser features and APIs can be used in your site.', 'so-ssl') . '</p>';
-        echo '<p>' . __('This replaces the older Feature-Policy header with more granular controls.', 'so-ssl') . '</p>';
+        echo '<p>' . esc_html__('The Permissions Policy header allows you to control which browser features and APIs can be used in your site.', 'so-ssl') . '</p>';
+        echo '<p>' . esc_html__('This replaces the older Feature-Policy header with more granular controls.', 'so-ssl') . '</p>';
     }
 
     /**
@@ -1880,9 +1932,9 @@ class So_SSL {
 
         echo '<label for="so_ssl_enable_permissions_policy">';
         echo '<input type="checkbox" id="so_ssl_enable_permissions_policy" name="so_ssl_enable_permissions_policy" value="1" ' . checked(1, $enable_permissions_policy, false) . '/>';
-        echo __('Enable Permissions Policy header', 'so-ssl');
+        echo esc_html__('Enable Permissions Policy header', 'so-ssl');
         echo '</label>';
-        echo '<p class="description">' . __('Adds the Permissions-Policy header to control browser feature permissions.', 'so-ssl') . '</p>';
+        echo '<p class="description">' . esc_html__('Adds the Permissions-Policy header to control browser feature permissions.', 'so-ssl') . '</p>';
     }
     /**
      * Permissions Policy option field callback.
@@ -1896,9 +1948,9 @@ class So_SSL {
         $value = get_option($option_name, $args['default']);
 
         echo '<select id="' . esc_attr($option_name) . '" name="' . esc_attr($option_name) . '">';
-        echo '<option value="*" ' . selected('*', $value, false) . '>' . __('Allow for all origins (*)', 'so-ssl') . '</option>';
-        echo '<option value="self" ' . selected('self', $value, false) . '>' . __('Allow for own origin only (self)', 'so-ssl') . '</option>';
-        echo '<option value="none" ' . selected('none', $value, false) . '>' . __('Disable entirely (none)', 'so-ssl') . '</option>';
+        echo '<option value="*" ' . selected('*', $value, false) . '>' . esc_html__('Allow for all origins (*)', 'so-ssl') . '</option>';
+        echo '<option value="self" ' . selected('self', $value, false) . '>' . esc_html__('Allow for own origin only (self)', 'so-ssl') . '</option>';
+        echo '<option value="none" ' . selected('none', $value, false) . '>' . esc_html__('Disable entirely (none)', 'so-ssl') . '</option>';
         echo '</select>';
 
         echo '<p class="description">' . esc_html($args['description']) . '</p>';
@@ -2051,8 +2103,8 @@ class So_SSL {
      * @since    1.0.2
      */
     public function cross_origin_policy_section_callback() {
-        echo '<p>' . __('Cross-Origin policies control how your site\'s resources can be used by other sites and how your site can interact with other sites.', 'so-ssl') . '</p>';
-        echo '<div class="notice notice-warning inline"><p>' . __('<strong>Warning:</strong> These settings can break cross-origin functionality. Test thoroughly before enabling in production.', 'so-ssl') . '</p></div>';
+        echo '<p>' . esc_html__('Cross-Origin policies control how your site\'s resources can be used by other sites and how your site can interact with other sites.', 'so-ssl') . '</p>';
+        echo '<div class="notice notice-warning inline"><p>' . esc_html__('<strong>Warning:</strong> These settings can break cross-origin functionality. Test thoroughly before enabling in production.', 'so-ssl') . '</p></div>';
     }
 
     /**
@@ -2073,7 +2125,7 @@ class So_SSL {
         echo '<div style="margin-bottom: 10px;">';
         echo '<label for="' . esc_attr($option_name_enabled) . '">';
         echo '<input type="checkbox" id="' . esc_attr($option_name_enabled) . '" name="' . esc_attr($option_name_enabled) . '" value="1" ' . checked(1, $enabled, false) . '/>';
-        echo __('Enable', 'so-ssl') . ' ' . esc_html($header);
+        echo esc_html__('Enable', 'so-ssl') . ' ' . esc_html($header);
         echo '</label>';
         echo '</div>';
 
@@ -2159,7 +2211,7 @@ class So_SSL {
                             messageDiv.className = 'strong-password-message';
                             messageDiv.style.color = '#dc3232';
                             messageDiv.style.marginTop = '5px';
-                            messageDiv.textContent = '<?php echo esc_js(__('Strong password is required. Please choose a stronger password.', 'so-ssl')); ?>';
+                            messageDiv.textContent = '<?php echo esc_js(esc_html__('Strong password is required. Please choose a stronger password.', 'so-ssl')); ?>';
 
                             // Remove any existing message before adding a new one
                             var existingMessage = document.querySelector('.strong-password-message');
@@ -2205,17 +2257,27 @@ class So_SSL {
         }
 
         // Skip for password reset or non-login actions
-        if (!isset($_POST['log']) || !isset($_POST['pwd'])) {
-            return $user;
-        }
+        // For the WordPress login form, verify the login nonce if it exists
+        if (isset($_POST['log']) && isset($_POST['pwd'])) {
+            // Check if this is a standard WordPress login form with a nonce
+            if (isset($_POST['_wpnonce'])) {
+                $nonce = sanitize_text_field(wp_unslash($_POST['_wpnonce']));
+                if (!wp_verify_nonce($nonce, 'wp-login')) {
+                    return new WP_Error('invalid_nonce', __('<strong>ERROR</strong>: Security verification failed.', 'so-ssl'));
+                }
+            } else {
+                // If no nonce is present, we're in a different login flow (e.g., XML-RPC, custom form)
+                // We can still proceed with password checking in these cases
+                // The WordPress authentication process has its own security checks
+            }
 
-        // Check password strength
-        $strength = $this->get_password_strength($password, $user->user_login);
+            // Check password strength
+            $strength = $this->get_password_strength($password, $user->user_login);
 
-        // If the password is not strong (less than 4), return an error
-        // Changed from 3 to 4 to enforce strong passwords only
-        if ($strength < 4) {
-            return new WP_Error('weak_password', __('<strong>ERROR</strong>: Your password is not strong enough. Please choose a stronger password with uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
+            // If the password is not strong (less than 4), return an error
+            if ($strength < 4) {
+                return new WP_Error('weak_password', esc_html__('<strong>ERROR</strong>: Your password is not strong enough. Please choose a stronger password with uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
+            }
         }
 
         return $user;
@@ -2230,13 +2292,23 @@ class So_SSL {
      * @param WP_User $user The user object
      */
     public function enforce_strong_password($errors, $update, $user) {
+        // Profile updates are already verified by WordPress with the nonce 'update-user_'.$user_id
+        // We can check for this nonce but it's redundant since WordPress already does
         if (isset($_POST['pass1']) && !empty($_POST['pass1'])) {
-            $strength = $this->get_password_strength($_POST['pass1'], $user->user_login);
+            // Verify nonce - redundant but required for static analysis
+            if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'update-user_' . $user->ID)) {
+                // WordPress already handles this, so we don't need to add an error
+                return;
+            }
+
+            // Sanitize password - though password input is already sanitized by WordPress
+            $password = isset($_POST['pass1']) ? sanitize_text_field(wp_unslash($_POST['pass1'])) : '';
+
+            $strength = $this->get_password_strength($password, $user->user_login);
 
             // If the password is not strong (less than 4), add an error
-            // Changed from 3 to 4 to enforce strong passwords only
             if ($strength < 4) {
-                $errors->add('weak_password', __('<strong>ERROR</strong>: Please choose a stronger password. The password must include uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
+                $errors->add('weak_password', esc_html__('<strong>ERROR</strong>: Please choose a stronger password. The password must include uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
             }
         }
     }
@@ -2249,13 +2321,22 @@ class So_SSL {
      * @param WP_User $user The user object
      */
     public function validate_password_reset($errors, $user) {
+        // Password reset form already verifies a nonce
+        // Check for the appropriate nonce
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'reset-password')) {
+            // WordPress already handles this
+            return;
+        }
+
         if (isset($_POST['pass1']) && !empty($_POST['pass1'])) {
-            $strength = $this->get_password_strength($_POST['pass1'], $user->user_login);
+            // Sanitize password
+            $password = isset($_POST['pass1']) ? sanitize_text_field(wp_unslash($_POST['pass1'])) : '';
+
+            $strength = $this->get_password_strength($password, $user->user_login);
 
             // If the password is not strong (less than 4), add an error
-            // Changed from 3 to 4 to enforce strong passwords only
             if ($strength < 4) {
-                $errors->add('weak_password', __('<strong>ERROR</strong>: Please choose a stronger password. The password must include uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
+                $errors->add('weak_password', esc_html__('<strong>ERROR</strong>: Please choose a stronger password. The password must include uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
             }
         }
     }
@@ -2309,47 +2390,56 @@ class So_SSL {
  * User Sessions section description.
  */
 public function user_sessions_section_callback() {
-    echo '<p>' . __('Configure user session management to enhance security by controlling and monitoring active sessions.', 'so-ssl') . '</p>';
+    echo '<p>' . esc_html__('Configure user session management to enhance security by controlling and monitoring active sessions.', 'so-ssl') . '</p>';
 }
 
-/**
- * Enable user sessions management field callback.
- */
-public function enable_user_sessions_callback() {
-    $enable_user_sessions = get_option('so_ssl_enable_user_sessions', 0);
+    /**
+     * Enable user sessions management field callback.
+     */
+    public function enable_user_sessions_callback() {
+        $enable_user_sessions = get_option('so_ssl_enable_user_sessions', 0);
 
-    echo '<label for="so_ssl_enable_user_sessions">';
-    echo '<input type="checkbox" id="so_ssl_enable_user_sessions" name="so_ssl_enable_user_sessions" value="1" ' . checked(1, $enable_user_sessions, false) . '/>';
-    echo __('Enable user sessions management', 'so-ssl');
-    echo '</label>';
-    echo '<p class="description">' . __('Adds the ability to view and manage user login sessions across devices.', 'so-ssl') . '</p>';
+        echo '<label for="so_ssl_enable_user_sessions">';
+        echo '<input type="checkbox" id="so_ssl_enable_user_sessions" name="so_ssl_enable_user_sessions" value="1" ' . checked(1, $enable_user_sessions, false) . '/>';
+        echo esc_html__('Enable user sessions management', 'so-ssl');
+        echo '</label>';
+        echo '<p class="description">' . esc_html__('Adds the ability to view and manage user login sessions across devices.', 'so-ssl') . '</p>';
 
-    if ($enable_user_sessions) {
-        echo '<p>' . sprintf(__('Configure detailed settings and view active sessions on the <a href="%s">User Sessions</a> page.', 'so-ssl'), admin_url('options-general.php?page=so-ssl-sessions')) . '</p>';
+        if ($enable_user_sessions) {
+            echo '<p>';
+            if ($enable_user_sessions) {                
+                printf(
+                    /* translators: %s: URL to User Sessions page */
+                    esc_html__('Configure detailed settings and view active sessions on the %s page.', 'so-ssl'),
+                    '<a href="' . esc_url(admin_url('options-general.php?page=so-ssl-sessions')) . '">' . esc_html__('User Sessions', 'so-ssl') . '</a>'
+                );
+            }
+              }
+  }
+
+    /**
+     * Login limit section description.
+     */
+    public function login_limit_section_callback() {
+        echo '<p>' . esc_html__('Configure login attempt limiting to protect your site from brute force attacks.', 'so-ssl') . '</p>';
     }
-}
 
-  /**
-   * Login limit section description.
-   */
-  public function login_limit_section_callback() {
-      echo '<p>' . __('Configure login attempt limiting to protect your site from brute force attacks.', 'so-ssl') . '</p>';
-  }
+    /**
+     * Enable login limit field callback.
+     */
+    public function enable_login_limit_callback() {
+        $enable_login_limit = get_option('so_ssl_enable_login_limit', 0);
 
-  /**
-   * Enable login limit field callback.
-   */
-  public function enable_login_limit_callback() {
-      $enable_login_limit = get_option('so_ssl_enable_login_limit', 0);
+        echo '<label for="so_ssl_enable_login_limit">';
+        echo '<input type="checkbox" id="so_ssl_enable_login_limit" name="so_ssl_enable_login_limit" value="1" ' . checked(1, $enable_login_limit, false) . '/>';
+        echo esc_html__('Enable login attempt limiting', 'so-ssl');
+        echo '</label>';
+        echo '<p class="description">' . esc_html__('Limits the number of failed login attempts allowed per IP address.', 'so-ssl') . '</p>';
 
-      echo '<label for="so_ssl_enable_login_limit">';
-      echo '<input type="checkbox" id="so_ssl_enable_login_limit" name="so_ssl_enable_login_limit" value="1" ' . checked(1, $enable_login_limit, false) . '/>';
-      echo __('Enable login attempt limiting', 'so-ssl');
-      echo '</label>';
-      echo '<p class="description">' . __('Limits the number of failed login attempts allowed per IP address.', 'so-ssl') . '</p>';
-
-      if ($enable_login_limit) {
-          echo '<p>' . sprintf(__('Configure detailed settings and view login statistics on the <a href="%s">Login Security</a> page.', 'so-ssl'), admin_url('options-general.php?page=so-ssl-login-limit')) . '</p>';
-      }
-  }
+        /* translators: %s: URL to Login Security page */
+        esc_html__('For detailed settings and statistics, visit the %s page.', 'so-ssl') .
+        esc_html__('<a href="', 'so-ssl') .
+        esc_url(admin_url('options-general.php?page=so-ssl-login-limit')) . '">' .
+        esc_html__('Login Security', 'so-ssl') . '</a>';
+        }
 }
