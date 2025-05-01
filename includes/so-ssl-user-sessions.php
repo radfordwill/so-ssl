@@ -178,7 +178,6 @@ class So_SSL_User_Sessions {
         ?>
         <div class="wrap">
             <h1><?php esc_html(get_admin_page_title()); ?></h1>
-            <h1><p><a href="<?php esc_html(admin_url('options-general.php?page=so-ssl#user-sessions')); ?>"><?php esc_html_e('Back', 'so-ssl'); ?></a></p></h1>
             <div class="so-ssl-session-settings">
                 <h2><?php esc_html_e('Session Settings', 'so-ssl'); ?></h2>
                 <form method="post" action="options.php">
@@ -671,6 +670,7 @@ class So_SSL_User_Sessions {
          */
         public static function sessions_section_callback() {
             echo '<p>' . esc_html__('Configure how user sessions are managed on your site.', 'so-ssl') . '</p>';
+            echo '<p><a href="' . /* translators: Users Session back to home link */ admin_url('options-general.php?page=so-ssl#user-sessions') . '">' . /* translators: Back button text */ esc_html('Back', 'so-ssl') . '</a></p>';
         }
 
         /**

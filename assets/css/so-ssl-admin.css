@@ -1,0 +1,594 @@
+/**
+ * So SSL Admin Styles
+ *
+ * Main stylesheet for the So SSL plugin admin interface.
+ */
+
+/* Main container styles */
+.so-ssl-wrap {
+    max-width: 1200px;
+    margin: 20px 0;
+}
+
+.so-ssl-wrap h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #2271b1;
+    display: flex;
+    align-items: center;
+}
+
+.so-ssl-wrap h1 .so-ssl-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 10px;
+}
+
+/* Header styles */
+.so-ssl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #c3c4c7;
+}
+
+.so-ssl-header-right {
+    display: flex;
+    align-items: center;
+}
+
+.so-ssl-version {
+    display: inline-block;
+    background: #f0f6fc;
+    color: #2271b1;
+    border-radius: 4px;
+    font-size: 14px !important; /* Original: 12px */
+    padding: 4px 10px;          /* Original: 4px 8px */
+    font-weight: 500;
+    margin-left: 10px;
+}
+
+/* Optional: Increase the header font size to match the larger logo */
+.so-ssl-header h1 {
+    font-size: 28px !important; /* Original: 24px */
+    line-height: 1.3;           /* Added: improves text spacing */
+}
+
+/* Increase the size of the logo SVG */
+.so-ssl-header h1 .so-ssl-icon {
+    width: 48px !important;  /* Original: 32px */
+    height: 48px !important; /* Original: 32px */
+    margin-right: 12px;      /* Added: gives more breathing room */
+    vertical-align: middle;  /* Added: better alignment with text */
+}
+
+/* Tab Navigation */
+.nav-tab-wrapper {
+    border-bottom: 1px solid #c3c4c7;
+    margin-bottom: 20px;
+}
+
+.nav-tab {
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.nav-tab-active, .nav-tab:hover {
+    background-color: #f0f6fc;
+    border-bottom-color: #fff;
+}
+
+.nav-tab-active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #2271b1;
+}
+
+/* Settings tabs */
+.settings-tab {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-top: none;
+    padding: 20px;
+    margin-top: -1px;
+    border-radius: 0 0 4px 4px;
+}
+
+.settings-tab h2 {
+    font-size: 18px;
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+/* Form elements */
+.form-table {
+    margin-top: 20px;
+}
+
+.form-table th {
+    padding: 15px 10px 15px 0;
+    width: 200px;
+    font-weight: 600;
+}
+
+.form-table td {
+    padding: 15px 10px;
+}
+
+/* Switch toggle for checkboxes */
+.so-ssl-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* Hide the original checkbox while keeping it accessible for screen readers */
+.so-ssl-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+/* Hide ALL original checkboxes that have been converted to switches */
+input[type="checkbox"].so-ssl-switch-converted {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.so-ssl-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.so-ssl-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+/* Apply correct styles based on checkbox state */
+input:checked + .so-ssl-slider {
+    background-color: #2271b1;
+}
+
+input:checked + .so-ssl-slider:before {
+    transform: translateX(24px);
+}
+
+input:focus + .so-ssl-slider {
+    box-shadow: 0 0 1px #2271b1;
+}
+
+/* For cases where the original checkbox is hidden but we need to style the slider directly */
+.so-ssl-switch-converted:checked ~ .so-ssl-switch .so-ssl-slider {
+    background-color: #2271b1;
+}
+
+.so-ssl-switch-converted:checked ~ .so-ssl-switch .so-ssl-slider:before {
+    transform: translateX(24px);
+}
+
+/* Add animation for the slider */
+.so-ssl-slider,
+.so-ssl-slider:before {
+    transition: all 0.4s ease;
+}
+
+/* Description text */
+.description {
+    font-style: italic;
+    color: #646970;
+    margin-top: 5px;
+}
+
+/* Feature cards */
+.so-ssl-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-gap: 20px;
+    margin: 20px 0;
+}
+
+.so-ssl-feature-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.so-ssl-feature-card:hover {
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.so-ssl-feature-card h3 {
+    margin-top: 0;
+    font-size: 16px;
+    color: #2271b1;
+    display: flex;
+    align-items: center;
+}
+
+.so-ssl-feature-card h3 svg,
+.so-ssl-feature-card h3 img {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+}
+
+.so-ssl-feature-card p {
+    margin-bottom: 0;
+    font-size: 13px;
+    color: #50575e;
+}
+
+.so-ssl-feature-card .so-ssl-feature-actions {
+    margin-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Notice boxes */
+.so-ssl-notice {
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-left: 4px solid #72aee6;
+    margin: 15px 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.so-ssl-notice-success {
+    background-color: #f0f8ee;
+    border-left-color: #46b450;
+}
+
+.so-ssl-notice-warning {
+    background-color: #fef8ee;
+    border-left-color: #ffb900;
+}
+
+.so-ssl-notice-error {
+    background-color: #fcf0f1;
+    border-left-color: #dc3232;
+}
+
+/* Section titles */
+.so-ssl-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    padding-bottom: 10px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #f0f0f1;
+    color: #1d2327;
+}
+
+/* Security status dashboard */
+.so-ssl-security-status {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.so-ssl-security-score {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.so-ssl-score-circle {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: #f0f0f1;
+    overflow: hidden;
+}
+
+.so-ssl-score-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #2271b1;
+    transition: height 0.5s ease;
+}
+
+.so-ssl-score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.so-ssl-security-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-gap: 15px;
+}
+
+.so-ssl-security-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #f0f0f1;
+    border-radius: 4px;
+}
+
+.so-ssl-security-item .dashicons {
+    margin-right: 10px;
+}
+
+.so-ssl-security-good .dashicons {
+    color: #46b450;
+}
+
+.so-ssl-security-warning .dashicons {
+    color: #ffb900;
+}
+
+.so-ssl-security-bad .dashicons {
+    color: #dc3232;
+}
+
+/* Two-Factor Authentication */
+.so-ssl-authenticator-setup {
+    max-width: 600px;
+    margin-bottom: 20px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+}
+
+.so-ssl-qr-code {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ddd;
+    display: inline-block;
+    background: #fff;
+    border-radius: 4px;
+}
+
+.so-ssl-verify-code {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+}
+
+.so-ssl-verify-code input[type="text"] {
+    font-size: 18px;
+    letter-spacing: 2px;
+    text-align: center;
+    width: 200px;
+    padding: 8px;
+}
+
+.so-ssl-verify-result {
+    margin-top: 10px;
+    min-height: 20px;
+    font-weight: 500;
+}
+
+.so-ssl-backup-codes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    list-style-type: none;
+    padding: 0;
+    margin: 15px 0;
+}
+
+.so-ssl-backup-codes li {
+    background: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 16px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+/* Login Form Styles */
+.login-form-2fa-code {
+    margin-bottom: 20px;
+}
+
+.login-form-2fa-code input[type="text"] {
+    font-size: 18px;
+    letter-spacing: 2px;
+    text-align: center;
+    padding: 10px;
+}
+
+/* Login Limiting Styles */
+.so-ssl-login-limit-tabs .tab-content {
+    display: none;
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+}
+
+.so-ssl-login-limit-tabs .tab-content.active {
+    display: block;
+}
+
+.so-ssl-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-gap: 20px;
+    margin-bottom: 30px;
+}
+
+.so-ssl-stat-box {
+    background-color: #fff;
+    border: 1px solid #e5e5e5;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.so-ssl-stat-box:hover {
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.so-ssl-stat-box h3 {
+    margin-top: 0;
+    color: #1d2327;
+}
+
+.so-ssl-stat-number {
+    font-size: 30px;
+    font-weight: 600;
+    color: #2271b1;
+}
+
+.so-ssl-add-ip-form {
+    background-color: #f8f9fa;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+}
+
+.so-ssl-status-locked {
+    color: #dc3232;
+    font-weight: 600;
+}
+
+.so-ssl-status-ok {
+    color: #46b450;
+    font-weight: 600;
+}
+
+.so-ssl-status-success {
+    color: #46b450;
+    font-weight: 600;
+}
+
+.so-ssl-status-failed {
+    color: #dc3232;
+    font-weight: 600;
+}
+
+/* User Sessions Styles */
+.so-ssl-sessions-table {
+    margin-top: 15px;
+    border-collapse: collapse;
+    width: 100%;
+    border: 1px solid #e5e5e5;
+}
+
+.so-ssl-sessions-table th,
+.so-ssl-sessions-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.so-ssl-sessions-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.so-ssl-current-session {
+    background-color: #f0f6fc;
+}
+
+.so-ssl-current-session-label {
+    display: inline-block;
+    margin-left: 10px;
+    color: #2271b1;
+    font-style: italic;
+}
+
+.so-ssl-session-actions {
+    margin-bottom: 15px;
+}
+
+.so-ssl-session-actions button {
+    margin-right: 10px;
+}
+
+.so-ssl-user-sessions-container {
+    margin-bottom: 30px;
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.so-ssl-user-email {
+    color: #646970;
+    font-weight: normal;
+    font-size: 13px;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 782px) {
+    .form-table th {
+        width: 100%;
+        display: block;
+        padding-bottom: 0;
+    }
+
+    .form-table td {
+        display: block;
+        padding-top: 5px;
+    }
+
+    .so-ssl-features,
+    .so-ssl-security-items,
+    .so-ssl-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .so-ssl-backup-codes {
+        grid-template-columns: 1fr;
+    }
+}

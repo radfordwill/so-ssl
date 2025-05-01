@@ -448,12 +448,12 @@ class So_SSL_Login_Limit {
 
                 <div id="settings" class="tab-content active">
                     <h2><?php /* translators: Heading for login limit settings section */ esc_html_e('Login Limiting Settings', 'so-ssl'); ?></h2>
-                    <h1><p><a href="<?php /* translators: Login limit link */ esc_url(admin_url('options-general.php?page=so-ssl#login-limit')); ?>"><?php /* translators: Back button text */ esc_html_e('Back', 'so-ssl'); ?></a></p></h1>
                     <form method="post" action="options.php">
                         <?php settings_fields('so_ssl_login_limit_options'); ?>
                         <?php do_settings_sections('so-ssl-login-limit'); ?>
                         <?php submit_button(); ?>
                     </form>
+
                 </div>
 
                 <div id="current-lockouts" class="tab-content">
@@ -733,7 +733,6 @@ class So_SSL_Login_Limit {
                   <?php endif; ?>
               </div>
           </div>
-      </div>
 
       <script>
           jQuery(document).ready(function($) {
@@ -1185,6 +1184,8 @@ class So_SSL_Login_Limit {
    */
   public static function login_limit_section_callback() {
     echo '<p>' . esc_html__('Configure login attempt limiting to protect your site from brute force attacks.', 'so-ssl') . '</p>';
+    echo '<p><a href="' . /* translators: Login limit back to home link */ admin_url('options-general.php?page=so-ssl#login-limit') . '">' . /* translators: Back button text */ esc_html('Back', 'so-ssl') . '</a></p>';
+
   }
 
   /**
