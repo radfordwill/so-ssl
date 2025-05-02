@@ -670,7 +670,7 @@ class So_SSL_User_Sessions {
          */
         public static function sessions_section_callback() {
             echo '<p>' . esc_html__('Configure how user sessions are managed on your site.', 'so-ssl') . '</p>';
-            echo '<p><a href="' . /* translators: Users Session back to home link */ admin_url('options-general.php?page=so-ssl#user-sessions') . '">' . /* translators: Back button text */ esc_html('Back', 'so-ssl') . '</a></p>';
+                        echo '<p><a href="' . /* translators: Users Session back to home link */ esc_url(admin_url('options-general.php?page=so-ssl#user-sessions')) . '">' . /* translators: Back button text */ esc_html('Back', 'so-ssl') . '</a></p>';
         }
 
         /**

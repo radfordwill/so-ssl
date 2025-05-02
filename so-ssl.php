@@ -2,7 +2,7 @@
 /**
  * Plugin Name: So SSL
  * Plugin URI: https://github.com/radfordwill/so-ssl
- * Description: A plugin to activate and enforce SSL on your WordPress site with additional security headers and improved UI design.
+ * Description: A plugin to activate and enforce SSL on your WordPress site with additional security headers.
  * Version: 1.4.4
  * Author: Will Radford
  * Author URI: https://github.com/radfordwill/

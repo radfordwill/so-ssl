@@ -733,6 +733,7 @@ class So_SSL_Login_Limit {
                   <?php endif; ?>
               </div>
           </div>
+      </div>
 
       <script>
           jQuery(document).ready(function($) {
@@ -1184,7 +1185,7 @@ class So_SSL_Login_Limit {
    */
   public static function login_limit_section_callback() {
     echo '<p>' . esc_html__('Configure login attempt limiting to protect your site from brute force attacks.', 'so-ssl') . '</p>';
-    echo '<p><a href="' . /* translators: Login limit back to home link */ admin_url('options-general.php?page=so-ssl#login-limit') . '">' . /* translators: Back button text */ esc_html('Back', 'so-ssl') . '</a></p>';
+    echo '<p><a href="' . /* translators: Login limit back to home link */ esc_url(admin_url('options-general.php?page=so-ssl#login-limit')) . '">' . /* translators: Back button text */ esc_html('Back', 'so-ssl') . '</a></p>';
 
   }
 

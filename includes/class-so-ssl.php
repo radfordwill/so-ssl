@@ -1166,7 +1166,7 @@ public function two_factor_method_callback() {
  */
 public function hsts_section_callback() {
     echo '<p>' . esc_html__('HTTP Strict Transport Security (HSTS) instructs browsers to only access your site over HTTPS, even if the user enters or clicks on a plain HTTP URL. This helps protect against SSL stripping attacks.', 'so-ssl') . '</p>';
-    echo '<div class="notice notice-warning inline"><p><strong>Warning:</strong> Only enable HSTS if you are certain your site will always use HTTPS. Once a browser receives this header, it will not allow access to your site over HTTP until the max-age expires, even if you disable SSL later.' . esc_html__('', 'so-ssl') . '</p></div>';
+    echo '<div class="notice notice-warning inline"><p><strong>'.esc_html__('Warning:', 'so-ssl') . '</strong>' . esc_html__(' Only enable HSTS if you are certain your site will always use HTTPS. Once a browser receives this header, it will not allow access to your site over HTTP until the max-age expires, even if you disable SSL later.', 'so-ssl') . '</p></div>';
 }
 
 /**
@@ -1989,10 +1989,10 @@ public function add_referrer_policy_header() {
                         $description = esc_html__('Controls image sources. Example: \'self\' data: https://*.trusted-cdn.com', 'so-ssl');
                         break;
                     default:
-                        $description = sprintf(esc_html__('Controls %s sources.', 'so-ssl'), $directive);
+                        $description = sprintf(/* translators: Title */esc_html__('Controls %s sources.', 'so-ssl'), $directive);
                 }
 
-                echo '<p class="description">' . $description . '</p>';
+                echo '<p class="description">' . esc_html($description) . '</p>';
             }
         }
 

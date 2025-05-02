@@ -42,9 +42,9 @@ class So_SSL_Login_Page {
      */
     public static function enhance_login_form() {
         // Check if 2FA is active on the login form
-        if (isset($_SESSION['so_ssl_2fa_required']) && $_SESSION['so_ssl_2fa_required']) {
+        if (isset(sanitize_text_field($_SESSION['so_ssl_2fa_required'])) && sanitize_text_field($_SESSION['so_ssl_2fa_required'])) {
             // Add custom classes to 2FA code field
-            ?>
+            ?>(
             <script type="text/javascript">
                 jQuery(document).ready(function($) {
                     // Add custom classes to the 2FA field
@@ -66,7 +66,7 @@ class So_SSL_Login_Page {
      */
     public static function enhance_login_message($message) {
         // Check if 2FA is active on the login form
-        if (isset($_SESSION['so_ssl_2fa_required']) && $_SESSION['so_ssl_2fa_required']) {
+        if (isset(sanitize_text_field($_SESSION['so_ssl_2fa_required'])) && sanitize_text_field($_SESSION['so_ssl_2fa_required'])) {
             $method = get_option('so_ssl_2fa_method', 'email');
             
             // Create enhanced message based on authentication method
