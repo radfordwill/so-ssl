@@ -193,15 +193,22 @@ class So_SSL {
         }
     }
 
-    /**
-     * Enqueue admin scripts
-     */
-    public function enqueue_admin_scripts($hook) {
-        // Only load on plugin pages
-        if (strpos($hook, 'so-ssl') !== false || $hook === 'settings_page_so-ssl') {
-            wp_enqueue_script('so-ssl-admin', SO_SSL_URL . 'assets/js/so-ssl-admin.js', array('jquery'), SO_SSL_VERSION, true);
-        }
-    }
+	/**
+	 * Enqueue admin scripts
+	 */
+	public function enqueue_admin_scripts($hook) {
+		// Only load on plugin pages
+		if (strpos($hook, 'so-ssl') !== false || $hook === 'settings_page_so-ssl') {
+			wp_enqueue_script('so-ssl-admin', SO_SSL_URL . 'assets/js/so-ssl-admin.js', array('jquery'), SO_SSL_VERSION, true);
+
+			// Add translation strings and other data for JavaScript
+			wp_localize_script('so-ssl-admin', 'soSslAdmin', array(
+				'ajaxUrl' => admin_url('admin-ajax.php'),
+				'nonce' => wp_create_nonce('so_ssl_admin_nonce'),
+				'unsavedChangesWarning' => __('You have unsaved changes on this page. Do you want to leave this page and discard your changes?', 'so-ssl')
+			));
+		}
+	}
 
     /**
      * Plugin settings page content.
