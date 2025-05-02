@@ -1,43 +1,44 @@
 # So SSL
 
-So SSL is a WordPress plugin designed to activate and enforce SSL on your WordPress site with additional security headers and features.
+A WordPress plugin to activate and enforce SSL on your site with additional security headers, two-factor authentication, and login protection.
 
 ## Description
 
-So SSL provides a comprehensive set of tools to enhance the security of your WordPress website through SSL/HTTPS enforcement, various security headers, two-factor authentication, and login protection features.
+So SSL provides a comprehensive set of tools to enhance the security of your WordPress website through SSL/HTTPS enforcement, various security headers, two-factor authentication, and login protection features. The plugin now features an improved user interface design for better usability and a more intuitive experience.
 
-### Features
+## Features
 
-- **SSL Enforcement**: Automatically redirect all traffic to HTTPS
-- **HTTP Strict Transport Security (HSTS)**: Instruct browsers to only access your site over HTTPS
-- **Security Headers**:
-  - X-Frame-Options: Protect against clickjacking attacks
-  - Content Security Policy: Control which resources can be loaded
-  - Referrer Policy: Control how much referrer information is shared
-  - Permissions Policy: Limit browser features and APIs
-  - Cross-Origin Policies: Control how your site interacts with other sites
-- **Two-Factor Authentication**:
-  - Enhance login security with 2FA
-  - Multiple authentication methods (Email, Authenticator App)
-  - Role-based implementation
-  - Backup codes for account recovery
-- **Login Protection**:
-  - Enforce strong passwords for all users
-  - Disable "confirm use of weak password" checkbox
-  - Prevent users from configuring weak passwords during registration or password change
-- **User Sessions Management**:
-  - View and manage all active user sessions
-  - Terminate individual or all sessions
-  - Set maximum sessions per user
-  - Limit session duration
-  - Manage sessions across multiple devices
-- **Login Attempt Limiting**:
-  - Protect against brute force attacks
-  - Customize maximum login attempts
-  - Configurable lockout duration
-  - IP whitelist and blacklist
-  - Detailed login statistics
-  - Email notifications for lockouts
+* **Improved UI Design**: Enhanced user interface for better usability and navigation
+* **SSL Enforcement**: Automatically redirect all traffic to HTTPS
+* **HTTP Strict Transport Security (HSTS)**: Instruct browsers to only access your site over HTTPS
+* **Security Headers**:
+  * X-Frame-Options: Protect against clickjacking attacks
+  * Content Security Policy: Control which resources can be loaded
+  * Referrer Policy: Control how much referrer information is shared
+  * Permissions Policy: Limit browser features and APIs
+  * Cross-Origin Policies: Control how your site interacts with other sites
+* **Two-Factor Authentication**:
+  * Enhance login security with 2FA
+  * Multiple authentication methods (Email, Authenticator App)
+  * Role-based implementation
+  * Backup codes for account recovery
+* **Login Protection**:
+  * Enforce strong passwords for all users
+  * Disable "confirm use of weak password" checkbox
+  * Prevent users from configuring weak passwords during registration or password change
+* **User Sessions Management**:
+  * View and manage all active user sessions
+  * Terminate individual or all sessions
+  * Set maximum sessions per user
+  * Limit session duration
+  * Manage sessions across multiple devices
+* **Login Attempt Limiting**:
+  * Protect against brute force attacks
+  * Customize maximum login attempts
+  * Configurable lockout duration
+  * IP whitelist and blacklist
+  * Detailed login statistics
+  * Email notifications for lockouts
 
 ## Installation
 
@@ -55,11 +56,11 @@ Configure SSL enforcement and HSTS settings to ensure your site is always access
 
 Customize various security headers to protect your site from common web vulnerabilities:
 
-- **Content Security Policy**: Control which resources can be loaded on your site
-- **X-Frame-Options**: Prevent your site from being embedded in iframes on other sites
-- **Referrer Policy**: Control how much referrer information is shared
-- **Permissions Policy**: Limit access to browser features and APIs
-- **Cross-Origin Policies**: Control cross-origin resource sharing
+* **Content Security Policy**: Control which resources can be loaded on your site
+* **X-Frame-Options**: Prevent your site from being embedded in iframes on other sites
+* **Referrer Policy**: Control how much referrer information is shared
+* **Permissions Policy**: Limit access to browser features and APIs
+* **Cross-Origin Policies**: Control cross-origin resource sharing
 
 ### Two-Factor Authentication
 
@@ -77,10 +78,10 @@ Strengthen your site's login security by enforcing strong passwords:
 
 1. **Enable Strong Passwords**: Go to the "Login Protection" tab and enable the feature
 2. **Automatic Enforcement**: The plugin will automatically:
-   - Hide the "confirm use of weak password" checkbox
-   - Prevent users from setting weak passwords during registration
-   - Enforce strong passwords during password changes
-   - Display helpful error messages guiding users to create stronger passwords
+  * Hide the "confirm use of weak password" checkbox
+  * Prevent users from setting weak passwords during registration
+  * Enforce strong passwords during password changes
+  * Display helpful error messages guiding users to create stronger passwords
 
 ### User Sessions Management
 
@@ -120,77 +121,71 @@ If you're unable to log in, you can use your backup codes for emergency access. 
 ### What makes a password "strong" according to the plugin?
 
 The plugin considers a password strong when it:
-- Is at least 8 characters long
-- Does not contain the username
-- Includes a mix of uppercase letters, lowercase letters, numbers, and special characters
+* Is at least 8 characters long
+* Does not contain the username
+* Includes a mix of uppercase letters, lowercase letters, numbers, and special characters
 
 ### Will enforcing strong passwords affect existing user accounts?
 
 Enforcing strong passwords only affects new password creations and changes. Existing users won't be forced to change their passwords immediately, but will need to create a strong password when they next update it.
 
-### How do I unlock an IP that has been blacklisted?
-
-Administrators can go to Settings > Login Security > Blacklist tab and remove the IP address from the blacklist.
-
-### Can I whitelist my own IP address to prevent lockouts?
-
-Yes, you can add your IP address to the whitelist in the Settings > Login Security > Whitelist tab to ensure you never get locked out.
-
 ## Changelog
 
+### 1.4.4
+* Added improved user interface design for better usability
+* Enhanced navigation between settings pages
+* Improved visual styling of settings tabs and options
+* Better responsive design for various screen sizes
+
 ### 1.4.3
-- Fix all errors found and most warnings generated by the Wordpress Plugin Check plugin
-- Submit to Wordpress.org for approval and addition to the plugins directory
+* Fix all errors found and most warnings generated by the WordPress Plugin Check plugin
+* Submit to WordPress.org for approval and addition to the plugins directory
 
 ### 1.4.2
-- menu fixes 
-- add translation file and add image files for plugin
+* Menu fixes
+* Add translation file and add image files for plugin
 
 ### 1.4.1
-- Fixes for missing js and css files
+* Fixes for missing js and css files
 
 ### 1.4.0
-- Added User Sessions Management feature
-- Added Login Attempt Limiting feature
-- Added IP whitelisting and blacklisting
-- Added detailed statistics for login attempts
+* Added User Sessions Management feature
+* Added Login Attempt Limiting feature
+* Added IP whitelisting and blacklisting
+* Added detailed statistics for login attempts
 
 ### 1.3.1
-- Minor fixes
+* Minor fixes
 * Better login Protection
 
 ### 1.3.0
-- Added Login Protection feature to enforce strong passwords
-- Added option to disable the "confirm use of weak password" checkbox
-- Added prevention of weak password creation during registration or password change
+* Added Login Protection feature to enforce strong passwords
+* Added option to disable the "confirm use of weak password" checkbox
+* Added prevention of weak password creation during registration or password change
 
 ### 1.2.0
-- Added Two-Factor Authentication for enhanced login security
-- Added support for Email and Authenticator App verification methods
-- Added backup codes for account recovery
-- Added role-based 2FA implementation
+* Added Two-Factor Authentication for enhanced login security
+* Added support for Email and Authenticator App verification methods
+* Added backup codes for account recovery
+* Added role-based 2FA implementation
 
 ### 1.1.0
-- Added Content Security Policy support
-- Added Permissions Policy support
-- Added Cross-Origin Policy headers
-- Improved settings page with tabbed interface
+* Added Content Security Policy support
+* Added Permissions Policy support
+* Added Cross-Origin Policy headers
+* Improved settings page with tabbed interface
 
 ### 1.0.2
-- Added X-Frame-Options header
-- Added HSTS support
-- Improved SSL redirection
+* Added X-Frame-Options header
+* Added HSTS support
+* Improved SSL redirection
 
 ### 1.0.1
-- Bug fixes and performance improvements
+* Bug fixes and performance improvements
 
 ### 1.0.0
-- Initial release with basic SSL enforcement
-
-## Credits
-
-So SSL is developed and maintained by Will Radford.
+* Initial release with basic SSL enforcement
 
 ## License
 
-This plugin is licensed under GPL-3.0+.
+This plugin is licensed under the GPL v3 or later.
