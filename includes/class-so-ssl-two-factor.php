@@ -5,6 +5,14 @@
  * This file implements the two-factor authentication functionality for the So SSL plugin.
  */
 
+<<<<<<< Updated upstream
+=======
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
+>>>>>>> Stashed changes
 /**
  * Class to handle Two-Factor Authentication
  */

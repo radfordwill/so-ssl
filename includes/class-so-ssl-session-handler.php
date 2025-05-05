@@ -6,6 +6,14 @@
  * might not be available or appropriate. It uses secure cookies instead.
  */
 
+<<<<<<< Updated upstream
+=======
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
+>>>>>>> Stashed changes
 class So_SSL_Session_Handler {
     /**
      * Initialize the session handler

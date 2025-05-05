@@ -108,10 +108,34 @@ function so_ssl_delete_plugin_options() {
 
 // Remove all user meta related to 2FA
 function so_ssl_delete_user_meta() {
+<<<<<<< Updated upstream
     global $wpdb;
 
     // Delete 2FA related user meta
     $wpdb->query("DELETE FROM $wpdb->usermeta WHERE meta_key LIKE 'so_ssl_2fa_%'");
+=======
+	global $wpdb;
+
+	// Option 1: Use WordPress API (preferred)
+	$users = get_users();
+	foreach ($users as $user) {
+		// Get all user meta keys
+		$user_meta_keys = get_user_meta($user->ID);
+
+		// Delete any keys that match our pattern
+		foreach ($user_meta_keys as $meta_key => $meta_value) {
+			if (strpos($meta_key, 'so_ssl_2fa_') === 0) {
+				delete_user_meta($user->ID, $meta_key);
+			}
+		}
+	}
+
+	// Option 2: If performance is an issue with many users, use a safer direct query
+	// $wpdb->query($wpdb->prepare(
+	//     "DELETE FROM $wpdb->usermeta WHERE meta_key LIKE %s",
+	//     'so_ssl_2fa_%'
+	// ));
+>>>>>>> Stashed changes
 }
 
 // Delete cron jobs

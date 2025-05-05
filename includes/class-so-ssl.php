@@ -6,6 +6,11 @@
    * @package    So_SSL
    */
 
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
 class So_SSL {
 
     /**
@@ -463,7 +468,7 @@ class So_SSL {
                             printf(
                                 /* translators: %s: URL to Login Security page */
                                 esc_html__('For detailed settings and statistics, visit the %s page.', 'so-ssl'),
-                                '<a href="' . esc_url(admin_url('options-general.php?page=so-ssl-login-limit')) . '">' . esc_html__('Login Security', 'so-ssl') . '</a>'
+                                '<a href="' . esc_url(admin_url('options-general.php?page=class-so-ssl-login-limit')) . '">' . esc_html__('Login Security', 'so-ssl') . '</a>'
                             );
                             ?>
                         </p>
@@ -1883,7 +1888,7 @@ public function add_referrer_policy_header() {
         public function csp_full_section_callback() {
             echo '<p>' . esc_html__('Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross-Site Scripting (XSS) and data injection attacks.', 'so-ssl') . '</p>';
             echo '<p>' . esc_html__('It is recommended to first enable CSP in "Report-Only" mode to ensure it does not break your site functionality.', 'so-ssl') . '</p>';
-            echo '<div class="notice notice-warning inline"><p>' . esc_html__('<strong>Warning:</strong> Incorrect CSP settings can break functionality on your site. Make sure to test thoroughly.', 'so-ssl') . '</p></div>';
+            echo '<div class="notice notice-warning inline"><p><strong>'.esc_html__('Warning:', 'so-ssl') . '</strong>' . esc_html__(' Incorrect CSP settings can break functionality on your site. Make sure to test thoroughly.', 'so-ssl') . '</p></div>';
         }
 
         /**
@@ -2759,7 +2764,7 @@ public function user_sessions_section_callback() {
         /* translators: %s: URL to Login Security page */
         esc_html__('For detailed settings and statistics, visit the %s page.', 'so-ssl') .
         esc_html__('<a href="', 'so-ssl') .
-        esc_url(admin_url('options-general.php?page=so-ssl-login-limit')) . '">' .
+        esc_url(admin_url('options-general.php?page=class-so-ssl-login-limit')) . '">' .
         esc_html__('Login Security', 'so-ssl') . '</a>';
         }
 }

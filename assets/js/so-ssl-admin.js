@@ -47,7 +47,11 @@
         });
 
         initialStateCaptured = true;
+<<<<<<< Updated upstream
         console.log('Initial form state captured with ' + originalFormValues.length + ' fields');
+=======
+        //console.log('Initial form state captured with ' + originalFormValues.length + ' fields');
+>>>>>>> Stashed changes
     }
 
     // Function to check if the form has been modified
@@ -100,7 +104,11 @@
         }
 
         if (modifiedFields.length > 0) {
+<<<<<<< Updated upstream
             console.log('Modified fields detected:', modifiedFields);
+=======
+            //console.log('Modified fields detected:', modifiedFields);
+>>>>>>> Stashed changes
             return true;
         }
 
@@ -626,7 +634,11 @@
             $('#submit').removeClass('so-ssl-save-highlight');
             $('.so-ssl-save-reminder').remove();
 
+<<<<<<< Updated upstream
             console.log('Form is being submitted, warnings disabled');
+=======
+            //console.log('Form is being submitted, warnings disabled');
+>>>>>>> Stashed changes
 
             // Clear the flag after 3 seconds (in case submission fails)
             setTimeout(function() {
@@ -658,7 +670,11 @@
         $(window).on('beforeunload', function(e) {
             // If we're in the process of submitting the form, don't show any warnings
             if (isFormSubmitting) {
+<<<<<<< Updated upstream
                 console.log('Skipping warning because form is submitting');
+=======
+                //console.log('Skipping warning because form is submitting');
+>>>>>>> Stashed changes
                 return undefined;
             }
 

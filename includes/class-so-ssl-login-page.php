@@ -5,6 +5,14 @@
  * This file handles login page enhancements when two-factor authentication is active.
  */
 
+<<<<<<< Updated upstream
+=======
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
+>>>>>>> Stashed changes
 class So_SSL_Login_Page {
 
     /**
@@ -37,6 +45,7 @@ class So_SSL_Login_Page {
         wp_enqueue_script('so-ssl-login', SO_SSL_URL . 'assets/js/so-ssl-login.js', array('jquery'), SO_SSL_VERSION, true);
     }
 
+<<<<<<< Updated upstream
     /**
      * Enhance login form
      */
@@ -45,15 +54,30 @@ class So_SSL_Login_Page {
         if ( sanitize_text_field( $_SESSION['so_ssl_2fa_required'] ) !== null && sanitize_text_field($_SESSION['so_ssl_2fa_required'])) {
             // Add custom classes to 2FA code field
             ?>(
+=======
+	/**
+	 * Enhance login form
+	 */
+	public static function enhance_login_form() {
+		// Check if 2FA is active on the login form
+		if ( isset($_SESSION['so_ssl_2fa_required']) && sanitize_text_field($_SESSION['so_ssl_2fa_required'])) {
+			// Add custom classes to 2FA code field
+			?>
+>>>>>>> Stashed changes
             <script type="text/javascript">
                 jQuery(document).ready(function($) {
                     // Add custom classes to the 2FA field
                     $('input[name="so_ssl_2fa_code"]').addClass('so-ssl-2fa-input');
+<<<<<<< Updated upstream
                     
+=======
+
+>>>>>>> Stashed changes
                     // Add custom label
                     $('label[for="so_ssl_2fa_code"]').text('Authentication Code:');
                 });
             </script>
+<<<<<<< Updated upstream
             <?php
         }
     }
@@ -85,6 +109,39 @@ class So_SSL_Login_Page {
         
         return $message;
     }
+=======
+			<?php
+		}
+	}
+
+	/**
+	 * Enhance login message
+	 *
+	 * @param string $message The login message
+	 * @return string Enhanced login message
+	 */
+	public static function enhance_login_message($message) {
+		// Check if 2FA is active on the login form
+		if ( isset($_SESSION['so_ssl_2fa_required']) && sanitize_text_field($_SESSION['so_ssl_2fa_required'])) {
+			$method = get_option('so_ssl_2fa_method', 'email');
+
+			// Create enhanced message based on authentication method
+			if ($method === 'email') {
+				$message = '<div class="message">' .
+				           '<p><strong>' . __('Two-Factor Authentication Required', 'so-ssl') . '</strong></p>' .
+				           '<p>' . __('Please enter the verification code sent to your email.', 'so-ssl') . '</p>' .
+				           '</div>';
+			} else {
+				$message = '<div class="message">' .
+				           '<p><strong>' . __('Two-Factor Authentication Required', 'so-ssl') . '</strong></p>' .
+				           '<p>' . __('Please enter the verification code from your authenticator app.', 'so-ssl') . '</p>' .
+				           '</div>';
+			}
+		}
+
+		return $message;
+	}
+>>>>>>> Stashed changes
 }
 
 // Initialize the class

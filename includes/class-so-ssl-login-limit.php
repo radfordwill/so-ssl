@@ -5,6 +5,14 @@
  * This file implements login attempt limiting functionality for the So SSL plugin.
  */
 
+<<<<<<< Updated upstream
+=======
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
+>>>>>>> Stashed changes
 class So_SSL_Login_Limit {
 
     /**
@@ -229,7 +237,11 @@ class So_SSL_Login_Limit {
                                 $ip, $attempts[$ip]['count']) . "\n\n";
                     /* translators: %s: List of attempted usernames */
                     $message .= esc_html(__('Attempted usernames: %s', 'so-ssl'), implode(', ', array_keys($attempts[$ip]['usernames'])));
+<<<<<<< Updated upstream
                     $message .= admin_url('options-general.php?page=so-ssl-login-limit');
+=======
+                    $message .= admin_url('options-general.php?page=class-so-ssl-login-limit');
+>>>>>>> Stashed changes
 
                     wp_mail(get_option('admin_email'), $subject, $message);
                 }
@@ -248,7 +260,11 @@ class So_SSL_Login_Limit {
                     $message .=
                     /* translators: %s: List of attempted usernames */
                     esc_html(__('Attempted usernames: %s', 'so-ssl'), implode(', ', array_keys($attempts[$ip]['usernames']))) . "\n\n";
+<<<<<<< Updated upstream
                     $message .= admin_url('options-general.php?page=so-ssl-login-limit');
+=======
+                    $message .= admin_url('options-general.php?page=class-so-ssl-login-limit');
+>>>>>>> Stashed changes
 
                     wp_mail(get_option('admin_email'), $subject, $message);
                 }

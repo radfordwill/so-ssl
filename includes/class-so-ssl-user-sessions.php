@@ -5,6 +5,14 @@
  * This file implements user sessions management functionality for the So SSL plugin.
  */
 
+<<<<<<< Updated upstream
+=======
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
+>>>>>>> Stashed changes
 class So_SSL_User_Sessions {
 
     /**

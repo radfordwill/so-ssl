@@ -11,6 +11,14 @@
  * Class to handle Two-Factor Authentication
  */
 
+<<<<<<< Updated upstream
+=======
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
+>>>>>>> Stashed changes
 class TOTP {
     /**
      * Generate a secret key
