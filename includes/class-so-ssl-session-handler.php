@@ -7,12 +7,18 @@
  */
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 // If this file is called directly, abort.
 if (!defined('WPINC')) {
 	die;
 }
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 class So_SSL_Session_Handler {
     /**

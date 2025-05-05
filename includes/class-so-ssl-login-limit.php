@@ -6,12 +6,18 @@
  */
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 // If this file is called directly, abort.
 if (!defined('WPINC')) {
 	die;
 }
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 class So_SSL_Login_Limit {
 
@@ -238,7 +244,11 @@ class So_SSL_Login_Limit {
                     /* translators: %s: List of attempted usernames */
                     $message .= esc_html(__('Attempted usernames: %s', 'so-ssl'), implode(', ', array_keys($attempts[$ip]['usernames'])));
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     $message .= admin_url('options-general.php?page=so-ssl-login-limit');
+=======
+                    $message .= admin_url('options-general.php?page=class-so-ssl-login-limit');
+>>>>>>> Stashed changes
 =======
                     $message .= admin_url('options-general.php?page=class-so-ssl-login-limit');
 >>>>>>> Stashed changes
@@ -261,7 +271,11 @@ class So_SSL_Login_Limit {
                     /* translators: %s: List of attempted usernames */
                     esc_html(__('Attempted usernames: %s', 'so-ssl'), implode(', ', array_keys($attempts[$ip]['usernames']))) . "\n\n";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     $message .= admin_url('options-general.php?page=so-ssl-login-limit');
+=======
+                    $message .= admin_url('options-general.php?page=class-so-ssl-login-limit');
+>>>>>>> Stashed changes
 =======
                     $message .= admin_url('options-general.php?page=class-so-ssl-login-limit');
 >>>>>>> Stashed changes

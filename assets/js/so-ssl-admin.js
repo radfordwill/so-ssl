@@ -48,7 +48,11 @@
 
         initialStateCaptured = true;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         console.log('Initial form state captured with ' + originalFormValues.length + ' fields');
+=======
+        //console.log('Initial form state captured with ' + originalFormValues.length + ' fields');
+>>>>>>> Stashed changes
 =======
         //console.log('Initial form state captured with ' + originalFormValues.length + ' fields');
 >>>>>>> Stashed changes
@@ -105,7 +109,11 @@
 
         if (modifiedFields.length > 0) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             console.log('Modified fields detected:', modifiedFields);
+=======
+            //console.log('Modified fields detected:', modifiedFields);
+>>>>>>> Stashed changes
 =======
             //console.log('Modified fields detected:', modifiedFields);
 >>>>>>> Stashed changes
@@ -635,7 +643,11 @@
             $('.so-ssl-save-reminder').remove();
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             console.log('Form is being submitted, warnings disabled');
+=======
+            //console.log('Form is being submitted, warnings disabled');
+>>>>>>> Stashed changes
 =======
             //console.log('Form is being submitted, warnings disabled');
 >>>>>>> Stashed changes
@@ -671,7 +683,11 @@
             // If we're in the process of submitting the form, don't show any warnings
             if (isFormSubmitting) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 console.log('Skipping warning because form is submitting');
+=======
+                //console.log('Skipping warning because form is submitting');
+>>>>>>> Stashed changes
 =======
                 //console.log('Skipping warning because form is submitting');
 >>>>>>> Stashed changes

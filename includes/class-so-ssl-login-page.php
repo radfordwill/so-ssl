@@ -6,12 +6,18 @@
  */
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 // If this file is called directly, abort.
 if (!defined('WPINC')) {
 	die;
 }
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 class So_SSL_Login_Page {
 
@@ -46,6 +52,7 @@ class So_SSL_Login_Page {
     }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     /**
      * Enhance login form
      */
@@ -55,6 +62,8 @@ class So_SSL_Login_Page {
             // Add custom classes to 2FA code field
             ?>(
 =======
+=======
+>>>>>>> Stashed changes
 	/**
 	 * Enhance login form
 	 */
@@ -63,13 +72,20 @@ class So_SSL_Login_Page {
 		if ( isset($_SESSION['so_ssl_2fa_required']) && sanitize_text_field($_SESSION['so_ssl_2fa_required'])) {
 			// Add custom classes to 2FA code field
 			?>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             <script type="text/javascript">
                 jQuery(document).ready(function($) {
                     // Add custom classes to the 2FA field
                     $('input[name="so_ssl_2fa_code"]').addClass('so-ssl-2fa-input');
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     
+=======
+
+>>>>>>> Stashed changes
 =======
 
 >>>>>>> Stashed changes
@@ -77,6 +93,7 @@ class So_SSL_Login_Page {
                     $('label[for="so_ssl_2fa_code"]').text('Authentication Code:');
                 });
             </script>
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
             <?php
         }
@@ -110,6 +127,8 @@ class So_SSL_Login_Page {
         return $message;
     }
 =======
+=======
+>>>>>>> Stashed changes
 			<?php
 		}
 	}
@@ -141,6 +160,9 @@ class So_SSL_Login_Page {
 
 		return $message;
 	}
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 }
 

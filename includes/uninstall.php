@@ -109,11 +109,14 @@ function so_ssl_delete_plugin_options() {
 // Remove all user meta related to 2FA
 function so_ssl_delete_user_meta() {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     global $wpdb;
 
     // Delete 2FA related user meta
     $wpdb->query("DELETE FROM $wpdb->usermeta WHERE meta_key LIKE 'so_ssl_2fa_%'");
 =======
+=======
+>>>>>>> Stashed changes
 	global $wpdb;
 
 	// Option 1: Use WordPress API (preferred)
@@ -135,6 +138,9 @@ function so_ssl_delete_user_meta() {
 	//     "DELETE FROM $wpdb->usermeta WHERE meta_key LIKE %s",
 	//     'so_ssl_2fa_%'
 	// ));
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 }
 
