@@ -130,12 +130,12 @@ require_once SO_SSL_PATH . 'includes/class-so-ssl.php';
 /**
  * User Sessions Management functionality.
  */
-require_once SO_SSL_PATH . 'includes/so-ssl-user-sessions.php';
+require_once SO_SSL_PATH . 'includes/class-so-ssl-user-sessions.php';
 
 /**
  * Login Limiting functionality.
  */
-require_once SO_SSL_PATH . 'includes/so-ssl-login-limit.php';
+require_once SO_SSL_PATH . 'includes/class-so-ssl-login-limit.php';
 
 /**
  * Begins execution of the plugin.

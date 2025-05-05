@@ -68,13 +68,13 @@ class So_SSL {
         // Only load if 2FA is enabled
         if (get_option('so_ssl_enable_2fa', 0)) {
             // Load session handler first
-            require_once SO_SSL_PATH . 'includes/so-ssl-session-handler.php';
+            require_once SO_SSL_PATH . 'includes/class-so-ssl-session-handler.php';
 
             // Load TOTP implementation
-            require_once SO_SSL_PATH . 'includes/totp.php';
+            require_once SO_SSL_PATH . 'includes/class-so-ssl-totp.php';
 
             // Load 2FA functionality
-            require_once SO_SSL_PATH . 'includes/so-ssl-two-factor.php';
+            require_once SO_SSL_PATH . 'includes/class-so-ssl-two-factor.php';
         }
     }
 

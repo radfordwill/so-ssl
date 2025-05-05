@@ -1,0 +1,126 @@
+<?php
+/**
+ * Uninstall functionality for So SSL plugin
+ *
+ * This file runs when the plugin is uninstalled via the Plugins screen.
+ */
+
+// Exit if accessed directly
+if (!defined('WP_UNINSTALL_PLUGIN')) {
+    exit;
+}
+
+// Remove all plugin options
+function so_ssl_delete_plugin_options() {
+    // SSL options
+    delete_option('so_ssl_force_ssl');
+
+    // HSTS options
+    delete_option('so_ssl_enable_hsts');
+    delete_option('so_ssl_hsts_max_age');
+    delete_option('so_ssl_hsts_subdomains');
+    delete_option('so_ssl_hsts_preload');
+
+    // X-Frame-Options
+    delete_option('so_ssl_enable_xframe');
+    delete_option('so_ssl_xframe_option');
+    delete_option('so_ssl_xframe_allow_from');
+
+    // CSP Frame-Ancestors
+    delete_option('so_ssl_enable_csp_frame_ancestors');
+    delete_option('so_ssl_csp_frame_ancestors_option');
+    delete_option('so_ssl_csp_include_self');
+    delete_option('so_ssl_csp_frame_ancestors_domains');
+
+    // Referrer Policy
+    delete_option('so_ssl_enable_referrer_policy');
+    delete_option('so_ssl_referrer_policy_option');
+
+    // Content Security Policy
+    delete_option('so_ssl_enable_csp');
+    delete_option('so_ssl_csp_mode');
+    delete_option('so_ssl_csp_default_src');
+    delete_option('so_ssl_csp_script_src');
+    delete_option('so_ssl_csp_style_src');
+    delete_option('so_ssl_csp_img_src');
+    delete_option('so_ssl_csp_connect_src');
+    delete_option('so_ssl_csp_font_src');
+    delete_option('so_ssl_csp_object_src');
+    delete_option('so_ssl_csp_media_src');
+    delete_option('so_ssl_csp_frame_src');
+    delete_option('so_ssl_csp_base_uri');
+    delete_option('so_ssl_csp_form_action');
+    delete_option('so_ssl_csp_upgrade_insecure_requests');
+
+    // Permissions Policy
+    delete_option('so_ssl_enable_permissions_policy');
+
+    // Remove all permission policy options
+    $permissions = array(
+        'accelerometer', 'ambient-light-sensor', 'autoplay', 'battery', 'camera',
+        'display-capture', 'document-domain', 'encrypted-media', 'execution-while-not-rendered',
+        'execution-while-out-of-viewport', 'fullscreen', 'geolocation', 'gyroscope',
+        'microphone', 'midi', 'navigation-override', 'payment', 'picture-in-picture',
+        'publickey-credentials-get', 'screen-wake-lock', 'sync-xhr', 'usb', 'web-share',
+        'xr-spatial-tracking'
+    );
+
+    foreach ($permissions as $permission) {
+        $option_name = 'so_ssl_permissions_policy_' . str_replace('-', '_', $permission);
+        delete_option($option_name);
+    }
+
+    // Two-Factor Authentication
+    delete_option('so_ssl_enable_2fa');
+    delete_option('so_ssl_2fa_user_roles');
+    delete_option('so_ssl_2fa_method');
+
+    // Login Protection
+    delete_option('so_ssl_disable_weak_passwords');
+
+    // Cross-Origin Policies
+    delete_option('so_ssl_enable_cross_origin_embedder_policy');
+    delete_option('so_ssl_cross_origin_embedder_policy_value');
+    delete_option('so_ssl_enable_cross_origin_opener_policy');
+    delete_option('so_ssl_cross_origin_opener_policy_value');
+    delete_option('so_ssl_enable_cross_origin_resource_policy');
+    delete_option('so_ssl_cross_origin_resource_policy_value');
+
+    // User Sessions Management
+    delete_option('so_ssl_enable_user_sessions');
+    delete_option('so_ssl_max_sessions_per_user');
+    delete_option('so_ssl_max_session_duration');
+
+    // Login Limiting
+    delete_option('so_ssl_enable_login_limit');
+    delete_option('so_ssl_max_login_attempts');
+    delete_option('so_ssl_lockout_duration');
+    delete_option('so_ssl_long_lockout_count');
+    delete_option('so_ssl_long_lockout_duration');
+    delete_option('so_ssl_auto_blacklist');
+    delete_option('so_ssl_lockout_notify');
+    delete_option('so_ssl_block_type');
+    delete_option('so_ssl_login_attempts');
+    delete_option('so_ssl_login_history');
+    delete_option('so_ssl_ip_whitelist');
+    delete_option('so_ssl_ip_blacklist');
+}
+
+// Remove all user meta related to 2FA
+function so_ssl_delete_user_meta() {
+    global $wpdb;
+
+    // Delete 2FA related user meta
+    $wpdb->query("DELETE FROM $wpdb->usermeta WHERE meta_key LIKE 'so_ssl_2fa_%'");
+}
+
+// Delete cron jobs
+function so_ssl_delete_cron_jobs() {
+    wp_clear_scheduled_hook('so_ssl_cleanup_login_attempts');
+    wp_clear_scheduled_hook('so_ssl_cleanup_expired_sessions');
+}
+
+// Run cleanup functions
+so_ssl_delete_plugin_options();
+so_ssl_delete_user_meta();
+so_ssl_delete_cron_jobs();
