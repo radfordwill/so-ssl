@@ -117,6 +117,10 @@ class So_SSL {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
 
+	    // Add settings change detection to trigger rewrite flush
+	    add_action('update_option_so_ssl_enable_privacy_compliance', array(__CLASS__, 'maybe_flush_rules'), 10, 2);
+	    add_action('update_option_so_ssl_privacy_page_slug', array(__CLASS__, 'maybe_flush_rules'), 10, 2);
+
     }
 
     /**
@@ -1262,6 +1266,14 @@ class So_SSL {
 			'so-ssl-privacy',
 			'so_ssl_privacy_compliance_section'
 		);
+
+		add_settings_field(
+			'',
+			__('Troubleshooting', 'so-ssl'),
+			array($this, 'privacy_troubleshoot_callback'),
+			'so-ssl-privacy',
+			'so_ssl_privacy_compliance_section'
+		);
 	}
 
 	/**
@@ -1351,6 +1363,45 @@ class So_SSL {
 		echo '</label>';
 		echo '<p class="description">' . esc_html__('When checked, administrators will never be required to acknowledge the privacy notice, regardless of role selection above.', 'so-ssl') . '</p>';
 		echo '</div>';
+	}
+
+	/**
+	 * Privacy troubleshooting callback
+	 */
+	public static function privacy_troubleshoot_callback() {
+
+		$add_flush_button = self::add_flush_rules_button();
+
+		echo '<p class="description">' . $add_flush_button . '</p>';
+	}
+
+	/**
+	 * Show troubleshooting section with flush rewrite rules button
+	 */
+	public static function add_flush_rules_button() {
+		// Only show to admins
+		if (!current_user_can('manage_options')) {
+			return;
+		}
+
+		// Process the flush if requested
+		if (isset($_POST['so_ssl_flush_rules_nonce']) &&
+		    wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_flush_rules_nonce'])), 'so_ssl_flush_rules')) {
+			flush_rewrite_rules();
+			echo '<div class="notice notice-success"><p>' . esc_html__('Rewrite rules have been flushed successfully.', 'so-ssl') . '</p></div>';
+		}
+
+		// Display the button
+		?>
+        <div class="so-ssl-admin-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #72aee6;">
+            <h3><?php esc_html_e('Troubleshooting', 'so-ssl'); ?></h3>
+            <p><?php esc_html_e('If the privacy page is returning a 404 error, try flushing the rewrite rules:', 'so-ssl'); ?></p>
+            <form method="post">
+				<?php wp_nonce_field('so_ssl_flush_rules', 'so_ssl_flush_rules_nonce'); ?>
+                <input type="submit" class="button button-secondary" value="<?php esc_attr_e('Flush Rewrite Rules', 'so-ssl'); ?>">
+            </form>
+        </div>
+		<?php
 	}
 
     /**
