@@ -2,8 +2,8 @@
 /**
  * Plugin Name: So SSL
  * Plugin URI: https://github.com/radfordwill/so-ssl
- * Description: A plugin to activate and enforce SSL on your WordPress site with additional security headers.
- * Version: 1.4.4
+ * Description: A plugin to activate and enforce SSL on your WordPress site with additional security headers and privacy compliance.
+ * Version: 1.4.5
  * Author: Will Radford
  * Author URI: https://github.com/radfordwill/
  * License: GPL-3.0+
@@ -14,13 +14,13 @@
 
 // If this file is called directly, abort.
 if (!defined('WPINC')) {
-    die;
+	die;
 }
 
 /**
  * Current plugin version.
  */
-define('SO_SSL_VERSION', '1.4.4');
+define('SO_SSL_VERSION', '1.4.5');
 
 /**
  * Plugin path.
@@ -110,13 +110,29 @@ function activate_so_ssl() {
     add_option('so_ssl_cross_origin_opener_policy_value', 'same-origin');
     add_option('so_ssl_enable_cross_origin_resource_policy', 0);
     add_option('so_ssl_cross_origin_resource_policy_value', 'same-origin');
+
+	// Privacy Compliance
+	add_option('so_ssl_enable_privacy_compliance', 0);
+	add_option('so_ssl_privacy_page_title', 'Privacy Acknowledgment Required');
+	add_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+	add_option('so_ssl_privacy_notice_text', 'This site tracks certain information for security purposes including IP addresses, login attempts, and session data. By using this site, you acknowledge and consent to this data collection in accordance with our Privacy Policy and applicable data protection laws including GDPR and US privacy regulations.');
+	add_option('so_ssl_privacy_checkbox_text', 'I acknowledge and consent to the privacy notice above');
+	add_option('so_ssl_privacy_expiry_days', 30);
+
+	// Set flag to flush rewrite rules (for privacy page)
+	add_option('so_ssl_flush_rewrite_rules', true);
+
+	// Add the role-specific options
+	add_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
+	add_option('so_ssl_privacy_exempt_admins', true);
 }
 
 /**
  * The code that runs during plugin deactivation.
  */
 function deactivate_so_ssl() {
-    // Deactivation code here...
+	// Flush rewrite rules to remove privacy page rule
+	flush_rewrite_rules();
 }
 
 register_activation_hook(__FILE__, 'activate_so_ssl');
@@ -130,12 +146,17 @@ require_once SO_SSL_PATH . 'includes/class-so-ssl.php';
 /**
  * User Sessions Management functionality.
  */
-require_once SO_SSL_PATH . 'includes/so-ssl-user-sessions.php';
+require_once SO_SSL_PATH . 'includes/class-so-ssl-user-sessions.php';
 
 /**
  * Login Limiting functionality.
  */
-require_once SO_SSL_PATH . 'includes/so-ssl-login-limit.php';
+require_once SO_SSL_PATH . 'includes/class-so-ssl-login-limit.php';
+
+/**
+ * Privacy Compliance functionality.
+ */
+require_once SO_SSL_PATH . 'includes/class-so-ssl-privacy-compliance.php';
 
 /**
  * Begins execution of the plugin.
