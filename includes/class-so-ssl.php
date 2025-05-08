@@ -364,6 +364,7 @@ class So_SSL {
                 <a href="#user-sessions" class="nav-tab"><?php esc_html_e('User Sessions', 'so-ssl'); ?></a>
                 <a href="#login-limit" class="nav-tab"><?php esc_html_e('Login Limiting', 'so-ssl'); ?></a>
                 <a href="#privacy-compliance" class="nav-tab"><?php esc_html_e('Privacy Compliance', 'so-ssl'); ?></a>
+                <a href="#admin-agreement" class="nav-tab"><?php esc_html_e('Admin Agreement', 'so-ssl'); ?></a>
             </div>
 
             <form action="options.php" method="post">
@@ -494,6 +495,14 @@ class So_SSL {
                         </p>
                     </div>
                     <?php endif; ?>
+                </div>
+
+                <!-- Admin Agreement Tab -->
+                <div id="admin-agreement" class="settings-tab">
+                    <h2><?php esc_html_e('Administrator Agreement Settings', 'so-ssl'); ?></h2>
+		            <?php
+		            do_settings_sections('so-ssl-admin-agreement');
+		            ?>
                 </div>
 
                 <!-- Add hidden input for active tab -->
@@ -1162,7 +1171,7 @@ class So_SSL {
 			)
 		);
 
-		
+
 
 		register_setting(
 			'so_ssl_options',

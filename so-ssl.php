@@ -125,6 +125,13 @@ function activate_so_ssl() {
 	// Add the role-specific options
 	add_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
 	add_option('so_ssl_privacy_exempt_admins', true);
+
+	// Admin Agreement
+	add_option('so_ssl_enable_admin_agreement', 1);
+	add_option('so_ssl_admin_agreement_title', 'Administrator Agreement Required');
+	add_option('so_ssl_admin_agreement_text', 'By using this plugin, you agree to adhere to security best practices and ensure all data collected will be handled in accordance with applicable privacy laws. You acknowledge that this plugin makes changes to your website\'s security configuration that you are responsible for monitoring and maintaining.');
+	add_option('so_ssl_admin_agreement_checkbox_text', 'I understand and agree to these terms');
+	add_option('so_ssl_admin_agreement_expiry_days', 365);
 }
 
 /**
@@ -157,6 +164,11 @@ require_once SO_SSL_PATH . 'includes/class-so-ssl-login-limit.php';
  * Privacy Compliance functionality.
  */
 require_once SO_SSL_PATH . 'includes/class-so-ssl-privacy-compliance.php';
+
+/**
+ * Admin Agreement functionality.
+ */
+require_once SO_SSL_PATH . 'includes/class-so-ssl-admin-agreement.php';
 
 /**
  * Begins execution of the plugin.

@@ -102,6 +102,7 @@ class So_SSL_Privacy_Compliance {
 
 		// Get current user
 		$current_user = wp_get_current_user();
+		$user_id = $current_user->ID;
 
 		// Check if exempt by role
 		$required_roles = get_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
@@ -148,10 +149,19 @@ class So_SSL_Privacy_Compliance {
 					return;
 				}
 			}
-		} else {
-			// If REQUEST_URI is not set, we can't determine current page, so return to avoid redirect loop
+		}
 
-            return;
+		// THIS IS THE MISSING CODE - Check acknowledgment status and redirect if needed
+		$acknowledgment = get_user_meta($user_id, 'so_ssl_privacy_acknowledged', true);
+		$expiry_days = intval(get_option('so_ssl_privacy_expiry_days', 30));
+
+		// Check if acknowledgment has expired or doesn't exist
+		if (empty($acknowledgment) ||
+		    (time() - intval($acknowledgment)) > ($expiry_days * DAY_IN_SECONDS)) {
+			// Redirect to privacy acknowledgment page
+			$privacy_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+			wp_redirect(site_url($privacy_slug));
+			exit;
 		}
 	}
 

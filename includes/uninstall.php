@@ -120,6 +120,13 @@ function so_ssl_delete_plugin_options() {
 	// Delete role-specific options
 	delete_option('so_ssl_privacy_required_roles');
 	delete_option('so_ssl_privacy_exempt_admins');
+
+	// Admin Agreement options
+	delete_option('so_ssl_enable_admin_agreement');
+	delete_option('so_ssl_admin_agreement_title');
+	delete_option('so_ssl_admin_agreement_text');
+	delete_option('so_ssl_admin_agreement_checkbox_text');
+	delete_option('so_ssl_admin_agreement_expiry_days');
 }
 
 // Remove all user meta related to 2FA
