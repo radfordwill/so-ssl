@@ -1,8 +1,8 @@
 === So SSL ===
 Contributors: radfordwill
-Tags: ssl, https, security, headers, privacy, gdpr, compliance, two-factor, 2fa
+Tags: ssl, security, privacy policy, compliance, 2fa
 Requires at least: 5.0
-Tested up to: 6.3
+Tested up to: 6.8
 Stable tag: 1.4.5
 Requires PHP: 7.0
 License: GPLv3 or later

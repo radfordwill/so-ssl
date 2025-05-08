@@ -217,6 +217,13 @@ class So_SSL {
 				'unsavedChangesWarning' => __('You have unsaved changes on this page. Do you want to leave this page and discard your changes?', 'so-ssl')
 			));
 		}
+
+		// Load on any admin page that might include our settings
+		wp_enqueue_editor();
+		wp_enqueue_media();
+
+		// Also load TinyMCE-specific CSS
+		wp_enqueue_style('editor-buttons');
 	}
 
     /**
@@ -1155,15 +1162,7 @@ class So_SSL {
 			)
 		);
 
-		register_setting(
-			'so_ssl_options',
-			'so_ssl_privacy_notice_text',
-			array(
-				'type' => 'string',
-				'sanitize_callback' => 'wp_kses_post',
-				'default' => 'This site tracks certain information for security purposes including IP addresses, login attempts, and session data. By using this site, you acknowledge and consent to this data collection in accordance with our Privacy Policy and applicable data protection laws including GDPR and US privacy regulations.',
-			)
-		);
+		
 
 		register_setting(
 			'so_ssl_options',
@@ -1311,11 +1310,39 @@ class So_SSL {
 
 	/**
 	 * Privacy notice text field callback
+	 *
+	 * @since    1.4.4
+	 * @access   private
+	 *
 	 */
 	public static function privacy_notice_text_callback() {
+		// Get saved content
 		$notice_text = get_option('so_ssl_privacy_notice_text', 'This site tracks certain information for security purposes including IP addresses, login attempts, and session data. By using this site, you acknowledge and consent to this data collection in accordance with our Privacy Policy and applicable data protection laws including GDPR and US privacy regulations.');
 
-		echo '<textarea id="so_ssl_privacy_notice_text" name="so_ssl_privacy_notice_text" rows="5" class="large-text">' . esc_textarea($notice_text) . '</textarea>';
+		// Force load WordPress editor scripts directly
+		if (function_exists('wp_enqueue_editor')) {
+			wp_enqueue_editor();
+			wp_enqueue_media();
+		}
+
+		// Basic editor settings - simplified for troubleshooting
+		$editor_settings = array(
+			'textarea_name' => 'so_ssl_privacy_notice_text', // Field name
+			'textarea_rows' => 10,
+			'teeny'         => true, // Use minimal editor toolbar
+			'wpautop'       => true, // Add paragraphs automatically
+		);
+
+		// Add a comment that will show in HTML source to confirm this function is called
+		echo "<!-- TinyMCE editor should appear below this line -->";
+
+		// Output the editor
+		wp_editor(
+			wp_kses_post($notice_text),  // Sanitize content
+			'so_ssl_privacy_notice_text', // Editor ID - must match field name for simplicity
+			$editor_settings
+		);
+
 		echo '<p class="description">' . esc_html__('Text explaining what data is collected and why. HTML is allowed.', 'so-ssl') . '</p>';
 	}
 
@@ -1348,8 +1375,7 @@ class So_SSL {
 
 		echo '<select multiple id="so_ssl_privacy_required_roles" name="so_ssl_privacy_required_roles[]" class="regular-text" style="height: 120px;">';
 		foreach ($roles as $role_value => $role_name) {
-			$selected = in_array($role_value, $required_roles) ? 'selected="selected"' : '';
-			echo '<option value="' . esc_attr($role_value) . '" ' . $selected . '>' . esc_html($role_name) . '</option>';
+			echo '<option value="' . esc_attr($role_value) . '" ' . selected(in_array($role_value, $required_roles), true, false) . '>' . esc_html($role_name) . '</option>';
 		}
 		echo '</select>';
 		echo '<p class="description">' . esc_html__('Select which user roles will be required to acknowledge the privacy notice. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
@@ -1369,11 +1395,40 @@ class So_SSL {
 	 * Privacy troubleshooting callback
 	 */
 	public static function privacy_troubleshoot_callback() {
-
-		$add_flush_button = self::add_flush_rules_button();
-
-		echo '<p class="description">' . $add_flush_button . '</p>';
+		// Call the function directly that outputs the properly escaped HTML
+		self::output_flush_rules_button();
 	}
+
+	/**
+	 * Output the troubleshooting section with flush rewrite rules button
+	 * This outputs directly rather than returning a string
+	 */
+	public static function output_flush_rules_button() {
+		// Only show to admins
+		if (!current_user_can('manage_options')) {
+			return;
+		}
+
+		// Process the flush if requested
+		if (isset($_POST['so_ssl_flush_rules_nonce']) &&
+		    wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_flush_rules_nonce'])), 'so_ssl_flush_rules')) {
+			flush_rewrite_rules();
+			echo '<div class="notice notice-success"><p>' . esc_html__('Rewrite rules have been flushed successfully.', 'so-ssl') . '</p></div>';
+		}
+
+		// Display the button
+		?>
+        <div class="so-ssl-admin-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #72aee6;">
+            <h3><?php esc_html_e('Troubleshooting', 'so-ssl'); ?></h3>
+            <p><?php esc_html_e('If the privacy page is returning a 404 error, try flushing the rewrite rules:', 'so-ssl'); ?></p>
+            <form method="post">
+				<?php wp_nonce_field('so_ssl_flush_rules', 'so_ssl_flush_rules_nonce'); ?>
+                <input type="submit" class="button button-secondary" value="<?php esc_attr_e('Flush Rewrite Rules', 'so-ssl'); ?>">
+            </form>
+        </div>
+		<?php
+	}
+
 
 	/**
 	 * Show troubleshooting section with flush rewrite rules button
@@ -1398,7 +1453,7 @@ class So_SSL {
             <p><?php esc_html_e('If the privacy page is returning a 404 error, try flushing the rewrite rules:', 'so-ssl'); ?></p>
             <form method="post">
 				<?php wp_nonce_field('so_ssl_flush_rules', 'so_ssl_flush_rules_nonce'); ?>
-                <input type="submit" class="button button-secondary" value="<?php esc_attr_e('Flush Rewrite Rules', 'so-ssl'); ?>">
+                <input type="submit" class="button button-secondary" value="<?php esc_html_e('Flush Rewrite Rules', 'so-ssl'); ?>">
             </form>
         </div>
 		<?php

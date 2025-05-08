@@ -30,9 +30,17 @@ class So_SSL_Privacy_Compliance {
 		// Register admin settings
 		add_action('admin_init', array(__CLASS__, 'register_settings'));
 
+		// Add hook for admin scripts (for TinyMCE editor)
+		add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_admin_scripts'));
+	}
 
-
-    }
+	public static function enqueue_admin_scripts($hook) {
+		// Only load on our plugin's settings page
+		if (strpos($hook, 'so-ssl') !== false || $hook === 'settings_page_so-ssl') {
+			wp_enqueue_editor();
+			wp_enqueue_media();
+		}
+	}
 
 	/**
 	 * Flag user for privacy check after login
@@ -83,7 +91,7 @@ class So_SSL_Privacy_Compliance {
 	public static function check_privacy_acknowledgment() {
 		// Skip for AJAX, Cron, CLI, or admin-ajax.php requests
 		if (wp_doing_ajax() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI) ||
-		    (isset($_SERVER['SCRIPT_FILENAME']) && strpos($_SERVER['SCRIPT_FILENAME'], 'admin-ajax.php') !== false)) {
+		    (isset($_SERVER['SCRIPT_FILENAME']) && strpos(sanitize_text_field(wp_unslash($_SERVER['SCRIPT_FILENAME'])), 'admin-ajax.php') !== false)) {
 			return;
 		}
 
@@ -119,13 +127,10 @@ class So_SSL_Privacy_Compliance {
 			return;
 		}
 
-		// Check if privacy notice is needed based on cookie
-		if (isset($_COOKIE['so_ssl_privacy_needed']) && $_COOKIE['so_ssl_privacy_needed'] === '1') {
-			// Check if we're already on the privacy page
-			$privacy_slug = sanitize_title(get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment'));
-
-			// Don't redirect if we're already on the privacy page
+		// Don't redirect if we're already on the privacy page
+		if (isset($_SERVER['REQUEST_URI'])) {
 			$current_url = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI']));
+			$privacy_slug = sanitize_title(get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment'));
 			if (strpos($current_url, $privacy_slug) !== false) {
 				return;
 			}
@@ -143,11 +148,10 @@ class So_SSL_Privacy_Compliance {
 					return;
 				}
 			}
+		} else {
+			// If REQUEST_URI is not set, we can't determine current page, so return to avoid redirect loop
 
-			// Redirect to privacy acknowledgment page
-			$privacy_url = home_url($privacy_slug);
-			wp_redirect($privacy_url);
-			exit;
+            return;
 		}
 	}
 
@@ -309,6 +313,9 @@ class So_SSL_Privacy_Compliance {
 
 	/**
 	 * Privacy compliance section description
+     *
+     * @since    1.4.5
+	 * @access   private
 	 */
 	public static function privacy_compliance_section_callback() {
 		echo '<p>' . esc_html__('Configure privacy compliance settings to inform users about data collection and tracking.', 'so-ssl') . '</p>';
@@ -344,6 +351,10 @@ class So_SSL_Privacy_Compliance {
 
 	/**
 	 * Privacy page slug field callback
+	 *
+	 * @since    1.4.0
+	 * @access   private
+	 *
 	 */
 	public static function privacy_page_slug_callback() {
 		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
@@ -355,11 +366,25 @@ class So_SSL_Privacy_Compliance {
 
 	/**
 	 * Privacy notice text field callback
+     *
+     * @since    1.4.4
+	 * @access   private
+	 *
 	 */
 	public static function privacy_notice_text_callback() {
 		$notice_text = get_option('so_ssl_privacy_notice_text', 'This site tracks certain information for security purposes including IP addresses, login attempts, and session data. By using this site, you acknowledge and consent to this data collection in accordance with our Privacy Policy and applicable data protection laws including GDPR and US privacy regulations.');
 
-		echo '<textarea id="so_ssl_privacy_notice_text" name="so_ssl_privacy_notice_text" rows="5" class="large-text">' . esc_textarea($notice_text) . '</textarea>';
+		$editor_id = 'so_ssl_privacy_notice_text_editor';
+		$editor_settings = array(
+			'textarea_name' => 'so_ssl_privacy_notice_text',
+			'textarea_rows' => 10,
+			'media_buttons' => true,
+			'tinymce'       => true,
+			'quicktags'     => true,
+		);
+
+		wp_editor($notice_text, $editor_id, $editor_settings);
+
 		echo '<p class="description">' . esc_html__('Text explaining what data is collected and why. HTML is allowed.', 'so-ssl') . '</p>';
 	}
 
@@ -392,9 +417,8 @@ class So_SSL_Privacy_Compliance {
 
 		echo '<select multiple id="so_ssl_privacy_required_roles" name="so_ssl_privacy_required_roles[]" class="regular-text" style="height: 120px;">';
 		foreach ($roles as $role_value => $role_name) {
-			$selected = in_array($role_value, $required_roles) ? 'selected="selected"' : '';
-			echo '<option value="' . esc_attr($role_value) . '" ' . $selected . '>' . esc_html($role_name) . '</option>';
-		}
+		echo '<option value="' . esc_attr($role_value) . '" ' . selected(in_array($role_value, $required_roles), true, false) . '>' . esc_html($role_name) . '</option>';
+        }
 		echo '</select>';
 		echo '<p class="description">' . esc_html__('Select which user roles will be required to acknowledge the privacy notice. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
 
@@ -474,7 +498,9 @@ class So_SSL_Privacy_Compliance {
 						setcookie('so_ssl_privacy_needed', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
 
 						// Redirect to previous page or dashboard
-						$redirect = isset($_COOKIE['so_ssl_privacy_redirect']) ? $_COOKIE['so_ssl_privacy_redirect'] : admin_url();
+						$redirect = isset($_COOKIE['so_ssl_privacy_redirect'])
+							? sanitize_url(wp_unslash($_COOKIE['so_ssl_privacy_redirect']))
+							: admin_url();
 						wp_redirect($redirect);
 						exit;
 					}
@@ -483,7 +509,7 @@ class So_SSL_Privacy_Compliance {
 
 			// Set redirect cookie if referrer is available
 			if (isset($_SERVER['HTTP_REFERER'])) {
-				$referer = wp_sanitize_redirect($_SERVER['HTTP_REFERER']);
+				$referer = wp_sanitize_redirect(wp_unslash($_SERVER['HTTP_REFERER']));
 				// Only set if it's on the same domain
 				$site_url = site_url();
 				if (strpos($referer, $site_url) === 0) {
@@ -570,7 +596,7 @@ class So_SSL_Privacy_Compliance {
             <h1 class="so-ssl-privacy-title"><?php echo esc_html($page_title); ?></h1>
 
             <div class="so-ssl-privacy-content">
-				<?php echo wp_kses_post($notice_text, array('so-ssl')); ?>
+				<?php echo $notice_text; ?>
             </div>
 
             <form class="so-ssl-privacy-form" method="post">
@@ -589,7 +615,8 @@ class So_SSL_Privacy_Compliance {
                     </button>
                 </div>
 
-				<?php if (isset($_POST['so_ssl_privacy_submit']) && (!isset($_POST['so_ssl_privacy_accept']) || $_POST['so_ssl_privacy_accept'] != '1')): ?>
+				<?php if (isset($_POST['so_ssl_privacy_submit']) &&
+				          (!isset($_POST['so_ssl_privacy_accept']) || $_POST['so_ssl_privacy_accept'] != '1')): ?>
                     <div class="so-ssl-privacy-error">
 						<?php esc_html_e('You must acknowledge the privacy notice to continue.', 'so-ssl'); ?>
                     </div>
@@ -625,23 +652,6 @@ class So_SSL_Privacy_Compliance {
 		<?php
 		// Output the buffered content
 		echo ob_get_clean();
-	}
-
-	/**
-	 * Add a link to view the actual page
-	 */
-	public static function add_view_actual_page_link() {
-		// Get the privacy page slug
-		$privacy_slug = sanitize_title(get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment'));
-
-		// Create the URL
-		$privacy_url = home_url($privacy_slug);
-
-		// Output the link
-		echo '<p class="so-ssl-view-page">';
-		echo esc_html__('To view the actual privacy acknowledgment page, visit:', 'so-ssl') . ' ';
-		echo '<a href="' . esc_url($privacy_url) . '" target="_blank">' . esc_html($privacy_url) . '</a>';
-		echo '</p>';
 	}
 
 	/**
