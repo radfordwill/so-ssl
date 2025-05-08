@@ -213,8 +213,8 @@ class So_SSL {
 			// Add translation strings and other data for JavaScript
 			wp_localize_script('so-ssl-admin', 'soSslAdmin', array(
 				'ajaxUrl' => admin_url('admin-ajax.php'),
-				'nonce' => wp_create_nonce('so_ssl_admin_nonce'),
-				'unsavedChangesWarning' => __('You have unsaved changes on this page. Do you want to leave this page and discard your changes?', 'so-ssl')
+				'nonce' => wp_create_nonce('so_ssl_admin_nonce')
+				// Removed the warning message, but it's not harmful to leave it either
 			));
 		}
 

@@ -653,34 +653,6 @@
         });
     }
 
-    // Set up beforeunload event for unsaved changes warning
-    function setupUnsavedChangesWarning() {
-        $(window).on('beforeunload', function(e) {
-            // If we're in the process of submitting the form, don't show any warnings
-            if (isFormSubmitting) {
-                //console.log('Skipping warning because form is submitting');
-                return undefined;
-            }
-
-            // Double-check for actual changes before showing warning
-            const formHasChanges = updateFormModifiedState();
-
-            if (formHasChanges) {
-                console.log('Showing warning because form has changes');
-                // The message set here isn't actually used by modern browsers,
-                // but we need to return something for the confirmation dialog to appear
-                const message = soSslAdmin.unsavedChangesWarning;
-                e.preventDefault();
-                e.returnValue = message;
-                return message;
-            }
-
-            // No changes, so don't show warning
-            console.log('No warning needed - no changes detected');
-            return undefined;
-        });
-    }
-
     // Initialize when document is ready
     $(document).ready(function() {
         // Set formModified to false initially
@@ -721,9 +693,6 @@
 
         // Track form changes (add event handlers)
         trackFormChanges();
-
-        // Set up beforeunload event for unsaved changes warning
-        setupUnsavedChangesWarning();
 
         // Capture initial form state AFTER all UI is setup
         // This ensures we don't detect false changes

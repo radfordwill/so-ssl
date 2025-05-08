@@ -117,11 +117,81 @@ class So_SSL_Admin_Agreement {
 	 */
 	public static function display_agreement_notice() {
 		$agreement_url = admin_url('admin.php?page=so-ssl-agreement');
-		echo '<div class="notice notice-warning" style="padding: 10px 12px;">';
-		echo '<p><strong>' . esc_html__('So SSL Agreement Required', 'so-ssl') . '</strong></p>';
-		echo '<p>' . esc_html__('An administrator agreement is required before using So SSL plugin features.', 'so-ssl') . '</p>';
-		echo '<p><a href="' . esc_url($agreement_url) . '" class="button button-primary">' . esc_html__('View & Accept Agreement', 'so-ssl') . '</a> ';
-		echo '<a href="' . esc_url(admin_url('options-general.php')) . '" class="button">' . esc_html__('Back to Settings', 'so-ssl') . '</a></p>';
+
+		// Custom CSS to style the notice
+		$custom_css = "
+        .so-ssl-agreement-notice {
+            background-color: #f0f6fc;
+            border-left: 4px solid #2271b1;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            position: relative;
+            border-radius: 0 3px 3px 0;
+        }
+        .so-ssl-agreement-notice h3 {
+            margin-top: 0;
+            color: #2271b1;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            line-height: 1.4;
+        }
+        .so-ssl-agreement-notice h3 .dashicons {
+            margin-right: 8px;
+            color: #2271b1;
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+        .so-ssl-agreement-notice p {
+            margin: 0.5em 0;
+            color: #1d2327;
+            font-size: 14px;
+        }
+        .so-ssl-agreement-actions {
+            margin-top: 15px;
+        }
+        .so-ssl-agreement-notice .button-primary {
+            background: #2271b1;
+            border-color: #2271b1;
+            color: #fff;
+            text-decoration: none;
+            padding: 6px 15px;
+            transition: all 0.2s ease;
+        }
+        .so-ssl-agreement-notice .button-primary:hover {
+            background: #135e96;
+            border-color: #135e96;
+        }
+        .so-ssl-agreement-notice .button-secondary {
+            background: #f6f7f7;
+            border: 1px solid #c3c4c7;
+            color: #50575e;
+            text-decoration: none;
+            padding: 6px 12px;
+            margin-left: 10px;
+            transition: all 0.2s ease;
+        }
+        .so-ssl-agreement-notice .button-secondary:hover {
+            background: #f0f0f1;
+            border-color: #8c8f94;
+            color: #1d2327;
+        }
+    ";
+
+		// Output the CSS
+		echo '<style>' . $custom_css . '</style>';
+
+		// Output the enhanced notice
+		echo '<div class="so-ssl-agreement-notice">';
+		echo '<h3><span class="dashicons dashicons-shield"></span>' . esc_html__('So SSL Agreement Required', 'so-ssl') . '</h3>';
+		echo '<p>' . esc_html__('An administrator agreement is required before using So SSL plugin features. Please review and accept the agreement to continue using the plugin.', 'so-ssl') . '</p>';
+		echo '<div class="so-ssl-agreement-actions">';
+		echo '<a href="' . esc_url($agreement_url) . '" class="button button-primary">' . esc_html__('View & Accept Agreement', 'so-ssl') . '</a>';
+		echo '<a href="' . esc_url(admin_url('options-general.php')) . '" class="button-secondary">' . esc_html__('Back to Settings', 'so-ssl') . '</a>';
+		echo '</div>';
 		echo '</div>';
 	}
 
@@ -361,21 +431,157 @@ class So_SSL_Admin_Agreement {
 		$redirect_url = !empty($referer) && strpos($referer, 'page=so-ssl') !== false ?
 			$referer : admin_url('options-general.php?page=so-ssl');
 
+		// Add CSS for the agreement page - using the plugin's color palette
 		?>
-        <div class="wrap">
-            <h1><?php echo esc_html($page_title); ?></h1>
+        <style>
+            .so-ssl-agreement-wrap {
+                max-width: 800px;
+                margin: 40px auto;
+            }
+            .so-ssl-agreement-container {
+                background: #fff;
+                border: 1px solid #c3c4c7;
+                border-radius: 4px;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+                padding: 25px;
+                margin-top: 20px;
+            }
+            .so-ssl-agreement-header {
+                border-bottom: 1px solid #c3c4c7;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+            }
+            .so-ssl-agreement-header h1 {
+                color: #2271b1;
+                font-size: 24px;
+                font-weight: 600;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                align-items: center;
+            }
+            .so-ssl-agreement-content {
+                background: #f0f6fc;
+                border-left: 4px solid #2271b1;
+                padding: 20px;
+                margin-bottom: 25px;
+                color: #1d2327;
+                line-height: 1.5;
+            }
+            .so-ssl-agreement-form {
+                background: #f8f9fa;
+                border: 1px solid #dcdcde;
+                border-radius: 4px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            .so-ssl-agreement-checkbox {
+                margin-bottom: 20px;
+            }
+            .so-ssl-agreement-checkbox input[type="checkbox"] {
+                margin-right: 8px;
+            }
+            .so-ssl-agreement-checkbox label {
+                font-weight: 500;
+                color: #1d2327;
+            }
+            .so-ssl-agreement-actions button {
+                background: #2271b1;
+                border-color: #2271b1;
+                color: #fff;
+                padding: 7px 15px;
+                height: auto;
+                transition: all 0.2s ease;
+            }
+            .so-ssl-agreement-actions button:hover {
+                background: #135e96;
+            }
+            .so-ssl-agreement-actions button:disabled {
+                background: #c3c4c7 !important;
+                border-color: #c3c4c7 !important;
+                color: #50575e !important;
+                cursor: not-allowed;
+            }
+            .so-ssl-agreement-options {
+                margin-top: 25px;
+                padding-top: 15px;
+                border-top: 1px solid #dcdcde;
+            }
+            .so-ssl-agreement-message {
+                padding: 10px 15px;
+                margin-top: 15px;
+                border-radius: 4px;
+            }
+            .so-ssl-agreement-message.success {
+                background-color: #f0f8ee;
+                border-left: 4px solid #46b450;
+                color: #1d2327;
+            }
+            .so-ssl-agreement-message.error {
+                background-color: #fcf0f1;
+                border-left: 4px solid #dc3232;
+                color: #1d2327;
+            }
+            .so-ssl-security-icon {
+                margin-right: 10px;
+                color: #2271b1;
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+            }
+            .so-ssl-alternate-button {
+                background: #f6f7f7;
+                border: 1px solid #c3c4c7;
+                color: #50575e;
+                text-decoration: none;
+                display: inline-block;
+                padding: 6px 12px;
+                border-radius: 3px;
+                margin-left: 10px;
+                transition: all 0.2s ease;
+            }
+            .so-ssl-alternate-button:hover {
+                background: #f0f0f1;
+                border-color: #8c8f94;
+                color: #1d2327;
+            }
+            .so-ssl-emergency-button {
+                background: #f6f7f7;
+                border: 1px solid #c3c4c7;
+                color: #50575e;
+                text-decoration: none;
+                display: inline-block;
+                padding: 6px 12px;
+                border-radius: 3px;
+                margin-top: 10px;
+                transition: all 0.2s ease;
+            }
+            .so-ssl-emergency-button:hover {
+                background: #f0f0f1;
+                border-color: #8c8f94;
+                color: #1d2327;
+            }
+        </style>
 
-            <div id="so-ssl-agreement-container" style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04); margin: 20px 0;">
+        <div class="wrap so-ssl-agreement-wrap">
+            <div class="so-ssl-agreement-container">
+                <div class="so-ssl-agreement-header">
+                    <h1>
+                        <span class="dashicons dashicons-shield so-ssl-security-icon"></span>
+						<?php echo esc_html($page_title); ?>
+                    </h1>
+                </div>
+
                 <div class="so-ssl-agreement-content">
 					<?php echo wp_kses_post($agreement_text); ?>
                 </div>
 
-                <div class="so-ssl-agreement-form" style="margin-top: 20px; padding: 15px; background: #f8f9fa;">
+                <div class="so-ssl-agreement-form">
                     <form id="so-ssl-admin-agreement-form">
 						<?php wp_nonce_field('so_ssl_admin_agreement', 'so_ssl_admin_agreement_nonce'); ?>
                         <input type="hidden" id="so_ssl_redirect_url" value="<?php echo esc_url($redirect_url); ?>">
 
-                        <div class="so-ssl-agreement-checkbox" style="margin-bottom: 15px;">
+                        <div class="so-ssl-agreement-checkbox">
                             <label>
                                 <input type="checkbox" id="so_ssl_admin_agreement_accept" name="so_ssl_admin_agreement_accept" value="1" required>
 								<?php echo esc_html($checkbox_text); ?>
@@ -387,26 +593,27 @@ class So_SSL_Admin_Agreement {
 								<?php esc_html_e('Accept and Continue', 'so-ssl'); ?>
                             </button>
 
-                            <!-- Add a clear disagree button -->
-                            <a href="<?php echo esc_url(admin_url('options-general.php')); ?>" class="button" style="margin-left: 10px;">
+                            <a href="<?php echo esc_url(admin_url('options-general.php')); ?>" class="so-ssl-alternate-button">
 								<?php esc_html_e('Disagree and Go Back', 'so-ssl'); ?>
                             </a>
                         </div>
 
-                        <div id="so-ssl-agreement-message" style="margin-top: 10px; display: none;"></div>
+                        <div id="so-ssl-agreement-message" class="so-ssl-agreement-message" style="display: none;"></div>
                     </form>
                 </div>
 
-                <div class="so-ssl-agreement-options" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
+                <div class="so-ssl-agreement-options">
                     <p>
 						<?php esc_html_e('Need to disable this agreement feature?', 'so-ssl'); ?>
-                        <a href="<?php echo esc_url(admin_url('index.php?disable_so_ssl_agreement=1')); ?>" class="button">
-							<?php esc_html_e('Disable Admin Agreement', 'so-ssl'); ?>
-                        </a>
-                        <a href="<?php echo esc_url(admin_url('options-general.php')); ?>" class="button">
-							<?php esc_html_e('Return to Settings', 'so-ssl'); ?>
-                        </a>
                     </p>
+                    <a href="<?php echo esc_url(admin_url('index.php?disable_so_ssl_agreement=1')); ?>" class="so-ssl-emergency-button">
+                        <span class="dashicons dashicons-dismiss" style="margin-right: 4px; margin-top: 3px;"></span>
+						<?php esc_html_e('Disable Admin Agreement', 'so-ssl'); ?>
+                    </a>
+                    <a href="<?php echo esc_url(admin_url('options-general.php')); ?>" class="so-ssl-emergency-button">
+                        <span class="dashicons dashicons-undo" style="margin-right: 4px; margin-top: 3px;"></span>
+						<?php esc_html_e('Return to Settings', 'so-ssl'); ?>
+                    </a>
                 </div>
             </div>
         </div>
@@ -437,7 +644,8 @@ class So_SSL_Admin_Agreement {
                         success: function(response) {
                             if (response.success) {
                                 $('#so-ssl-agreement-message')
-                                    .addClass('notice notice-success')
+                                    .removeClass('error')
+                                    .addClass('success')
                                     .html('<p>' + response.data.message + '</p>')
                                     .show();
 
@@ -447,7 +655,8 @@ class So_SSL_Admin_Agreement {
                                 }, 1000);
                             } else {
                                 $('#so-ssl-agreement-message')
-                                    .addClass('notice notice-error')
+                                    .removeClass('success')
+                                    .addClass('error')
                                     .html('<p>' + response.data.message + '</p>')
                                     .show();
 
@@ -457,7 +666,8 @@ class So_SSL_Admin_Agreement {
                         },
                         error: function() {
                             $('#so-ssl-agreement-message')
-                                .addClass('notice notice-error')
+                                .removeClass('success')
+                                .addClass('error')
                                 .html('<p><?php esc_html_e('An error occurred. Please try again.', 'so-ssl'); ?></p>')
                                 .show();
 
