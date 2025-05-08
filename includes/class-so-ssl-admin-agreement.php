@@ -22,14 +22,32 @@ class So_SSL_Admin_Agreement {
 			return;
 		}
 
-		// Check if admin has acknowledged the agreement - must run at 9 to catch plugin pages
-		add_action('admin_init', array(__CLASS__, 'check_admin_agreement'), 9);
-
 		// Register admin settings
 		add_action('admin_init', array(__CLASS__, 'register_settings'));
 
+		// Add the agreement page - IMPORTANT: using 'admin_menu' priority 5 to ensure it's registered early
+		add_action('admin_menu', array(__CLASS__, 'add_agreement_menu'), 5);
+
+		// Check if admin has acknowledged the agreement - lower priority to run after menu is registered
+		add_action('admin_init', array(__CLASS__, 'check_admin_agreement'), 20);
+
 		// Add AJAX handler for saving agreement
 		add_action('wp_ajax_so_ssl_save_admin_agreement', array(__CLASS__, 'ajax_save_admin_agreement'));
+
+		// Add notice on plugins page to inform admins about the emergency override
+		add_action('admin_notices', array(__CLASS__, 'maybe_show_emergency_notice'));
+	}
+
+	/**
+	 * Show emergency notice on plugins page
+	 */
+	public static function maybe_show_emergency_notice() {
+		$screen = get_current_screen();
+		if ($screen && ($screen->id === 'plugins' || strpos($screen->id, 'so-ssl') !== false)) {
+			echo '<div class="notice notice-info is-dismissible">';
+			echo '<p><strong>So SSL Tip:</strong> If you ever get locked out of the plugin due to the admin agreement, you can use this URL to disable it: <code>' . admin_url('index.php?disable_so_ssl_agreement=1') . '</code></p>';
+			echo '</div>';
+		}
 	}
 
 	/**
@@ -86,10 +104,68 @@ class So_SSL_Admin_Agreement {
 
 		// Check if agreement has expired or doesn't exist
 		if (empty($agreement) || (time() - intval($agreement)) > ($expiry_days * DAY_IN_SECONDS)) {
-			// Redirect to agreement page
-			wp_redirect(admin_url('options-general.php?page=so-ssl-agreement'));
-			exit;
+			// Display admin notice instead of redirecting
+			add_action('admin_notices', array(__CLASS__, 'display_agreement_notice'));
+
+			// Use JavaScript to control access to plugin content
+			add_action('admin_footer', array(__CLASS__, 'add_agreement_overlay_script'));
 		}
+	}
+
+	/**
+	 * Display admin notice about agreement requirement
+	 */
+	public static function display_agreement_notice() {
+		$agreement_url = admin_url('admin.php?page=so-ssl-agreement');
+		echo '<div class="notice notice-warning" style="padding: 10px 12px;">';
+		echo '<p><strong>' . esc_html__('So SSL Agreement Required', 'so-ssl') . '</strong></p>';
+		echo '<p>' . esc_html__('An administrator agreement is required before using So SSL plugin features.', 'so-ssl') . '</p>';
+		echo '<p><a href="' . esc_url($agreement_url) . '" class="button button-primary">' . esc_html__('View & Accept Agreement', 'so-ssl') . '</a> ';
+		echo '<a href="' . esc_url(admin_url('options-general.php')) . '" class="button">' . esc_html__('Back to Settings', 'so-ssl') . '</a></p>';
+		echo '</div>';
+	}
+
+	/**
+	 * Add JavaScript to overlay plugin content until agreement is accepted
+	 */
+	public static function add_agreement_overlay_script() {
+		?>
+        <script>
+            jQuery(document).ready(function($) {
+                // Create overlay elements
+                var $overlay = $('<div id="so-ssl-agreement-overlay" style="position: fixed; top: 32px; left: 160px; right: 0; bottom: 0; background: rgba(255,255,255,0.9); z-index: 99999; display: flex; align-items: center; justify-content: center;"></div>');
+                var $content = $('<div style="background: white; padding: 30px; max-width: 600px; text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.2); border-radius: 5px;"></div>');
+
+                $content.html('<h2>Administrator Agreement Required</h2>' +
+                    '<p>You must accept the So SSL administrator agreement before accessing plugin features.</p>' +
+                    '<p><a href="<?php echo esc_url(admin_url('admin.php?page=so-ssl-agreement')); ?>" class="button button-primary">View & Accept Agreement</a> ' +
+                    '<a href="<?php echo esc_url(admin_url('options-general.php')); ?>" class="button">Back to Settings</a></p>');
+
+                $overlay.append($content);
+                $('body').append($overlay);
+            });
+        </script>
+		<?php
+	}
+
+	/**
+	 * Add agreement menu
+	 */
+	public static function add_agreement_menu() {
+		// Add a direct admin page (not under options-general.php)
+		// This ensures it's available even if there are permission issues
+		add_menu_page(
+			__('Admin Agreement', 'so-ssl'),
+			__('Admin Agreement', 'so-ssl'),
+			'read', // Allow any logged-in user to access the agreement page
+			'so-ssl-agreement',
+			array(__CLASS__, 'display_agreement_page'),
+			'dashicons-shield',
+			999
+		);
+
+		// Hide this from the menu - it's only for direct access
+		remove_menu_page('so-ssl-agreement');
 	}
 
 	/**
@@ -194,24 +270,6 @@ class So_SSL_Admin_Agreement {
 			'so-ssl-admin-agreement',
 			'so_ssl_admin_agreement_section'
 		);
-
-		// Add admin menu item
-		add_action('admin_menu', array(__CLASS__, 'add_agreement_menu'), 999);
-	}
-
-	/**
-	 * Add agreement menu
-	 */
-	public static function add_agreement_menu() {
-		// Add a menu item that won't show in the menu but is accessible via URL
-		add_submenu_page(
-			null, // Don't show in menu
-			__('Admin Agreement', 'so-ssl'),
-			__('Admin Agreement', 'so-ssl'),
-			'manage_options',
-			'so-ssl-agreement',
-			array(__CLASS__, 'display_agreement_page')
-		);
 	}
 
 	/**
@@ -288,8 +346,9 @@ class So_SSL_Admin_Agreement {
 	 * Display admin agreement page
 	 */
 	public static function display_agreement_page() {
-		// Check user capabilities
-		if (!current_user_can('manage_options')) {
+		// Check user capabilities - any logged in user can view
+		if (!is_user_logged_in()) {
+			wp_die(__('You must be logged in to view this page.', 'so-ssl'));
 			return;
 		}
 
@@ -327,6 +386,11 @@ class So_SSL_Admin_Agreement {
                             <button type="submit" id="so_ssl_agreement_submit" class="button button-primary" disabled>
 								<?php esc_html_e('Accept and Continue', 'so-ssl'); ?>
                             </button>
+
+                            <!-- Add a clear disagree button -->
+                            <a href="<?php echo esc_url(admin_url('options-general.php')); ?>" class="button" style="margin-left: 10px;">
+								<?php esc_html_e('Disagree and Go Back', 'so-ssl'); ?>
+                            </a>
                         </div>
 
                         <div id="so-ssl-agreement-message" style="margin-top: 10px; display: none;"></div>
@@ -335,12 +399,12 @@ class So_SSL_Admin_Agreement {
 
                 <div class="so-ssl-agreement-options" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
                     <p>
-						<?php esc_html_e('If you don\'t want to agree at this time:', 'so-ssl'); ?>
-                        <a href="<?php echo esc_url(admin_url('options-general.php?page=so-ssl')); ?>" class="button">
-							<?php esc_html_e('Return to Plugin Settings', 'so-ssl'); ?>
+						<?php esc_html_e('Need to disable this agreement feature?', 'so-ssl'); ?>
+                        <a href="<?php echo esc_url(admin_url('index.php?disable_so_ssl_agreement=1')); ?>" class="button">
+							<?php esc_html_e('Disable Admin Agreement', 'so-ssl'); ?>
                         </a>
-                        <a href="<?php echo esc_url(admin_url()); ?>" class="button">
-							<?php esc_html_e('Return to Dashboard', 'so-ssl'); ?>
+                        <a href="<?php echo esc_url(admin_url('options-general.php')); ?>" class="button">
+							<?php esc_html_e('Return to Settings', 'so-ssl'); ?>
                         </a>
                     </p>
                 </div>
