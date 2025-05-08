@@ -332,6 +332,18 @@ class So_SSL_Admin_Agreement {
                         <div id="so-ssl-agreement-message" style="margin-top: 10px; display: none;"></div>
                     </form>
                 </div>
+
+                <div class="so-ssl-agreement-options" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
+                    <p>
+						<?php esc_html_e('If you don\'t want to agree at this time:', 'so-ssl'); ?>
+                        <a href="<?php echo esc_url(admin_url('options-general.php?page=so-ssl')); ?>" class="button">
+							<?php esc_html_e('Return to Plugin Settings', 'so-ssl'); ?>
+                        </a>
+                        <a href="<?php echo esc_url(admin_url()); ?>" class="button">
+							<?php esc_html_e('Return to Dashboard', 'so-ssl'); ?>
+                        </a>
+                    </p>
+                </div>
             </div>
         </div>
 
