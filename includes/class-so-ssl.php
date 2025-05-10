@@ -50,6 +50,10 @@ class So_SSL {
         $this->plugin_path = SO_SSL_PATH;
         $this->plugin_url = SO_SSL_URL;
 
+	    // Add our tab handling functions
+	    $this->register_redirect_handler();
+	    $this->save_active_tab();
+
         $this->load_dependencies();
     }
 
@@ -232,6 +236,11 @@ class So_SSL {
      * @since    1.0.2
      */
     public function display_options_page() {
+	    // Get the tab from URL parameter or default to 'ssl-settings'
+	    $active_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'ssl-settings';
+	    if (!in_array($active_tab, ['ssl-settings', 'content-security', 'browser-features', 'cross-origin', 'two-factor', 'login-protection', 'user-sessions', 'login-limit', 'privacy-compliance', 'admin-agreement'])) {
+		    $active_tab = 'ssl-settings';
+	    }
         ?>
         <div class="wrap so-ssl-wrap">
             <div class="so-ssl-header">
@@ -355,8 +364,9 @@ class So_SSL {
             </div>
 
             <div class="nav-tab-wrapper">
-                <a href="#ssl-settings" class="nav-tab nav-tab-active"><?php esc_html_e('SSL Settings', 'so-ssl'); ?></a>
-                <a href="#content-security" class="nav-tab"><?php esc_html_e('Content Security', 'so-ssl'); ?></a>
+
+                <a href="#ssl-settings" class="nav-tab <?php echo $active_tab === 'ssl-settings' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('SSL Settings', 'so-ssl'); ?></a>
+                <a href="#content-security" class="nav-tab <?php echo $active_tab === 'content-security' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Content Security', 'so-ssl'); ?></a>
                 <a href="#browser-features" class="nav-tab"><?php esc_html_e('Browser Features', 'so-ssl'); ?></a>
                 <a href="#cross-origin" class="nav-tab"><?php esc_html_e('Cross-Origin', 'so-ssl'); ?></a>
                 <a href="#two-factor" class="nav-tab"><?php esc_html_e('Two-Factor Auth', 'so-ssl'); ?></a>
@@ -367,8 +377,11 @@ class So_SSL {
                 <a href="#admin-agreement" class="nav-tab"><?php esc_html_e('Admin Agreement', 'so-ssl'); ?></a>
             </div>
 
-            <form action="options.php" method="post">
-                <?php settings_fields('so_ssl_options'); ?>
+            <form action="<?php echo admin_url('options.php'); ?>" method="post" id="so-ssl-settings-form">
+		        <?php
+		        // Let WordPress handle the fields and nonces normally
+		        settings_fields('so_ssl_options');
+		        ?>
 
                 <!-- SSL Settings Tab -->
                 <div id="ssl-settings" class="settings-tab">
@@ -505,8 +518,8 @@ class So_SSL {
 		            ?>
                 </div>
 
-                <!-- Add hidden input for active tab -->
-                <input type="hidden" name="active_tab" id="active_tab" value="ssl-settings">
+                <!-- Include tab in the form submission -->
+                <input type="hidden" name="active_tab" id="active_tab" value="<?php echo esc_attr($active_tab); ?>">
 
                 <?php submit_button(); ?>
             </form>
@@ -630,6 +643,71 @@ class So_SSL {
             }
         });
         </script>
+        <script type="text/javascript">
+            jQuery(document).ready(function($) {
+                // Initially hide all tabs except the first one
+                $('.settings-tab').hide();
+
+                // Determine which tab to show initially
+                let initialTab = 'ssl-settings'; // Default tab
+
+                // First check URL parameters for tab
+                const urlParams = new URLSearchParams(window.location.search);
+                const tabParam = urlParams.get('tab');
+                if (tabParam && $('#' + tabParam).length) {
+                    initialTab = tabParam;
+                }
+                // Then check URL hash (takes precedence over URL parameter)
+                const hashTab = window.location.hash.substring(1);
+                if (hashTab && $('#' + hashTab).length) {
+                    initialTab = hashTab;
+                }
+
+                // Show the active tab
+                $('#' + initialTab).show();
+                $('.nav-tab[href="#' + initialTab + '"]').addClass('nav-tab-active');
+                $('#active_tab').val(initialTab);
+
+                // Handle tab clicks
+                $('.nav-tab').on('click', function(e) {
+                    e.preventDefault();
+
+                    // Get the tab ID from href attribute
+                    const tabId = $(this).attr('href').substring(1);
+
+                    // Remove active class from all tabs
+                    $('.nav-tab').removeClass('nav-tab-active');
+                    $('.settings-tab').hide();
+
+                    // Add active class to clicked tab
+                    $(this).addClass('nav-tab-active');
+                    $('#' + tabId).show();
+
+                    // Update hidden input
+                    $('#active_tab').val(tabId);
+
+                    // Update URL with tab parameter (makes it persist across form submission)
+                    const baseUrl = window.location.href.split('?')[0];
+                    const currentParams = new URLSearchParams(window.location.search);
+                    currentParams.set('tab', tabId);
+
+                    // Replace the URL without reloading the page
+                    const newUrl = baseUrl + '?' + currentParams.toString() + window.location.hash;
+                    history.replaceState(null, '', newUrl);
+
+                    // Also update URL hash
+                    window.location.hash = tabId;
+                });
+
+                // Special handling for settings-updated parameter
+                if (urlParams.has('settings-updated') && urlParams.has('tab')) {
+                    // Wait for page to fully load then trigger the tab click
+                    setTimeout(function() {
+                        $('.nav-tab[href="#' + urlParams.get('tab') + '"]').trigger('click');
+                    }, 0);
+                }
+            });
+        </script>
         <?php
     }
 
@@ -725,6 +803,10 @@ class So_SSL {
         'so-ssl-login-limit-tab',
         'so_ssl_login_limit_section_tab'
     );
+
+	// Add a hook to handle our custom redirect
+    add_action('admin_init', array($this, 'handle_settings_redirect'));
+
     }
 
     /**
@@ -1285,6 +1367,33 @@ class So_SSL {
 	}
 
 	/**
+	 * Handle redirects after settings are saved to maintain the active tab
+	 */
+	public function handle_settings_redirect() {
+		// Check if we're saving options and need to redirect
+		if (isset($_POST['option_page']) && $_POST['option_page'] === 'so_ssl_options' &&
+		    isset($_POST['active_tab']) && !empty($_POST['active_tab'])) {
+
+			// Check if settings were just saved (look for "settings-updated=true" in the URL)
+			$screen = get_current_screen();
+			if ($screen && $screen->id === 'settings_page_so-ssl' && isset($_GET['settings-updated'])) {
+				// Get the active tab
+				$active_tab = sanitize_text_field($_POST['active_tab']);
+
+				// Redirect to the same page with the correct tab hash
+				$redirect_url = add_query_arg(
+					array('page' => 'so-ssl', 'settings-updated' => 'true'),
+					admin_url('options-general.php')
+				);
+				$redirect_url .= '#' . $active_tab;
+
+				wp_redirect($redirect_url);
+				exit;
+			}
+		}
+	}
+
+	/**
 	 * Enable privacy compliance field callback
 	 */
 	public static function enable_privacy_compliance_callback() {
@@ -1438,6 +1547,91 @@ class So_SSL {
 		<?php
 	}
 
+	/**
+	 * Handle redirect after settings save
+	 */
+	public function register_redirect_handler() {
+		// Handle redirect after options page form submission
+		add_action('admin_init', function() {
+			// Only run on our options page, after settings update
+			if (!isset($_GET['page']) || $_GET['page'] !== 'so-ssl' ||
+			    !isset($_GET['settings-updated']) || $_GET['settings-updated'] !== 'true') {
+				return;
+			}
+
+			// Get the active tab from the stored transient
+			$user_id = get_current_user_id();
+			$active_tab = get_transient('so_ssl_' . $user_id . '_active_tab');
+
+			if (!empty($active_tab)) {
+				// Delete the transient as we don't need it anymore
+				delete_transient('so_ssl_' . $user_id . '_active_tab');
+
+				// Redirect to the correct tab
+				wp_redirect(add_query_arg(
+					            ['page' => 'so-ssl', 'settings-updated' => 'true'],
+					            admin_url('options-general.php')
+				            ) . "#$active_tab");
+				exit;
+			}
+		});
+	}
+
+	/**
+	 * Save active tab on form submission
+	 */
+	public function save_active_tab() {
+		// Add this code inside your plugin class
+		add_action('admin_footer', function() {
+			// Only add on our settings page
+			$screen = get_current_screen();
+			if (!$screen || $screen->id !== 'settings_page_so-ssl') {
+				return;
+			}
+
+			?>
+            <script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    // Save active tab in a transient before form submission
+                    $('#so-ssl-settings-form').on('submit', function() {
+                        const activeTab = $('#active_tab').val();
+
+                        // Use AJAX to store the active tab in a transient
+                        $.ajax({
+                            url: ajaxurl,
+                            type: 'POST',
+                            async: false, // Important: wait for this to complete before submitting
+                            data: {
+                                action: 'so_ssl_save_active_tab',
+                                tab: activeTab,
+                                nonce: '<?php echo wp_create_nonce('so_ssl_save_tab'); ?>'
+                            }
+                        });
+
+                        // Let the form submit normally after saving the tab
+                        return true;
+                    });
+                });
+            </script>
+			<?php
+		});
+
+		// Add AJAX handler
+		add_action('wp_ajax_so_ssl_save_active_tab', function() {
+			// Verify nonce
+			check_ajax_referer('so_ssl_save_tab', 'nonce');
+
+			if (isset($_POST['tab']) && !empty($_POST['tab'])) {
+				$tab = sanitize_key($_POST['tab']);
+				$user_id = get_current_user_id();
+
+				// Store tab in a transient that expires after 30 seconds
+				set_transient('so_ssl_' . $user_id . '_active_tab', $tab, 30);
+			}
+
+			wp_die();
+		});
+	}
 
 	/**
 	 * Show troubleshooting section with flush rewrite rules button
@@ -1806,11 +2000,12 @@ public function enable_csp_frame_ancestors_callback() {
             </ul>
         </div>
 
-        <div>
-            <a href="<?php echo esc_url(site_url($page_slug)); ?>" target="_blank" class="button button-primary" style="font-size: 14px; height: auto; padding: 8px 16px;">
-				<?php esc_html_e('Open Privacy Page', 'so-ssl'); ?>
-                <span class="dashicons dashicons-external" style="font-size: 16px; height: 16px; width: 16px; vertical-align: text-bottom;"></span>
-            </a>
+        <div><?php
+	        // For the "Open Privacy Page" button that should preview the actual front-end privacy page
+	            echo '<a href="' . esc_url(add_query_arg('so_ssl_privacy', '1', site_url())) . '" target="_blank" class="button button-primary" style="font-size: 14px; height: auto; padding: 8px 16px;">';
+                echo esc_html__('Open Privacy Page', 'so-ssl');
+                echo '<span class="dashicons dashicons-external" style="font-size: 16px; height: 16px; width: 16px; vertical-align: text-bottom;"></span>';
+                echo '</a>'; ?>
         </div>
 
         <style>
