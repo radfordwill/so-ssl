@@ -69,19 +69,19 @@ class So_SSL {
      *
      * @since 1.2.0
      */
-    public function load_two_factor_authentication() {
-        // Only load if 2FA is enabled
-        if (get_option('so_ssl_enable_2fa', 0)) {
-            // Load session handler first
-            require_once SO_SSL_PATH . 'includes/class-so-ssl-session-handler.php';
+	public function load_two_factor_authentication() {
+		// Always load TOTP implementation (needed for settings UI)
+		require_once SO_SSL_PATH . 'includes/class-so-ssl-totp.php';
 
-            // Load TOTP implementation
-            require_once SO_SSL_PATH . 'includes/class-so-ssl-totp.php';
+		// Only load the actual 2FA functionality if it's enabled
+		if (get_option('so_ssl_enable_2fa', 0)) {
+			// Load session handler first
+			require_once SO_SSL_PATH . 'includes/class-so-ssl-session-handler.php';
 
-            // Load 2FA functionality
-            require_once SO_SSL_PATH . 'includes/class-so-ssl-two-factor.php';
-        }
-    }
+			// Load 2FA functionality
+			require_once SO_SSL_PATH . 'includes/class-so-ssl-two-factor.php';
+		}
+	}
 
     /**
      * Run the loader to execute all hooks.
@@ -1802,7 +1802,7 @@ public function enable_csp_frame_ancestors_callback() {
         </div>
 
         <div>
-            <a href="<?php echo esc_url(add_query_arg('so-ssl-privacy', '1', site_url())); ?>" target="_blank" class="button button-primary" style="font-size: 14px; height: auto; padding: 8px 16px;">
+            <a href="<?php echo esc_url(add_query_arg(esc_attr($page_slug), '1', site_url())); ?>" target="_blank" class="button button-primary" style="font-size: 14px; height: auto; padding: 8px 16px;">
 				<?php esc_html_e('Open Privacy Page', 'so-ssl'); ?>
                 <span class="dashicons dashicons-external" style="font-size: 16px; height: 16px; width: 16px; vertical-align: text-bottom;"></span>
             </a>

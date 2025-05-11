@@ -89,6 +89,7 @@ class So_SSL_Privacy_Compliance {
 	 * Check if user has acknowledged the privacy notice
 	 */
 	public static function check_privacy_acknowledgment() {
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
 		// Skip for AJAX, Cron, CLI, or admin-ajax.php requests
 		if (wp_doing_ajax() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI) ||
 		    (isset($_SERVER['SCRIPT_FILENAME']) && strpos(sanitize_text_field(wp_unslash($_SERVER['SCRIPT_FILENAME'])), 'admin-ajax.php') !== false)) {
@@ -101,7 +102,7 @@ class So_SSL_Privacy_Compliance {
 		}
 
 		// Don't check if we're already on the privacy page
-		if (isset($_GET['so-ssl-privacy']) && $_GET['so-ssl-privacy'] == '1') {
+		if (isset($_GET[$page_slug]) && $_GET[$page_slug] == '1') {
 			return;
 		}
 
@@ -127,7 +128,7 @@ class So_SSL_Privacy_Compliance {
 			// error_log('Redirecting to privacy page. Acknowledgment: ' . $acknowledgment);
 
 			// Redirect to privacy acknowledgment page
-			wp_redirect(add_query_arg('so-ssl-privacy', '1', site_url()));
+			wp_redirect(add_query_arg($page_slug, '1', site_url()));
 			exit;
 		}
 	}
@@ -333,10 +334,11 @@ class So_SSL_Privacy_Compliance {
 	 * @access   private
 	 */
 	public static function privacy_page_slug_callback() {
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
 		// This field is now deprecated since we're using a query parameter
 		echo '<p class="description">' .
 		     esc_html__('Using query parameter: ', 'so-ssl') .
-		     '<code>' . site_url('/?so-ssl-privacy=1') . '</code></p>';
+		     '<code>' . site_url('/?'.$page_slug.'=1') . '</code></p>';
 
 		// Keep the input field for backward compatibility
 		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
@@ -445,8 +447,10 @@ class So_SSL_Privacy_Compliance {
 	 * Load the privacy template with fixed form handling
 	 */
 	public static function load_privacy_template() {
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+
 		// Check for the query parameter
-		if (isset($_GET['so-ssl-privacy']) && $_GET['so-ssl-privacy'] == '1') {
+		if (isset($_GET[$page_slug]) && $_GET[$page_slug] == '1') {
 			// Process form submission
 			if (isset($_POST['so_ssl_privacy_submit']) && isset($_POST['so_ssl_privacy_nonce'])) {
 				if (wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_privacy_nonce'])), 'so_ssl_privacy_acknowledgment')) {
@@ -468,7 +472,7 @@ class So_SSL_Privacy_Compliance {
 						setcookie('so_ssl_privacy_redirect', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
 
 						// Verify we're not redirecting back to the privacy page itself
-						if (strpos($redirect, 'so-ssl-privacy=1') !== false) {
+						if (strpos($redirect, $page_slug.'=1') !== false) {
 							$redirect = admin_url(); // Fallback to admin if redirect would cause a loop
 						}
 
@@ -484,7 +488,7 @@ class So_SSL_Privacy_Compliance {
 
 				// Only set if it's on the same domain AND not the privacy page itself
 				$site_url = site_url();
-				if (strpos($referer, $site_url) === 0 && strpos($referer, 'so-ssl-privacy=1') === false) {
+				if (strpos($referer, $site_url) === 0 && strpos($referer, $page_slug.'=1') === false) {
 					setcookie('so_ssl_privacy_redirect', $referer, 0, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
 				}
 			}
@@ -499,6 +503,7 @@ class So_SSL_Privacy_Compliance {
 		$page_title = get_option('so_ssl_privacy_page_title', 'Privacy Acknowledgment Required');
 		$notice_text = get_option('so_ssl_privacy_notice_text', '');
 		$checkbox_text = get_option('so_ssl_privacy_checkbox_text', '');
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
 
 		// Start output buffering to capture all output
 		ob_start();
@@ -646,7 +651,9 @@ class So_SSL_Privacy_Compliance {
 					<?php echo $notice_text; ?>
                 </div>
 
-                <?php echo '<form class="so-ssl-privacy-form" method="post" action="' . esc_url(add_query_arg('so-ssl-privacy', '1', site_url())) . '">';?>
+                <?php
+                $page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+                echo '<form class="so-ssl-privacy-form" method="post" action="' . esc_url(add_query_arg($page_slug, '1', site_url())) . '">';?>
 					<?php wp_nonce_field('so_ssl_privacy_acknowledgment', 'so_ssl_privacy_nonce'); ?>
 
                     <div class="so-ssl-privacy-checkbox">
