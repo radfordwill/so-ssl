@@ -119,9 +119,6 @@ function activate_so_ssl() {
 	add_option('so_ssl_privacy_checkbox_text', 'I acknowledge and consent to the privacy notice above');
 	add_option('so_ssl_privacy_expiry_days', 30);
 
-	// Set flag to flush rewrite rules (for privacy page)
-	add_option('so_ssl_flush_rewrite_rules', true);
-
 	// Add the role-specific options
 	add_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
 	add_option('so_ssl_privacy_exempt_admins', true);
@@ -138,8 +135,7 @@ function activate_so_ssl() {
  * The code that runs during plugin deactivation.
  */
 function deactivate_so_ssl() {
-	// Flush rewrite rules to remove privacy page rule
-	flush_rewrite_rules();
+
 }
 
 register_activation_hook(__FILE__, 'activate_so_ssl');

@@ -116,11 +116,6 @@ class So_SSL {
         // Enqueue admin styles and scripts
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
-
-	    // Add settings change detection to trigger rewrite flush
-	    add_action('update_option_so_ssl_enable_privacy_compliance', array(__CLASS__, 'maybe_flush_rules'), 10, 2);
-	    add_action('update_option_so_ssl_privacy_page_slug', array(__CLASS__, 'maybe_flush_rules'), 10, 2);
-
     }
 
     /**
@@ -1533,28 +1528,28 @@ public function disable_weak_passwords_callback() {
     echo '<p class="description">' . esc_html__('Disable the "confirm use of weak password" checkbox and prevent users from setting weak passwords.', 'so-ssl') . '</p>';
 }
 
-/**
- * Two-Factor Authentication user roles field callback.
- *
- * @since    1.2.0
- */
-public function two_factor_user_roles_callback() {
-    $selected_roles = get_option('so_ssl_2fa_user_roles', array('administrator'));
+	/**
+	 * Two-Factor Authentication user roles field callback.
+	 *
+	 * @since    1.2.0
+	 */
+	public function two_factor_user_roles_callback() {
+		$selected_roles = get_option('so_ssl_2fa_user_roles', array('administrator'));
 
-    if (!is_array($selected_roles)) {
-        $selected_roles = array('administrator');
-    }
+		if (!is_array($selected_roles)) {
+			$selected_roles = array('administrator');
+		}
 
-    $roles = wp_roles()->get_names();
+		$roles = wp_roles()->get_names();
 
-    echo '<select multiple id="so_ssl_2fa_user_roles" name="so_ssl_2fa_user_roles[]" class="regular-text">';
-    foreach ($roles as $role_value => $role_name) {
-        $selected = in_array($role_value, $selected_roles) ? 'selected="selected"' : '';
-        echo '<p class="description">' . esc_html__('Warning: Only enable this if you have a valid SSL certificate installed.', 'so-ssl') . '</p>';
-    }
-    echo '</select>';
-    echo '<p class="description">' . esc_html__('Select which user roles will be required to use Two-Factor Authentication. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
-}
+		echo '<select multiple id="so_ssl_2fa_user_roles" name="so_ssl_2fa_user_roles[]" class="regular-text" style="height: 120px;">';
+		foreach ($roles as $role_value => $role_name) {
+			$selected = in_array($role_value, $selected_roles) ? 'selected="selected"' : '';
+			echo '<option value="' . esc_attr($role_value) . '" ' . $selected . '>' . esc_html($role_name) . '</option>';
+		}
+		echo '</select>';
+		echo '<p class="description">' . esc_html__('Select which user roles will be required to use Two-Factor Authentication. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
+	}
 
 /**
  * Two-Factor Authentication method field callback.
@@ -1807,7 +1802,7 @@ public function enable_csp_frame_ancestors_callback() {
         </div>
 
         <div>
-            <a href="<?php echo esc_url(site_url($page_slug)); ?>" target="_blank" class="button button-primary" style="font-size: 14px; height: auto; padding: 8px 16px;">
+            <a href="<?php echo esc_url(add_query_arg('so-ssl-privacy', '1', site_url())); ?>" target="_blank" class="button button-primary" style="font-size: 14px; height: auto; padding: 8px 16px;">
 				<?php esc_html_e('Open Privacy Page', 'so-ssl'); ?>
                 <span class="dashicons dashicons-external" style="font-size: 16px; height: 16px; width: 16px; vertical-align: text-bottom;"></span>
             </a>

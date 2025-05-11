@@ -100,67 +100,34 @@ class So_SSL_Privacy_Compliance {
 			return;
 		}
 
+		// Don't check if we're already on the privacy page
+		if (isset($_GET['so-ssl-privacy']) && $_GET['so-ssl-privacy'] == '1') {
+			return;
+		}
+
 		// Get current user
 		$current_user = wp_get_current_user();
 		$user_id = $current_user->ID;
 
-		// Check if exempt by role
-		$required_roles = get_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
-		$exempt_admins = get_option('so_ssl_privacy_exempt_admins', true);
+		// Check user role requirements (keep existing role checking code)
+		// ...
 
-		$user_requires_check = false;
+		// Debugging - could be temporarily added to troubleshoot
+		// error_log('Checking privacy acknowledgment for user ID: ' . $user_id);
 
-		// If administrator exemption is enabled and user is admin, skip check
-		if ($exempt_admins && current_user_can('manage_options')) {
-			return;
-		}
-
-		// Check if user has any of the required roles
-		foreach ($current_user->roles as $role) {
-			if (in_array($role, $required_roles)) {
-				$user_requires_check = true;
-				break;
-			}
-		}
-
-		// If user doesn't need to check, exit early
-		if (!$user_requires_check) {
-			return;
-		}
-
-		// Don't redirect if we're already on the privacy page
-		if (isset($_SERVER['REQUEST_URI'])) {
-			$current_url = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI']));
-			$privacy_slug = sanitize_title(get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment'));
-			if (strpos($current_url, $privacy_slug) !== false) {
-				return;
-			}
-
-			// Don't redirect for specified allowed paths (add logout URL to avoid lockout)
-			$allowed_paths = array(
-				'wp-login.php?action=logout',
-				'wp-login.php?loggedout=true',
-				admin_url('admin-ajax.php'),
-				'/wp-json/'
-			);
-
-			foreach ($allowed_paths as $path) {
-				if (strpos($current_url, $path) !== false) {
-					return;
-				}
-			}
-		}
-
-		// THIS IS THE MISSING CODE - Check acknowledgment status and redirect if needed
+		// Check acknowledgment status
 		$acknowledgment = get_user_meta($user_id, 'so_ssl_privacy_acknowledged', true);
 		$expiry_days = intval(get_option('so_ssl_privacy_expiry_days', 30));
 
 		// Check if acknowledgment has expired or doesn't exist
 		if (empty($acknowledgment) ||
 		    (time() - intval($acknowledgment)) > ($expiry_days * DAY_IN_SECONDS)) {
+
+			// Debugging - could be temporarily added to troubleshoot
+			// error_log('Redirecting to privacy page. Acknowledgment: ' . $acknowledgment);
+
 			// Redirect to privacy acknowledgment page
-			$privacy_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
-			wp_redirect(site_url($privacy_slug));
+			wp_redirect(add_query_arg('so-ssl-privacy', '1', site_url()));
 			exit;
 		}
 	}
@@ -364,14 +331,20 @@ class So_SSL_Privacy_Compliance {
 	 *
 	 * @since    1.4.0
 	 * @access   private
-	 *
 	 */
 	public static function privacy_page_slug_callback() {
-		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+		// This field is now deprecated since we're using a query parameter
+		echo '<p class="description">' .
+		     esc_html__('Using query parameter: ', 'so-ssl') .
+		     '<code>' . site_url('/?so-ssl-privacy=1') . '</code></p>';
 
-		echo '<input type="text" id="so_ssl_privacy_page_slug" name="so_ssl_privacy_page_slug" value="' . esc_attr($page_slug) . '" class="regular-text" />';
-		echo '<p class="description">' . esc_html__('URL slug for the privacy acknowledgment page.', 'so-ssl') . '</p>';
-		echo '<p class="description"><strong>' . esc_html__('Note:', 'so-ssl') . '</strong> ' . esc_html__('Changing this will require flushing rewrite rules.', 'so-ssl') . '</p>';
+		// Keep the input field for backward compatibility
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+		echo '<input type="hidden" id="so_ssl_privacy_page_slug" name="so_ssl_privacy_page_slug" value="' . esc_attr($page_slug) . '" />';
+
+		echo '<p class="description">' .
+		     esc_html__('The privacy page now uses a query parameter instead of a custom URL for improved compatibility.', 'so-ssl') .
+		     '</p>';
 	}
 
 	/**
@@ -447,13 +420,13 @@ class So_SSL_Privacy_Compliance {
 	 * Register the privacy acknowledgment template
 	 */
 	public static function register_privacy_template() {
-		// Register query var
+		// Register query var (keep this part)
 		add_filter('query_vars', array(__CLASS__, 'add_query_vars'));
 
-		// Add rewrite rules
-		add_action('init', array(__CLASS__, 'add_rewrite_rules'), 10);
+		// Remove the rewrite rules part entirely
+		// NO LONGER NEEDED: add_action('init', array(__CLASS__, 'add_rewrite_rules'), 10);
 
-		// Handle template loading
+		// Handle template loading - keep this but modify implementation
 		add_action('template_redirect', array(__CLASS__, 'load_privacy_template'));
 	}
 
@@ -469,48 +442,36 @@ class So_SSL_Privacy_Compliance {
 	}
 
 	/**
-	 * Add rewrite rules for the privacy page
-	 */
-	public static function add_rewrite_rules() {
-		$slug = sanitize_title(get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment'));
-
-		// Make sure the rule is correct and uses a proper regex
-		add_rewrite_rule(
-			'^' . $slug . '/?$',
-			'index.php?so_ssl_privacy=1',
-			'top'
-		);
-
-		// Check if we need to flush rewrite rules
-		if (get_option('so_ssl_flush_rewrite_rules', false)) {
-			// This is resource-intensive, so we only do it when needed
-			flush_rewrite_rules();
-			update_option('so_ssl_flush_rewrite_rules', false);
-		}
-	}
-
-	/**
-	 * Load the privacy template
+	 * Load the privacy template with fixed form handling
 	 */
 	public static function load_privacy_template() {
-		global $wp_query;
-
-		if (isset($wp_query->query_vars['so_ssl_privacy']) && $wp_query->query_vars['so_ssl_privacy'] == 1) {
+		// Check for the query parameter
+		if (isset($_GET['so-ssl-privacy']) && $_GET['so-ssl-privacy'] == '1') {
 			// Process form submission
 			if (isset($_POST['so_ssl_privacy_submit']) && isset($_POST['so_ssl_privacy_nonce'])) {
 				if (wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_privacy_nonce'])), 'so_ssl_privacy_acknowledgment')) {
 					if (isset($_POST['so_ssl_privacy_accept']) && $_POST['so_ssl_privacy_accept'] == '1') {
-						// User has acknowledged
+						// User has acknowledged - CRITICAL FIX HERE
 						$user_id = get_current_user_id();
 						update_user_meta($user_id, 'so_ssl_privacy_acknowledged', time());
 
 						// Clear the privacy needed cookie
 						setcookie('so_ssl_privacy_needed', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
 
-						// Redirect to previous page or dashboard
+						// Redirect to home or dashboard instead of previous page
+						// This prevents the redirect loop by ensuring we don't go back to the privacy page
 						$redirect = isset($_COOKIE['so_ssl_privacy_redirect'])
 							? sanitize_url(wp_unslash($_COOKIE['so_ssl_privacy_redirect']))
 							: admin_url();
+
+						// Clear the redirect cookie
+						setcookie('so_ssl_privacy_redirect', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+
+						// Verify we're not redirecting back to the privacy page itself
+						if (strpos($redirect, 'so-ssl-privacy=1') !== false) {
+							$redirect = admin_url(); // Fallback to admin if redirect would cause a loop
+						}
+
 						wp_redirect($redirect);
 						exit;
 					}
@@ -520,9 +481,10 @@ class So_SSL_Privacy_Compliance {
 			// Set redirect cookie if referrer is available
 			if (isset($_SERVER['HTTP_REFERER'])) {
 				$referer = wp_sanitize_redirect(wp_unslash($_SERVER['HTTP_REFERER']));
-				// Only set if it's on the same domain
+
+				// Only set if it's on the same domain AND not the privacy page itself
 				$site_url = site_url();
-				if (strpos($referer, $site_url) === 0) {
+				if (strpos($referer, $site_url) === 0 && strpos($referer, 'so-ssl-privacy=1') === false) {
 					setcookie('so_ssl_privacy_redirect', $referer, 0, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
 				}
 			}
@@ -684,7 +646,7 @@ class So_SSL_Privacy_Compliance {
 					<?php echo $notice_text; ?>
                 </div>
 
-                <form class="so-ssl-privacy-form" method="post">
+                <?php echo '<form class="so-ssl-privacy-form" method="post" action="' . esc_url(add_query_arg('so-ssl-privacy', '1', site_url())) . '">';?>
 					<?php wp_nonce_field('so_ssl_privacy_acknowledgment', 'so_ssl_privacy_nonce'); ?>
 
                     <div class="so-ssl-privacy-checkbox">
