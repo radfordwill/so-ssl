@@ -592,3 +592,47 @@ input:focus + .so-ssl-slider {
         grid-template-columns: 1fr;
     }
 }
+
+/* Submit button highlight effect */
+.so-ssl-save-highlight {
+    animation: so-ssl-pulse 2s infinite;
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7);
+}
+
+@keyframes so-ssl-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(66, 133, 244, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); }
+}
+
+.so-ssl-save-reminder {
+    margin-left: 10px;
+    color: #d63638;
+    font-weight: 500;
+    animation: so-ssl-fade 2s infinite;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+@keyframes so-ssl-fade {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
+/* Admin agreement notice styling */
+.so-ssl-admin-agreement-notice {
+    padding: 20px;
+    border-left: 4px solid #dc3232;
+    margin: 20px 0;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.so-ssl-admin-agreement-notice h2 {
+    margin-top: 0;
+    color: #23282d;
+}
+
+.so-ssl-admin-agreement-notice .button {
+    margin-right: 10px;
+}

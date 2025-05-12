@@ -5,6 +5,11 @@
  * This file implements user sessions management functionality for the So SSL plugin.
  */
 
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
 class So_SSL_User_Sessions {
 
     /**

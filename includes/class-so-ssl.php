@@ -6,6 +6,11 @@
    * @package    So_SSL
    */
 
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
 class So_SSL {
 
     /**
@@ -64,19 +69,19 @@ class So_SSL {
      *
      * @since 1.2.0
      */
-    public function load_two_factor_authentication() {
-        // Only load if 2FA is enabled
-        if (get_option('so_ssl_enable_2fa', 0)) {
-            // Load session handler first
-            require_once SO_SSL_PATH . 'includes/so-ssl-session-handler.php';
+	public function load_two_factor_authentication() {
+		// Always load TOTP implementation (needed for settings UI)
+		require_once SO_SSL_PATH . 'includes/class-so-ssl-totp.php';
 
-            // Load TOTP implementation
-            require_once SO_SSL_PATH . 'includes/totp.php';
+		// Only load the actual 2FA functionality if it's enabled
+		if (get_option('so_ssl_enable_2fa', 0)) {
+			// Load session handler first
+			require_once SO_SSL_PATH . 'includes/class-so-ssl-session-handler.php';
 
-            // Load 2FA functionality
-            require_once SO_SSL_PATH . 'includes/so-ssl-two-factor.php';
-        }
-    }
+			// Load 2FA functionality
+			require_once SO_SSL_PATH . 'includes/class-so-ssl-two-factor.php';
+		}
+	}
 
     /**
      * Run the loader to execute all hooks.
@@ -111,7 +116,6 @@ class So_SSL {
         // Enqueue admin styles and scripts
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
-
     }
 
     /**
@@ -193,15 +197,29 @@ class So_SSL {
         }
     }
 
-    /**
-     * Enqueue admin scripts
-     */
-    public function enqueue_admin_scripts($hook) {
-        // Only load on plugin pages
-        if (strpos($hook, 'so-ssl') !== false || $hook === 'settings_page_so-ssl') {
-            wp_enqueue_script('so-ssl-admin', SO_SSL_URL . 'assets/js/so-ssl-admin.js', array('jquery'), SO_SSL_VERSION, true);
-        }
-    }
+	/**
+	 * Enqueue admin scripts
+	 */
+	public function enqueue_admin_scripts($hook) {
+		// Only load on plugin pages
+		if (strpos($hook, 'so-ssl') !== false || $hook === 'settings_page_so-ssl') {
+			wp_enqueue_script('so-ssl-admin', SO_SSL_URL . 'assets/js/so-ssl-admin.js', array('jquery'), SO_SSL_VERSION, true);
+
+			// Add translation strings and other data for JavaScript
+			wp_localize_script('so-ssl-admin', 'soSslAdmin', array(
+				'ajaxUrl' => admin_url('admin-ajax.php'),
+				'nonce' => wp_create_nonce('so_ssl_admin_nonce')
+				// Removed the warning message, but it's not harmful to leave it either
+			));
+		}
+
+		// Load on any admin page that might include our settings
+		wp_enqueue_editor();
+		wp_enqueue_media();
+
+		// Also load TinyMCE-specific CSS
+		wp_enqueue_style('editor-buttons');
+	}
 
     /**
      * Plugin settings page content.
@@ -340,6 +358,8 @@ class So_SSL {
                 <a href="#login-protection" class="nav-tab"><?php esc_html_e('Login Protection', 'so-ssl'); ?></a>
                 <a href="#user-sessions" class="nav-tab"><?php esc_html_e('User Sessions', 'so-ssl'); ?></a>
                 <a href="#login-limit" class="nav-tab"><?php esc_html_e('Login Limiting', 'so-ssl'); ?></a>
+                <a href="#privacy-compliance" class="nav-tab"><?php esc_html_e('Privacy Compliance', 'so-ssl'); ?></a>
+                <a href="#admin-agreement" class="nav-tab"><?php esc_html_e('Admin Agreement', 'so-ssl'); ?></a>
             </div>
 
             <form action="options.php" method="post">
@@ -375,6 +395,14 @@ class So_SSL {
                     <?php
                     do_settings_sections('so-ssl-permissions');
                     ?>
+                </div>
+
+                <!-- Privacy Compliance Tab -->
+                <div id="privacy-compliance" class="settings-tab">
+                    <h2><?php esc_html_e('Privacy Compliance Settings', 'so-ssl'); ?></h2>
+		            <?php
+		            do_settings_sections('so-ssl-privacy');
+		            ?>
                 </div>
 
                 <!-- Cross-Origin Tab -->
@@ -456,7 +484,7 @@ class So_SSL {
                             printf(
                                 /* translators: %s: URL to Login Security page */
                                 esc_html__('For detailed settings and statistics, visit the %s page.', 'so-ssl'),
-                                '<a href="' . esc_url(admin_url('options-general.php?page=so-ssl-login-limit')) . '">' . esc_html__('Login Security', 'so-ssl') . '</a>'
+                                '<a href="' . esc_url(admin_url('options-general.php?page=class-so-ssl-login-limit')) . '">' . esc_html__('Login Security', 'so-ssl') . '</a>'
                             );
                             ?>
                         </p>
@@ -464,10 +492,18 @@ class So_SSL {
                     <?php endif; ?>
                 </div>
 
-                <!-- Add hidden input for active tab -->
-                <input type="hidden" name="active_tab" id="active_tab" value="ssl-settings">
+                <!-- Admin Agreement Tab -->
+                <div id="admin-agreement" class="settings-tab">
+                    <h2><?php esc_html_e('Administrator Agreement Settings', 'so-ssl'); ?></h2>
+		            <?php
+		            do_settings_sections('so-ssl-admin-agreement');
+		            ?>
+                </div>
 
-                <?php submit_button(); ?>
+                <!-- Add hidden input for active tab -->
+                <input type="hidden" name="so_ssl_active_tab" id="active_tab" value="<?php echo esc_attr(get_option('so_ssl_active_tab', 'ssl-settings')); ?>">
+                <?php
+                submit_button(); ?>
             </form>
 
             <!-- Feature Overview -->
@@ -521,48 +557,127 @@ class So_SSL {
                     </h3>
                     <p><?php esc_html_e('Limit login attempts and protect against brute force attacks.', 'so-ssl'); ?></p>
                 </div>
+                <div class="so-ssl-feature-card">
+                    <h3>
+                        <span class="dashicons dashicons-privacy"></span>
+			            <?php esc_html_e('Privacy Compliance', 'so-ssl'); ?>
+                    </h3>
+                    <p><?php esc_html_e('Implement GDPR and US privacy law compliance with customizable privacy acknowledgment for users.', 'so-ssl'); ?></p>
+                </div>
+            </div>
+            <div class="so-ssl-section-title"><?php esc_html_e('Privacy Compliance', 'so-ssl'); ?></div>
+            <div class="so-ssl-compliance-highlights">
+                <div class="so-ssl-compliance-detail">
+                    <h4><span class="dashicons dashicons-welcome-view-site"></span> <?php esc_html_e('Customizable Privacy Page', 'so-ssl'); ?></h4>
+                    <p><?php esc_html_e('Create a custom privacy acknowledgment page that users must accept before accessing your site.', 'so-ssl'); ?></p>
+                </div>
+                <div class="so-ssl-compliance-detail">
+                    <h4><span class="dashicons dashicons-groups"></span> <?php esc_html_e('Role-Based Configuration', 'so-ssl'); ?></h4>
+                    <p><?php esc_html_e('Choose which user roles require privacy acknowledgment, with optional exemption for administrators.', 'so-ssl'); ?></p>
+                </div>
+                <div class="so-ssl-compliance-detail">
+                    <h4><span class="dashicons dashicons-calendar-alt"></span> <?php esc_html_e('Expiration Controls', 'so-ssl'); ?></h4>
+                    <p><?php esc_html_e('Set acknowledgment expiry periods to ensure users regularly review updated privacy information.', 'so-ssl'); ?></p>
+                </div>
+                <a href="<?php echo esc_url(admin_url('options-general.php?page=so-ssl#privacy-compliance')); ?>" class="button button-primary" target="_blank">
+			        <?php esc_html_e('Configure Privacy Compliance', 'so-ssl'); ?>
+                </a>
             </div>
         </div>
 
         <!-- Inline script to ensure tabs work correctly -->
         <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            // Initially hide all tabs except the first one
-            $('.settings-tab').hide();
-            $('#ssl-settings').show();
+            jQuery(document).ready(function($) {
+                // Get active tab - check URL hash first, then saved value, then default
+                let activeTab = '<?php echo esc_js(get_option('so_ssl_active_tab', 'ssl-settings')); ?>';
+                const urlHash = window.location.hash.substring(1);
 
-            // Handle tab clicks
-            $('.nav-tab').on('click', function(e) {
-                e.preventDefault();
+                // Give precedence to URL hash if it exists and corresponds to a valid tab
+                if (urlHash && $('#' + urlHash).length) {
+                    activeTab = urlHash;
+                }
 
-                // Get the tab ID from href attribute
-                const tabId = $(this).attr('href').substring(1);
+                console.log('Initial activeTab:', activeTab); // Debugging
 
-                // Remove active class from all tabs
-                $('.nav-tab').removeClass('nav-tab-active');
+                // Initially hide all tabs
                 $('.settings-tab').hide();
+                $('.nav-tab').removeClass('nav-tab-active');
 
-                // Add active class to clicked tab
-                $(this).addClass('nav-tab-active');
-                $('#' + tabId).show();
+                // Activate the appropriate tab
+                if ($('#' + activeTab).length) {
+                    $('#' + activeTab).show();
+                    $('.nav-tab[href="#' + activeTab + '"]').addClass('nav-tab-active');
+                    $('#active_tab').val(activeTab);
 
-                // Update hidden input
-                $('#active_tab').val(tabId);
+                    // Also update localStorage for redundancy
+                    localStorage.setItem('so_ssl_active_tab', activeTab);
+                } else {
+                    // Fallback to first tab if the saved tab doesn't exist
+                    $('#ssl-settings').show();
+                    $('.nav-tab[href="#ssl-settings"]').addClass('nav-tab-active');
+                    $('#active_tab').val('ssl-settings');
+                    localStorage.setItem('so_ssl_active_tab', 'ssl-settings');
+                    activeTab = 'ssl-settings';
+                }
+
+                // Handle tab navigation
+                $('.nav-tab').on('click', function(e) {
+                    e.preventDefault();
+
+                    // Get target tab
+                    const tabId = $(this).attr('href').substring(1);
+                    console.log('Clicked tab:', tabId); // Debugging
+
+                    // If already on this tab, do nothing
+                    if ($(this).hasClass('nav-tab-active')) {
+                        return;
+                    }
+
+                    // Check for unsaved changes
+                    if (typeof formModified !== 'undefined' && formModified) {
+                        if (!confirm('Your changes are not saved. Do you want to continue?')) {
+                            return false;
+                        }
+                    }
+
+                    // Update tabs
+                    $('.nav-tab').removeClass('nav-tab-active');
+                    $('.settings-tab').hide();
+
+                    $(this).addClass('nav-tab-active');
+                    $('#' + tabId).show();
+
+                    // Update hidden input value - CRITICAL for form submission
+                    $('#active_tab').val(tabId);
+
+                    // Update localStorage for redundancy
+                    localStorage.setItem('so_ssl_active_tab', tabId);
+
+                    // Update URL hash
+                    if (history.pushState) {
+                        history.pushState(null, null, '#' + tabId);
+                    } else {
+                        window.location.hash = tabId;
+                    }
+                });
+
+                // Save active tab on form submission
+                $('form').on('submit', function(e) {
+                    const currentTab = $('#active_tab').val();
+                    console.log('Submitting form with active tab:', currentTab); // Debugging
+
+                    // Make sure the hidden input is properly named for WP options
+                    if ($('#active_tab').attr('name') !== 'so_ssl_active_tab') {
+                        // Update the name to match the registered option
+                        $('#active_tab').attr('name', 'so_ssl_active_tab');
+                    }
+
+                    // For redundancy, also add another hidden field
+                    if (!$(this).find('input[name="so_ssl_active_tab"]').length) {
+                        $(this).append('<input type="hidden" name="so_ssl_active_tab" value="' + currentTab + '">');
+                    }
+                });
             });
-
-            // Check URL hash for tab on page load
-            let activeTab = window.location.hash.substring(1);
-            if (activeTab && $('#' + activeTab).length) {
-                $('.nav-tab').removeClass('nav-tab-active');
-                $('.settings-tab').hide();
-
-                $('.nav-tab[href="#' + activeTab + '"]').addClass('nav-tab-active');
-                $('#' + activeTab).show();
-
-                // Update hidden input
-                $('#active_tab').val(activeTab);
-            }
-        });
         </script>
         <?php
     }
@@ -602,6 +717,24 @@ class So_SSL {
 
         // Login Protection Settings
         $this->register_login_protection_settings();
+
+	    // Privacy compliance settings
+	    $this->register_privacy_compliance_settings();
+
+	    // Privacy compliance settings
+	    $this->register_admin_agreement_settings();
+
+
+	    // Register a setting for active tab
+	    register_setting(
+		    'so_ssl_options',
+		    'so_ssl_active_tab',
+		    array(
+			    'type' => 'string',
+			    'sanitize_callback' => 'sanitize_text_field',
+			    'default' => 'ssl-settings',
+		    )
+	    );
 
         // User Sessions Management Settings
     register_setting(
@@ -1056,6 +1189,453 @@ class So_SSL {
         );
     }
 
+	/**
+	 * Register Privacy Compliance Settings.
+	 *
+	 * @since    1.4.4
+	 * @access   private
+	 */
+	private function register_privacy_compliance_settings() {
+		// Create the settings section
+		add_settings_section(
+			'so_ssl_privacy_compliance_section',
+			__('Privacy Compliance', 'so-ssl'),
+			array($this, 'privacy_compliance_section_callback'),
+			'so-ssl-privacy'
+		);
+
+		// Register all privacy settings
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_enable_privacy_compliance',
+			array(
+				'type' => 'boolean',
+				'sanitize_callback' => 'intval',
+				'default' => 0,
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_privacy_page_title',
+			array(
+				'type' => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default' => 'Privacy Acknowledgment Required',
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_privacy_page_slug',
+			array(
+				'type' => 'string',
+				'sanitize_callback' => 'sanitize_title',
+				'default' => 'privacy-acknowledgment',
+			)
+		);
+
+
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_privacy_checkbox_text',
+			array(
+				'type' => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default' => 'I acknowledge and consent to the privacy notice above',
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_privacy_expiry_days',
+			array(
+				'type' => 'integer',
+				'sanitize_callback' => 'intval',
+				'default' => 30,
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_privacy_required_roles',
+			array(
+				'type' => 'array',
+				'sanitize_callback' => function($input) {
+					if (!is_array($input)) {
+						return array();
+					}
+					return array_map('sanitize_text_field', $input);
+				},
+				'default' => array('subscriber', 'contributor', 'author', 'editor'),
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_privacy_exempt_admins',
+			array(
+				'type' => 'boolean',
+				'sanitize_callback' => 'intval',
+				'default' => true,
+			)
+		);
+
+		// Add settings fields
+		add_settings_field(
+			'so_ssl_enable_privacy_compliance',
+			__('Enable Privacy Compliance', 'so-ssl'),
+			array($this, 'enable_privacy_compliance_callback'),
+			'so-ssl-privacy',
+			'so_ssl_privacy_compliance_section'
+		);
+
+		add_settings_field(
+			'so_ssl_privacy_page_title',
+			__('Privacy Page Title', 'so-ssl'),
+			array($this, 'privacy_page_title_callback'),
+			'so-ssl-privacy',
+			'so_ssl_privacy_compliance_section'
+		);
+
+		add_settings_field(
+			'so_ssl_privacy_page_slug',
+			__('Privacy Page Slug', 'so-ssl'),
+			array($this, 'privacy_page_slug_callback'),
+			'so-ssl-privacy',
+			'so_ssl_privacy_compliance_section'
+		);
+
+		add_settings_field(
+			'so_ssl_privacy_notice_text',
+			__('Privacy Notice Text', 'so-ssl'),
+			array($this, 'privacy_notice_text_callback'),
+			'so-ssl-privacy',
+			'so_ssl_privacy_compliance_section'
+		);
+
+		add_settings_field(
+			'so_ssl_privacy_checkbox_text',
+			__('Acknowledgment Checkbox Text', 'so-ssl'),
+			array($this, 'privacy_checkbox_text_callback'),
+			'so-ssl-privacy',
+			'so_ssl_privacy_compliance_section'
+		);
+
+		add_settings_field(
+			'so_ssl_privacy_expiry_days',
+			__('Acknowledgment Expiry (Days)', 'so-ssl'),
+			array($this, 'privacy_expiry_days_callback'),
+			'so-ssl-privacy',
+			'so_ssl_privacy_compliance_section'
+		);
+
+		add_settings_field(
+			'so_ssl_privacy_required_roles',
+			__('Required for User Roles', 'so-ssl'),
+			array($this, 'privacy_required_roles_callback'),
+			'so-ssl-privacy',
+			'so_ssl_privacy_compliance_section'
+		);
+
+		add_settings_field(
+			'',
+			__('Troubleshooting', 'so-ssl'),
+			array($this, 'privacy_troubleshoot_callback'),
+			'so-ssl-privacy',
+			'so_ssl_privacy_compliance_section'
+		);
+	}
+
+	/**
+	 * Register settings for admin agreement
+	 */
+	public static function register_admin_agreement_settings() {
+		// Admin Agreement settings
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_enable_admin_agreement',
+			array(
+				'type' => 'boolean',
+				'sanitize_callback' => 'intval',
+				'default' => 1,
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_admin_agreement_title',
+			array(
+				'type' => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default' => 'Administrator Agreement Required',
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_admin_agreement_text',
+			array(
+				'type' => 'string',
+				'sanitize_callback' => 'wp_kses_post',
+				'default' => 'By using this plugin, you agree to adhere to security best practices and ensure all data collected will be handled in accordance with applicable privacy laws. You acknowledge that this plugin makes changes to your website\'s security configuration that you are responsible for monitoring and maintaining.',
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_admin_agreement_checkbox_text',
+			array(
+				'type' => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default' => 'I understand and agree to these terms',
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_admin_agreement_expiry_days',
+			array(
+				'type' => 'integer',
+				'sanitize_callback' => 'intval',
+				'default' => 365,
+			)
+		);
+
+		// Admin Agreement Settings Section
+		add_settings_section(
+			'so_ssl_admin_agreement_section',
+			__('Administrator Agreement Form', 'so-ssl'),
+			array(__CLASS__, 'admin_agreement_section_callback'),
+			'so-ssl-admin-agreement'
+		);
+
+		add_settings_field(
+			'so_ssl_enable_admin_agreement',
+			__('Enable Admin Agreement', 'so-ssl'),
+			array(__CLASS__, 'enable_admin_agreement_callback'),
+			'so-ssl-admin-agreement',
+			'so_ssl_admin_agreement_section'
+		);
+
+		add_settings_field(
+			'so_ssl_admin_agreement_title',
+			__('Agreement Page Title', 'so-ssl'),
+			array(__CLASS__, 'admin_agreement_title_callback'),
+			'so-ssl-admin-agreement',
+			'so_ssl_admin_agreement_section'
+		);
+
+		add_settings_field(
+			'so_ssl_admin_agreement_text',
+			__('Agreement Text', 'so-ssl'),
+			array(__CLASS__, 'admin_agreement_text_callback'),
+			'so-ssl-admin-agreement',
+			'so_ssl_admin_agreement_section'
+		);
+
+		add_settings_field(
+			'so_ssl_admin_agreement_checkbox_text',
+			__('Agreement Checkbox Text', 'so-ssl'),
+			array(__CLASS__, 'admin_agreement_checkbox_text_callback'),
+			'so-ssl-admin-agreement',
+			'so_ssl_admin_agreement_section'
+		);
+
+		add_settings_field(
+			'so_ssl_admin_agreement_expiry_days',
+			__('Agreement Expiry (Days)', 'so-ssl'),
+			array(__CLASS__, 'admin_agreement_expiry_days_callback'),
+			'so-ssl-admin-agreement',
+			'so_ssl_admin_agreement_section'
+		);
+	}
+
+	/**
+	 * Enable privacy compliance field callback
+	 */
+	public static function enable_privacy_compliance_callback() {
+		$enable_privacy_compliance = get_option('so_ssl_enable_privacy_compliance', 0);
+
+		echo '<label for="so_ssl_enable_privacy_compliance">';
+		echo '<input type="checkbox" id="so_ssl_enable_privacy_compliance" name="so_ssl_enable_privacy_compliance" value="1" ' . checked(1, $enable_privacy_compliance, false) . '/>';
+		echo esc_html__('Enable privacy compliance acknowledgment page', 'so-ssl');
+		echo '</label>';
+		echo '<p class="description">' . esc_html__('Requires users to acknowledge a privacy notice after login.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Privacy page title field callback
+	 */
+	public static function privacy_page_title_callback() {
+		$page_title = get_option('so_ssl_privacy_page_title', 'Privacy Acknowledgment Required');
+
+		echo '<input type="text" id="so_ssl_privacy_page_title" name="so_ssl_privacy_page_title" value="' . esc_attr($page_title) . '" class="regular-text" />';
+		echo '<p class="description">' . esc_html__('Title of the privacy acknowledgment page.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Privacy page slug field callback
+	 */
+	public static function privacy_page_slug_callback() {
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+
+		echo '<input type="text" id="so_ssl_privacy_page_slug" name="so_ssl_privacy_page_slug" value="' . esc_attr($page_slug) . '" class="regular-text" />';
+		echo '<p class="description">' . esc_html__('URL slug for the privacy acknowledgment page.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Privacy notice text field callback
+	 *
+	 * @since    1.4.4
+	 * @access   private
+	 *
+	 */
+	public static function privacy_notice_text_callback() {
+		// Get saved content
+		$notice_text = get_option('so_ssl_privacy_notice_text', 'This site tracks certain information for security purposes including IP addresses, login attempts, and session data. By using this site, you acknowledge and consent to this data collection in accordance with our Privacy Policy and applicable data protection laws including GDPR and US privacy regulations.');
+
+		// Force load WordPress editor scripts directly
+		if (function_exists('wp_enqueue_editor')) {
+			wp_enqueue_editor();
+			wp_enqueue_media();
+		}
+
+		// Basic editor settings - simplified for troubleshooting
+		$editor_settings = array(
+			'textarea_name' => 'so_ssl_privacy_notice_text', // Field name
+			'textarea_rows' => 10,
+			'teeny'         => true, // Use minimal editor toolbar
+			'wpautop'       => true, // Add paragraphs automatically
+		);
+
+		// Add a comment that will show in HTML source to confirm this function is called
+		echo "<!-- TinyMCE editor should appear below this line -->";
+
+		// Output the editor
+		wp_editor(
+			wp_kses_post($notice_text),  // Sanitize content
+			'so_ssl_privacy_notice_text', // Editor ID - must match field name for simplicity
+			$editor_settings
+		);
+
+		echo '<p class="description">' . esc_html__('Text explaining what data is collected and why. HTML is allowed.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Privacy checkbox text field callback
+	 */
+	public static function privacy_checkbox_text_callback() {
+		$checkbox_text = get_option('so_ssl_privacy_checkbox_text', 'I acknowledge and consent to the privacy notice above');
+
+		echo '<input type="text" id="so_ssl_privacy_checkbox_text" name="so_ssl_privacy_checkbox_text" value="' . esc_attr($checkbox_text) . '" class="regular-text" />';
+		echo '<p class="description">' . esc_html__('Text for the acknowledgment checkbox.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Privacy expiry days field callback
+	 */
+	public static function privacy_expiry_days_callback() {
+		$expiry_days = get_option('so_ssl_privacy_expiry_days', 30);
+
+		echo '<input type="number" id="so_ssl_privacy_expiry_days" name="so_ssl_privacy_expiry_days" value="' . esc_attr($expiry_days) . '" min="1" max="365" />';
+		echo '<p class="description">' . esc_html__('Number of days before users need to re-acknowledge the privacy notice. Set to 365 for annual acknowledgment.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Privacy required roles field callback
+	 */
+	public static function privacy_required_roles_callback() {
+		$required_roles = get_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
+		$roles = wp_roles()->get_names();
+
+		echo '<select multiple id="so_ssl_privacy_required_roles" name="so_ssl_privacy_required_roles[]" class="regular-text" style="height: 120px;">';
+		foreach ($roles as $role_value => $role_name) {
+			echo '<option value="' . esc_attr($role_value) . '" ' . selected(in_array($role_value, $required_roles), true, false) . '>' . esc_html($role_name) . '</option>';
+		}
+		echo '</select>';
+		echo '<p class="description">' . esc_html__('Select which user roles will be required to acknowledge the privacy notice. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
+
+		// Add option to exempt administrators
+		$exempt_admins = get_option('so_ssl_privacy_exempt_admins', true);
+		echo '<div style="margin-top: 10px;">';
+		echo '<label for="so_ssl_privacy_exempt_admins">';
+		echo '<input type="checkbox" id="so_ssl_privacy_exempt_admins" name="so_ssl_privacy_exempt_admins" value="1" ' . checked(1, $exempt_admins, false) . '/>';
+		echo esc_html__('Always exempt administrators', 'so-ssl');
+		echo '</label>';
+		echo '<p class="description">' . esc_html__('When checked, administrators will never be required to acknowledge the privacy notice, regardless of role selection above.', 'so-ssl') . '</p>';
+		echo '</div>';
+	}
+
+	/**
+	 * Privacy troubleshooting callback
+	 */
+	public static function privacy_troubleshoot_callback() {
+		// Call the function directly that outputs the properly escaped HTML
+		self::output_flush_rules_button();
+	}
+
+	/**
+	 * Output the troubleshooting section with flush rewrite rules button
+	 * This outputs directly rather than returning a string
+	 */
+	public static function output_flush_rules_button() {
+		// Only show to admins
+		if (!current_user_can('manage_options')) {
+			return;
+		}
+
+		// Process the flush if requested
+		if (isset($_POST['so_ssl_flush_rules_nonce']) &&
+		    wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_flush_rules_nonce'])), 'so_ssl_flush_rules')) {
+			flush_rewrite_rules();
+			echo '<div class="notice notice-success"><p>' . esc_html__('Rewrite rules have been flushed successfully.', 'so-ssl') . '</p></div>';
+		}
+
+		// Display the button
+		?>
+        <div class="so-ssl-admin-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #72aee6;">
+            <h3><?php esc_html_e('Troubleshooting', 'so-ssl'); ?></h3>
+            <p><?php esc_html_e('If the privacy page is returning a 404 error, try flushing the rewrite rules:', 'so-ssl'); ?></p>
+            <form method="post">
+				<?php wp_nonce_field('so_ssl_flush_rules', 'so_ssl_flush_rules_nonce'); ?>
+                <input type="submit" class="button button-secondary" value="<?php esc_attr_e('Flush Rewrite Rules', 'so-ssl'); ?>">
+            </form>
+        </div>
+		<?php
+	}
+
+
+	/**
+	 * Show troubleshooting section with flush rewrite rules button
+	 */
+	public static function add_flush_rules_button() {
+		// Only show to admins
+		if (!current_user_can('manage_options')) {
+			return;
+		}
+
+		// Process the flush if requested
+		if (isset($_POST['so_ssl_flush_rules_nonce']) &&
+		    wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_flush_rules_nonce'])), 'so_ssl_flush_rules')) {
+			flush_rewrite_rules();
+			echo '<div class="notice notice-success"><p>' . esc_html__('Rewrite rules have been flushed successfully.', 'so-ssl') . '</p></div>';
+		}
+
+		// Display the button
+		?>
+        <div class="so-ssl-admin-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #72aee6;">
+            <h3><?php esc_html_e('Troubleshooting', 'so-ssl'); ?></h3>
+            <p><?php esc_html_e('If the privacy page is returning a 404 error, try flushing the rewrite rules:', 'so-ssl'); ?></p>
+            <form method="post">
+				<?php wp_nonce_field('so_ssl_flush_rules', 'so_ssl_flush_rules_nonce'); ?>
+                <input type="submit" class="button button-secondary" value="<?php esc_html_e('Flush Rewrite Rules', 'so-ssl'); ?>">
+            </form>
+        </div>
+		<?php
+	}
+
     /**
      * SSL section description.
      *
@@ -1121,28 +1701,28 @@ public function disable_weak_passwords_callback() {
     echo '<p class="description">' . esc_html__('Disable the "confirm use of weak password" checkbox and prevent users from setting weak passwords.', 'so-ssl') . '</p>';
 }
 
-/**
- * Two-Factor Authentication user roles field callback.
- *
- * @since    1.2.0
- */
-public function two_factor_user_roles_callback() {
-    $selected_roles = get_option('so_ssl_2fa_user_roles', array('administrator'));
+	/**
+	 * Two-Factor Authentication user roles field callback.
+	 *
+	 * @since    1.2.0
+	 */
+	public function two_factor_user_roles_callback() {
+		$selected_roles = get_option('so_ssl_2fa_user_roles', array('administrator'));
 
-    if (!is_array($selected_roles)) {
-        $selected_roles = array('administrator');
-    }
+		if (!is_array($selected_roles)) {
+			$selected_roles = array('administrator');
+		}
 
-    $roles = wp_roles()->get_names();
+		$roles = wp_roles()->get_names();
 
-    echo '<select multiple id="so_ssl_2fa_user_roles" name="so_ssl_2fa_user_roles[]" class="regular-text">';
-    foreach ($roles as $role_value => $role_name) {
-        $selected = in_array($role_value, $selected_roles) ? 'selected="selected"' : '';
-        echo '<p class="description">' . esc_html__('Warning: Only enable this if you have a valid SSL certificate installed.', 'so-ssl') . '</p>';
-    }
-    echo '</select>';
-    echo '<p class="description">' . esc_html__('Select which user roles will be required to use Two-Factor Authentication. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
-}
+		echo '<select multiple id="so_ssl_2fa_user_roles" name="so_ssl_2fa_user_roles[]" class="regular-text" style="height: 120px;">';
+		foreach ($roles as $role_value => $role_name) {
+			$selected = in_array($role_value, $selected_roles) ? 'selected="selected"' : '';
+			echo '<option value="' . esc_attr($role_value) . '" ' . $selected . '>' . esc_html($role_name) . '</option>';
+		}
+		echo '</select>';
+		echo '<p class="description">' . esc_html__('Select which user roles will be required to use Two-Factor Authentication. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
+	}
 
 /**
  * Two-Factor Authentication method field callback.
@@ -1373,6 +1953,249 @@ public function enable_csp_frame_ancestors_callback() {
         echo '<p class="description">' . esc_html__('Enter domains that are allowed to embed your site, one per line. Example: https://example.com', 'so-ssl') . '</p>';
         echo '<p class="description">' . esc_html__('You can also use wildcards like *.example.com to allow all subdomains.', 'so-ssl') . '</p>';
     }
+
+	/**
+	 * Privacy Compliance Section Callback.
+	 *
+	 * @since    1.4.4
+	 */
+	public function privacy_compliance_section_callback() {
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+        ?>
+
+        <div class="so-ssl-admin-info-box">
+            <h3><?php esc_html_e('How This Works', 'so-ssl'); ?></h3>
+            <ul>
+                <li><?php esc_html_e('When enabled, users will be redirected to a privacy acknowledgment page after login.', 'so-ssl'); ?></li>
+                <li><?php esc_html_e('Users must check the acknowledgment box to access the site.', 'so-ssl'); ?></li>
+                <li><?php esc_html_e('The acknowledgment is stored in user metadata with a timestamp.', 'so-ssl'); ?></li>
+                <li><?php esc_html_e('You can set an expiry period after which users must re-acknowledge the notice.', 'so-ssl'); ?></li>
+                <li><?php esc_html_e('Configure for GDPR and US privacy compliance settings to inform users about data collection and tracking.', 'so-ssl'); ?></li>
+            </ul>
+        </div>
+
+        <div>
+            <a href="<?php echo esc_url(add_query_arg(esc_attr($page_slug), '1', site_url())); ?>" target="_blank" class="button button-primary" style="font-size: 14px; height: auto; padding: 8px 16px;">
+				<?php esc_html_e('Open Privacy Page', 'so-ssl'); ?>
+                <span class="dashicons dashicons-external" style="font-size: 16px; height: 16px; width: 16px; vertical-align: text-bottom;"></span>
+            </a>
+        </div>
+
+        <style>
+            .so-ssl-admin-description {
+                font-size: 14px;
+                margin-bottom: 20px;
+            }
+
+            .so-ssl-admin-info-box {
+                background: #f8f9fa;
+                border-left: 4px solid #72aee6;
+                padding: 15px 20px;
+                margin: 20px 0;
+                border-radius: 0 4px 4px 0;
+            }
+
+            .so-ssl-admin-info-box h3 {
+                margin-top: 0;
+                color: #2271b1;
+            }
+
+            .so-ssl-admin-info-box ul {
+                margin-left: 20px;
+            }
+
+            .so-ssl-admin-tips {
+                background: #f0f6fc;
+                border-left: 4px solid #2271b1;
+                padding: 15px 20px;
+                margin: 20px 0;
+                border-radius: 0 4px 4px 0;
+            }
+
+            .so-ssl-admin-tips h3 {
+                margin-top: 0;
+                color: #2271b1;
+            }
+
+            .so-ssl-preview-container {
+                border: 1px solid #dcdcde;
+                border-radius: 4px;
+                padding: 20px;
+                margin: 15px 0;
+                background: #fff;
+                max-width: 650px;
+            }
+
+            .so-ssl-preview-header {
+                border-bottom: 1px solid #dcdcde;
+                padding-bottom: 10px;
+                margin-bottom: 15px;
+            }
+
+            .so-ssl-preview-header h2 {
+                margin: 0;
+                color: #2271b1;
+            }
+
+            .so-ssl-preview-content {
+                margin-bottom: 20px;
+                padding: 10px;
+                background: #f8f9fa;
+                border-radius: 4px;
+            }
+
+            .so-ssl-preview-checkbox {
+                margin: 15px 0;
+            }
+
+            .so-ssl-preview-button button {
+                padding: 8px 15px;
+                background: #2271b1;
+                border: none;
+                color: #fff;
+                border-radius: 4px;
+                opacity: 0.7;
+            }
+
+            /* Highlighting effect for the privacy page link */
+            .so-ssl-privacy-page-link {
+                position: relative;
+                overflow: hidden;
+            }
+
+            .so-ssl-privacy-page-link:after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                        90deg,
+                        transparent 0%,
+                        rgba(255, 255, 255, 0.2) 50%,
+                        transparent 100%
+                );
+                animation: shine 3s infinite;
+            }
+
+            @keyframes shine {
+                0% { left: -100%; }
+                20% { left: 100%; }
+                100% { left: 100%; }
+            }
+        </style>
+        <style>
+            .so-ssl-compliance-highlights {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+
+            .so-ssl-compliance-detail {
+                background: #fff;
+                border: 1px solid #dcdcde;
+                border-radius: 4px;
+                padding: 15px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            }
+
+            .so-ssl-compliance-detail h4 {
+                display: flex;
+                align-items: center;
+                margin-top: 0;
+                color: #2271b1;
+            }
+
+            .so-ssl-compliance-detail h4 .dashicons {
+                margin-right: 8px;
+                color: #2271b1;
+            }
+
+            .so-ssl-compliance-detail p {
+                margin-bottom: 0;
+            }
+
+            .so-ssl-compliance-highlights .button {
+                margin-top: 15px;
+                grid-column: 1 / -1;
+                justify-self: start;
+            }
+        </style>
+
+        <?php
+	}
+
+	/**
+	 * Admin agreement section callback
+	 */
+	public static function admin_agreement_section_callback() {
+		echo '<p>' . esc_html__('Configure the agreement that administrators must accept before using the plugin.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Enable admin agreement field callback
+	 */
+	public static function enable_admin_agreement_callback() {
+		$enable_admin_agreement = get_option('so_ssl_enable_admin_agreement', 1);
+
+		echo '<label for="so_ssl_enable_admin_agreement">';
+		echo '<input type="checkbox" id="so_ssl_enable_admin_agreement" name="so_ssl_enable_admin_agreement" value="1" ' . checked(1, $enable_admin_agreement, false) . '/>';
+		echo esc_html__('Require administrators to accept an agreement before using the plugin', 'so-ssl');
+		echo '</label>';
+		echo '<p class="description">' . esc_html__('When enabled, administrators must accept the agreement before accessing plugin settings.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Admin agreement title field callback
+	 */
+	public static function admin_agreement_title_callback() {
+		$page_title = get_option('so_ssl_admin_agreement_title', 'Administrator Agreement Required');
+
+		echo '<input type="text" id="so_ssl_admin_agreement_title" name="so_ssl_admin_agreement_title" value="' . esc_attr($page_title) . '" class="regular-text" />';
+		echo '<p class="description">' . esc_html__('Title of the administrator agreement page.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Admin agreement text field callback
+	 */
+	public static function admin_agreement_text_callback() {
+		$agreement_text = get_option('so_ssl_admin_agreement_text', 'By using this plugin, you agree to adhere to security best practices and ensure all data collected will be handled in accordance with applicable privacy laws. You acknowledge that this plugin makes changes to your website\'s security configuration that you are responsible for monitoring and maintaining.');
+
+		$editor_id = 'so_ssl_admin_agreement_text_editor';
+		$editor_settings = array(
+			'textarea_name' => 'so_ssl_admin_agreement_text',
+			'textarea_rows' => 10,
+			'media_buttons' => true,
+			'tinymce'       => true,
+			'quicktags'     => true,
+		);
+
+		wp_editor($agreement_text, $editor_id, $editor_settings);
+
+		echo '<p class="description">' . esc_html__('Text of the agreement that administrators must accept. HTML is allowed.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Admin agreement checkbox text field callback
+	 */
+	public static function admin_agreement_checkbox_text_callback() {
+		$checkbox_text = get_option('so_ssl_admin_agreement_checkbox_text', 'I understand and agree to these terms');
+
+		echo '<input type="text" id="so_ssl_admin_agreement_checkbox_text" name="so_ssl_admin_agreement_checkbox_text" value="' . esc_attr($checkbox_text) . '" class="regular-text" />';
+		echo '<p class="description">' . esc_html__('Text for the agreement checkbox.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Admin agreement expiry days field callback
+	 */
+	public static function admin_agreement_expiry_days_callback() {
+		$expiry_days = get_option('so_ssl_admin_agreement_expiry_days', 365);
+
+		echo '<input type="number" id="so_ssl_admin_agreement_expiry_days" name="so_ssl_admin_agreement_expiry_days" value="' . esc_attr($expiry_days) . '" min="1" max="3650" />';
+		echo '<p class="description">' . esc_html__('Number of days before administrators need to re-accept the agreement. Default is 365 days (yearly).', 'so-ssl') . '</p>';
+	}
 
     /**
      * Add JavaScript to show/hide fields based on selected options.
@@ -1876,7 +2699,7 @@ public function add_referrer_policy_header() {
         public function csp_full_section_callback() {
             echo '<p>' . esc_html__('Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross-Site Scripting (XSS) and data injection attacks.', 'so-ssl') . '</p>';
             echo '<p>' . esc_html__('It is recommended to first enable CSP in "Report-Only" mode to ensure it does not break your site functionality.', 'so-ssl') . '</p>';
-            echo '<div class="notice notice-warning inline"><p>' . esc_html__('<strong>Warning:</strong> Incorrect CSP settings can break functionality on your site. Make sure to test thoroughly.', 'so-ssl') . '</p></div>';
+            echo '<div class="notice notice-warning inline"><p><strong>'.esc_html__('Warning:', 'so-ssl') . '</strong>' . esc_html__(' Incorrect CSP settings can break functionality on your site. Make sure to test thoroughly.', 'so-ssl') . '</p></div>';
         }
 
         /**
@@ -2710,6 +3533,89 @@ public function add_referrer_policy_header() {
         return $strength;
     }
 
+	/**
+	 * Enhance the admin tab system to maintain active tab after form submission
+	 */
+	function enhance_admin_tabs() {
+		// Find the display_options_page() method in class-so-ssl.php
+
+		// JavaScript to handle tab state
+		?>
+        <script type="text/javascript">
+            jQuery(document).ready(function($) {
+                // Get active tab - check URL hash first, then saved value, then default
+                let activeTab = '<?php echo esc_js(get_option('so_ssl_active_tab', 'ssl-settings')); ?>';
+                const urlHash = window.location.hash.substring(1);
+
+                if (urlHash && $('#' + urlHash).length) {
+                    activeTab = urlHash;
+                }
+
+                // Initially hide all tabs
+                $('.settings-tab').hide();
+                $('.nav-tab').removeClass('nav-tab-active');
+
+                // Activate the appropriate tab
+                if ($('#' + activeTab).length) {
+                    $('#' + activeTab).show();
+                    $('.nav-tab[href="#' + activeTab + '"]').addClass('nav-tab-active');
+                    $('#active_tab').val(activeTab);
+                } else {
+                    // Fallback to first tab if the saved tab doesn't exist
+                    $('#ssl-settings').show();
+                    $('.nav-tab[href="#ssl-settings"]').addClass('nav-tab-active');
+                    $('#active_tab').val('ssl-settings');
+                    activeTab = 'ssl-settings';
+                }
+
+                // Handle tab navigation
+                $('.nav-tab').on('click', function(e) {
+                    e.preventDefault();
+
+                    // Get target tab
+                    const tabId = $(this).attr('href').substring(1);
+
+                    // If already on this tab, do nothing
+                    if ($(this).hasClass('nav-tab-active')) {
+                        return;
+                    }
+
+                    // Check for unsaved changes
+                    if (typeof formModified !== 'undefined' && formModified) {
+                        if (!confirm('Your changes are not saved. Do you want to continue?')) {
+                            return false;
+                        }
+                    }
+
+                    // Update tabs
+                    $('.nav-tab').removeClass('nav-tab-active');
+                    $('.settings-tab').hide();
+
+                    $(this).addClass('nav-tab-active');
+                    $('#' + tabId).show();
+
+                    // Update hidden input value - CRITICAL for form submission
+                    $('#active_tab').val(tabId);
+
+                    // Update URL hash
+                    if (history.pushState) {
+                        history.pushState(null, null, '#' + tabId);
+                    } else {
+                        window.location.hash = tabId;
+                    }
+                });
+
+                // Save active tab on form submission
+                $('form').on('submit', function() {
+                    // Create a new hidden input field to ensure the active tab is saved
+                    // This is backup in case the #active_tab field is somehow lost
+                    $(this).append('<input type="hidden" name="so_ssl_active_tab" value="' + $('#active_tab').val() + '">');
+                });
+            });
+        </script>
+		<?php
+	}
+
  /**
  * User Sessions section description.
  */
@@ -2752,7 +3658,7 @@ public function user_sessions_section_callback() {
         /* translators: %s: URL to Login Security page */
         esc_html__('For detailed settings and statistics, visit the %s page.', 'so-ssl') .
         esc_html__('<a href="', 'so-ssl') .
-        esc_url(admin_url('options-general.php?page=so-ssl-login-limit')) . '">' .
+        esc_url(admin_url('options-general.php?page=class-so-ssl-login-limit')) . '">' .
         esc_html__('Login Security', 'so-ssl') . '</a>';
         }
 }

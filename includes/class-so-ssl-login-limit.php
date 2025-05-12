@@ -5,6 +5,11 @@
  * This file implements login attempt limiting functionality for the So SSL plugin.
  */
 
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
 class So_SSL_Login_Limit {
 
     /**
@@ -229,7 +234,7 @@ class So_SSL_Login_Limit {
                                 $ip, $attempts[$ip]['count']) . "\n\n";
                     /* translators: %s: List of attempted usernames */
                     $message .= esc_html(__('Attempted usernames: %s', 'so-ssl'), implode(', ', array_keys($attempts[$ip]['usernames'])));
-                    $message .= admin_url('options-general.php?page=so-ssl-login-limit');
+                    $message .= admin_url('options-general.php?page=class-so-ssl-login-limit');
 
                     wp_mail(get_option('admin_email'), $subject, $message);
                 }
@@ -248,7 +253,7 @@ class So_SSL_Login_Limit {
                     $message .=
                     /* translators: %s: List of attempted usernames */
                     esc_html(__('Attempted usernames: %s', 'so-ssl'), implode(', ', array_keys($attempts[$ip]['usernames']))) . "\n\n";
-                    $message .= admin_url('options-general.php?page=so-ssl-login-limit');
+                    $message .= admin_url('options-general.php?page=class-so-ssl-login-limit');
 
                     wp_mail(get_option('admin_email'), $subject, $message);
                 }
@@ -385,7 +390,7 @@ class So_SSL_Login_Limit {
             esc_html__('Login Security', 'so-ssl'),
             esc_html__('Login Security', 'so-ssl'),
             'manage_options',
-            'so-ssl-login-limit',
+            'class-so-ssl-login-limit',
             array('So_SSL_Login_Limit', 'display_login_limit_page')
         );
     }

@@ -6,6 +6,11 @@
  * might not be available or appropriate. It uses secure cookies instead.
  */
 
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
 class So_SSL_Session_Handler {
     /**
      * Initialize the session handler

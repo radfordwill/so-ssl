@@ -6,6 +6,16 @@
  * for use with the So SSL plugin's two-factor authentication feature.
  */
 
+
+/**
+ * Class to handle Two-Factor Authentication
+ */
+
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
 class TOTP {
     /**
      * Generate a secret key

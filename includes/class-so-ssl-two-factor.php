@@ -5,6 +5,11 @@
  * This file implements the two-factor authentication functionality for the So SSL plugin.
  */
 
+// If this file is called directly, abort.
+if (!defined('WPINC')) {
+	die;
+}
+
 /**
  * Class to handle Two-Factor Authentication
  */
@@ -176,7 +181,7 @@ class So_SSL_Two_Factor {
         if (empty($secret)) {
             // Include the necessary library for TOTP
             if (!class_exists('TOTP')) {
-                require_once SO_SSL_PATH . 'includes/totp.php';
+                require_once SO_SSL_PATH . 'includes/class-so-ssl-totp.php';
             }
 
             $secret = TOTP::generateSecret();
