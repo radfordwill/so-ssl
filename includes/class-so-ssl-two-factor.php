@@ -80,23 +80,55 @@ class So_SSL_Two_Factor {
         return false;
     }
 
-    /**
-     * Add 2FA fields to user profile
-     *
-     * @param WP_User $user The user object
-     */
-    public static function add_2fa_user_fields($user) {
-        // Only show if 2FA is required for this user
-        if (!self::is_2fa_required_for_user($user)) {
-            return;
-        }
+	/**
+	 * Add 2FA fields to user profile
+	 *
+	 * @param WP_User $user The user object
+	 */
+	public static function add_2fa_user_fields($user) {
+		// Only show if 2FA is required for this user
+		if (!self::is_2fa_required_for_user($user)) {
+			return;
+		}
 
-        // Get current 2FA status for user
-        $enabled = get_user_meta($user->ID, 'so_ssl_2fa_enabled', true);
-        $method = get_option('so_ssl_2fa_method', 'email');
+        /// Get current 2FA status for user
+		$enabled = get_user_meta($user->ID, 'so_ssl_2fa_enabled', true);
+		$method = get_option('so_ssl_2fa_method', 'email');
 
-        ?>
-        <h2><?php esc_html_e('Two-Factor Authentication', 'so-ssl'); ?></h2>        <table class="form-table">
+		?>
+        <h2><?php esc_html_e('Two-Factor Authentication', 'so-ssl'); ?></h2>
+
+        <!-- User Instructions Box -->
+        <div class="so-ssl-2fa-instructions" style="background: #f8f9fa; border-left: 4px solid #2271b1; padding: 15px; margin-bottom: 20px;">
+            <h3 style="margin-top: 0; color: #2271b1;"><?php esc_html_e('Two-Factor Authentication Instructions', 'so-ssl'); ?></h3>
+
+			<?php if ($method === 'authenticator'): ?>
+                <h4><?php esc_html_e('Using an Authenticator App', 'so-ssl'); ?></h4>
+                <ol>
+                    <li><?php esc_html_e('Enable 2FA by checking the box below', 'so-ssl'); ?></li>
+                    <li><?php esc_html_e('Install a compatible authenticator app on your mobile device (Google Authenticator, Microsoft Authenticator, or Authy)', 'so-ssl'); ?></li>
+                    <li><?php esc_html_e('Scan the QR code or manually enter the secret key in your app', 'so-ssl'); ?></li>
+                    <li><?php esc_html_e('Enter the 6-digit verification code from your app to confirm setup', 'so-ssl'); ?></li>
+                    <li><?php esc_html_e('Generate and save backup codes for emergency access', 'so-ssl'); ?></li>
+                    <li><?php esc_html_e('When logging in, you\'ll need to enter a code from your authenticator app', 'so-ssl'); ?></li>
+                </ol>
+                <p style="color: #d63638; font-weight: 600;"><?php esc_html_e('Important: Keep your backup codes in a safe place. You\'ll need them if you lose access to your authenticator app.', 'so-ssl'); ?></p>
+			<?php else: ?>
+                <h4><?php esc_html_e('Using Email Verification', 'so-ssl'); ?></h4>
+                <ol>
+                    <li><?php esc_html_e('Enable 2FA by checking the box below', 'so-ssl'); ?></li>
+                    <li><?php esc_html_e('When logging in, a 6-digit code will be sent to your registered email address', 'so-ssl'); ?></li>
+                    <li><?php esc_html_e('Enter the code within 10 minutes to complete login', 'so-ssl'); ?></li>
+                    <li><?php esc_html_e('Generate and save backup codes for emergency access', 'so-ssl'); ?></li>
+                </ol>
+                <p style="color: #d63638; font-weight: 600;"><?php
+					/* translators: %s: User email address */
+					printf(esc_html__('Important: Make sure you have access to your email address: %s', 'so-ssl'), esc_html($user->user_email));
+					?></p>
+			<?php endif; ?>
+        </div>
+
+        <table class="form-table">
             <tr>
                 <th><label for="so_ssl_2fa_enabled"><?php esc_html_e('Enable Two-Factor Authentication', 'so-ssl'); ?></label></th>
                 <td>
@@ -105,25 +137,43 @@ class So_SSL_Two_Factor {
                 </td>
             </tr>
 
-            <?php if ($method === 'authenticator'): ?>
+			<?php if ($method === 'authenticator'): ?>
                 <tr id="so_ssl_2fa_authenticator_row" style="<?php echo ($enabled !== '1') ? 'display:none;' : ''; ?>">
                     <th><?php esc_html_e('Authenticator App Setup', 'so-ssl'); ?></th>
                     <td>
-                        <?php self::display_authenticator_setup($user); ?>
+						<?php self::display_authenticator_setup($user); ?>
                     </td>
                 </tr>
-            <?php else: ?>
-                <tr id="so_ssl_2fa_email_row" style="<?php echo esc_attr(($enabled !== '1') ? 'display:none;' : ''); ?>"
-                <th><?php esc_html_e('Email Authentication', 'so-ssl'); ?></th>
-                <td>
-                    <p><?php
-                        /* translators: %s: User email address */
-                        printf(esc_html__('Verification codes will be sent to your email address: %s', 'so-ssl'), esc_html($user->user_email));
-                        ?>
-                    </p>
-                </td>
+			<?php else: ?>
+                <tr id="so_ssl_2fa_email_row" style="<?php echo esc_attr(($enabled !== '1') ? 'display:none;' : ''); ?>">
+                    <th><?php esc_html_e('Email Authentication', 'so-ssl'); ?></th>
+                    <td>
+                        <div class="so-ssl-email-2fa-info">
+                            <p><strong><?php esc_html_e('How Email Verification Works:', 'so-ssl'); ?></strong></p>
+                            <ul style="list-style-type: disc; margin-left: 20px;">
+                                <li><?php
+									/* translators: %s: User email address */
+									printf(esc_html__('A 6-digit code will be sent to: %s', 'so-ssl'), '<strong>' . esc_html($user->user_email) . '</strong>');
+									?></li>
+                                <li><?php esc_html_e('The code is valid for 10 minutes', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Check your spam folder if you don\'t receive the email', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('You can use backup codes if email is unavailable', 'so-ssl'); ?></li>
+                            </ul>
+
+							<?php if ($user->user_email !== $user->ID): ?>
+                                <p class="description" style="margin-top: 10px;">
+									<?php
+									/* translators: %s: Link to update email */
+									printf(esc_html__('To change your email address, visit your %s', 'so-ssl'),
+										'<a href="' . admin_url('profile.php') . '">' . esc_html__('profile settings', 'so-ssl') . '</a>'
+									);
+									?>
+                                </p>
+							<?php endif; ?>
+                        </div>
+                    </td>
                 </tr>
-            <?php endif; ?>
+			<?php endif; ?>
 
             <tr id="so_ssl_2fa_backup_codes_row" style="<?php echo ($enabled !== '1') ? 'display:none;' : ''; ?>">
                 <th><?php esc_html_e('Backup Codes', 'so-ssl'); ?></th>
