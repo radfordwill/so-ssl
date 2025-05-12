@@ -170,52 +170,415 @@ class So_SSL_Two_Factor {
         <?php
     }
 
-    /**
-     * Display Authenticator App setup UI
-     *
-     * @param WP_User $user The user object
-     */
-    public static function display_authenticator_setup($user) {
-        // Get or generate secret key
-        $secret = get_user_meta($user->ID, 'so_ssl_2fa_secret', true);
-        if (empty($secret)) {
-            // Include the necessary library for TOTP
-            if (!class_exists('TOTP')) {
-                require_once SO_SSL_PATH . 'includes/class-so-ssl-totp.php';
-            }
+	/**
+	 * Display Authenticator App setup UI with working QR code and code generation
+	 *
+	 * @param WP_User $user The user object
+	 */
+	public static function display_authenticator_setup($user) {
+		// Get or generate secret key
+		$secret = get_user_meta($user->ID, 'so_ssl_2fa_secret', true);
+		if (empty($secret)) {
+			if (!class_exists('TOTP')) {
+				require_once SO_SSL_PATH . 'includes/class-so-ssl-totp.php';
+			}
 
-            $secret = TOTP::generateSecret();
-            update_user_meta($user->ID, 'so_ssl_2fa_secret', $secret);
-        }
+			$secret = TOTP::generateSecret();
+			update_user_meta($user->ID, 'so_ssl_2fa_secret', $secret);
+		}
 
-        // Generate QR code URL
-        $site_name = get_bloginfo('name');
-        $user_identifier = $user->user_email;
-        $totp_url = "otpauth://totp/" . urlencode($site_name) . ":" . urlencode($user_identifier) . "?secret=" . $secret . "&issuer=" . urlencode($site_name);
+		// Generate QR code URL
+		$site_name = get_bloginfo('name');
+		$user_identifier = $user->user_email;
+		$totp_url = "otpauth://totp/" . urlencode($site_name) . ":" . urlencode($user_identifier) . "?secret=" . $secret . "&issuer=" . urlencode($site_name);
 
-        // Generate QR code
-        $qr_code_url = "https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=" . urlencode($totp_url);
-
-        ?>
+		?>
         <div class="so-ssl-authenticator-setup">
-            <p><?php esc_html_e('Scan this QR code with your authenticator app (like Google Authenticator, Authy, or Microsoft Authenticator).', 'so-ssl'); ?></p>
-            <div class="so-ssl-qr-code">
-                <img src="<?php echo esc_url($qr_code_url); ?>" alt="<?php esc_html_e('QR Code', 'so-ssl'); ?>" />
-            </div>
-            <p><?php esc_html_e('Or manually enter this code into your app:', 'so-ssl'); ?> <code><?php echo esc_html($secret); ?></code></p>
+            <div class="so-ssl-setup-steps">
+                <h3><?php esc_html_e('Setup Two-Factor Authentication', 'so-ssl'); ?></h3>
 
-            <div class="so-ssl-verify-code">
-                <p><?php esc_html_e('Verify that your authenticator app is working by entering a code below:', 'so-ssl'); ?></p>
-                <input type="text" id="so_ssl_verify_code" name="so_ssl_verify_code" class="regular-text" />
-                <button type="button" id="so_ssl_verify_code_button" class="button"><?php esc_html_e('Verify Code', 'so-ssl'); ?></button>
-                <div id="so_ssl_verify_result"></div>
+                <div class="so-ssl-step">
+                    <span class="so-ssl-step-number">1</span>
+                    <p><?php esc_html_e('Install an authenticator app on your phone:', 'so-ssl'); ?></p>
+                    <ul class="so-ssl-app-list">
+                        <li>
+                            <span class="dashicons dashicons-smartphone"></span>
+							<?php esc_html_e('Google Authenticator', 'so-ssl'); ?>
+                        </li>
+                        <li>
+                            <span class="dashicons dashicons-smartphone"></span>
+							<?php esc_html_e('Microsoft Authenticator', 'so-ssl'); ?>
+                        </li>
+                        <li>
+                            <span class="dashicons dashicons-smartphone"></span>
+							<?php esc_html_e('Authy', 'so-ssl'); ?>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="so-ssl-step">
+                    <span class="so-ssl-step-number">2</span>
+                    <p><?php esc_html_e('Scan this QR code with your authenticator app:', 'so-ssl'); ?></p>
+
+                    <div class="so-ssl-qr-code-container">
+                        <!-- QR code will be generated here by JavaScript -->
+                        <div id="so-ssl-qr-code" data-totp-url="<?php echo esc_attr($totp_url); ?>"></div>
+                        <div class="so-ssl-qr-loading">
+                            <span class="spinner is-active"></span>
+                            <p><?php esc_html_e('Generating QR code...', 'so-ssl'); ?></p>
+                        </div>
+                    </div>
+
+                    <details class="so-ssl-manual-entry">
+                        <summary><?php esc_html_e('Can\'t scan? Enter code manually', 'so-ssl'); ?></summary>
+                        <div class="so-ssl-manual-code">
+                            <label><?php esc_html_e('Account:', 'so-ssl'); ?></label>
+                            <code class="so-ssl-copy-field"><?php echo esc_html($user_identifier); ?></code>
+                            <button type="button" class="so-ssl-copy-btn" data-copy="<?php echo esc_attr($user_identifier); ?>">
+                                <span class="dashicons dashicons-clipboard"></span>
+                            </button>
+                        </div>
+                        <div class="so-ssl-manual-code">
+                            <label><?php esc_html_e('Key:', 'so-ssl'); ?></label>
+                            <code class="so-ssl-copy-field"><?php echo esc_html($secret); ?></code>
+                            <button type="button" class="so-ssl-copy-btn" data-copy="<?php echo esc_attr($secret); ?>">
+                                <span class="dashicons dashicons-clipboard"></span>
+                            </button>
+                        </div>
+                        <div class="so-ssl-manual-code">
+                            <label><?php esc_html_e('Type:', 'so-ssl'); ?></label>
+                            <code class="so-ssl-copy-field">Time based</code>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="so-ssl-step">
+                    <span class="so-ssl-step-number">3</span>
+                    <p><?php esc_html_e('Verify setup by entering a code from your app:', 'so-ssl'); ?></p>
+
+                    <div class="so-ssl-verify-code">
+                        <input type="text"
+                               id="so_ssl_verify_code"
+                               name="so_ssl_verify_code"
+                               class="so-ssl-code-input"
+                               maxlength="6"
+                               pattern="\d{6}"
+                               inputmode="numeric"
+                               placeholder="000000" />
+
+                        <button type="button" id="so_ssl_verify_code_button" class="button button-primary">
+							<?php esc_html_e('Verify Code', 'so-ssl'); ?>
+                        </button>
+
+                        <div id="so_ssl_verify_result" class="so-ssl-verify-result"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="so-ssl-setup-info">
+                <h4><?php esc_html_e('Important Information', 'so-ssl'); ?></h4>
+                <ul>
+                    <li>
+                        <span class="dashicons dashicons-info"></span>
+						<?php esc_html_e('Save your secret key in a safe place as backup', 'so-ssl'); ?>
+                    </li>
+                    <li>
+                        <span class="dashicons dashicons-info"></span>
+						<?php esc_html_e('You\'ll need this code every time you log in', 'so-ssl'); ?>
+                    </li>
+                    <li>
+                        <span class="dashicons dashicons-info"></span>
+						<?php esc_html_e('Generate backup codes after setup is complete', 'so-ssl'); ?>
+                    </li>
+                </ul>
             </div>
         </div>
 
+        <style>
+            .so-ssl-authenticator-setup {
+                max-width: 800px;
+                background: #fff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+
+            .so-ssl-setup-steps {
+                margin-bottom: 30px;
+            }
+
+            .so-ssl-step {
+                margin-bottom: 30px;
+                padding-left: 40px;
+                position: relative;
+            }
+
+            .so-ssl-step-number {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 30px;
+                height: 30px;
+                background: #2271b1;
+                color: #fff;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+            }
+
+            .so-ssl-app-list {
+                list-style: none;
+                margin: 10px 0;
+                padding: 0;
+            }
+
+            .so-ssl-app-list li {
+                padding: 5px 0;
+            }
+
+            .so-ssl-app-list .dashicons {
+                color: #2271b1;
+                margin-right: 8px;
+            }
+
+            .so-ssl-qr-code-container {
+                background: #f8f9fa;
+                padding: 20px;
+                border-radius: 8px;
+                display: inline-block;
+                margin: 15px 0;
+                border: 2px solid #e5e5e5;
+                position: relative;
+                min-width: 240px;
+                min-height: 240px;
+            }
+
+            #so-ssl-qr-code {
+                display: none;
+            }
+
+            #so-ssl-qr-code canvas {
+                display: block;
+                margin: 0 auto;
+            }
+
+            .so-ssl-qr-loading {
+                text-align: center;
+                padding: 70px 20px;
+            }
+
+            .so-ssl-qr-loading .spinner {
+                float: none;
+                margin: 0 auto 10px;
+            }
+
+            .so-ssl-manual-entry {
+                margin-top: 15px;
+                background: #f0f6fc;
+                padding: 15px;
+                border-radius: 4px;
+                border: 1px solid #c5d9ed;
+            }
+
+            .so-ssl-manual-entry summary {
+                cursor: pointer;
+                color: #2271b1;
+                font-weight: 500;
+            }
+
+            .so-ssl-manual-code {
+                display: flex;
+                align-items: center;
+                margin-top: 10px;
+                gap: 10px;
+            }
+
+            .so-ssl-manual-code label {
+                min-width: 70px;
+                font-weight: 500;
+            }
+
+            .so-ssl-copy-field {
+                flex: 1;
+                background: #fff;
+                padding: 5px 10px;
+                border: 1px solid #ddd;
+                border-radius: 3px;
+                font-family: monospace;
+                font-size: 14px;
+            }
+
+            .so-ssl-copy-btn {
+                background: #fff;
+                border: 1px solid #ddd;
+                padding: 5px 10px;
+                cursor: pointer;
+                border-radius: 3px;
+                transition: all 0.2s;
+            }
+
+            .so-ssl-copy-btn:hover {
+                background: #f0f0f0;
+            }
+
+            .so-ssl-copy-btn .dashicons {
+                font-size: 16px;
+                width: 16px;
+                height: 16px;
+            }
+
+            .so-ssl-code-input {
+                font-size: 24px;
+                font-family: monospace;
+                text-align: center;
+                width: 150px;
+                padding: 10px;
+                border: 2px solid #ddd;
+                border-radius: 4px;
+                margin-right: 10px;
+                letter-spacing: 5px;
+            }
+
+            .so-ssl-code-input:focus {
+                border-color: #2271b1;
+                outline: none;
+            }
+
+            .so-ssl-verify-result {
+                margin-top: 15px;
+                padding: 10px;
+                border-radius: 4px;
+                display: none;
+            }
+
+            .so-ssl-verify-result.success {
+                background: #f0f8ee;
+                color: #46b450;
+                border: 1px solid #46b450;
+            }
+
+            .so-ssl-verify-result.error {
+                background: #fcf0f1;
+                color: #dc3232;
+                border: 1px solid #dc3232;
+            }
+
+            .so-ssl-setup-info {
+                background: #f0f6fc;
+                padding: 20px;
+                border-radius: 8px;
+                border: 1px solid #c5d9ed;
+            }
+
+            .so-ssl-setup-info h4 {
+                margin-top: 0;
+                color: #2271b1;
+            }
+
+            .so-ssl-setup-info ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            .so-ssl-setup-info li {
+                padding: 8px 0;
+                display: flex;
+                align-items: flex-start;
+            }
+
+            .so-ssl-setup-info .dashicons {
+                color: #2271b1;
+                margin-right: 10px;
+                margin-top: 2px;
+            }
+        </style>
+
+        <!-- Include QRCode.js library -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
         <script>
             jQuery(document).ready(function($) {
+                // Generate QR code
+                var qrContainer = document.getElementById('so-ssl-qr-code');
+                var totpUrl = qrContainer.getAttribute('data-totp-url');
+
+                if (qrContainer && totpUrl) {
+                    try {
+                        // Create QR code
+                        var qrcode = new QRCode(qrContainer, {
+                            text: totpUrl,
+                            width: 200,
+                            height: 200,
+                            colorDark : "#000000",
+                            colorLight : "#ffffff",
+                            correctLevel : QRCode.CorrectLevel.M
+                        });
+
+                        // Hide loading spinner and show QR code
+                        $('.so-ssl-qr-loading').hide();
+                        $('#so-ssl-qr-code').show();
+                    } catch (err) {
+                        console.error('QR Code generation failed:', err);
+                        // Fallback to Google Charts API
+                        $('.so-ssl-qr-loading').html('<p><?php esc_html_e('Failed to generate QR code. Please use manual entry.', 'so-ssl'); ?></p>');
+                    }
+                }
+
+                // Copy to clipboard functionality
+                $('.so-ssl-copy-btn').on('click', function() {
+                    var textToCopy = $(this).data('copy');
+                    var button = $(this);
+
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(textToCopy).then(function() {
+                            button.find('.dashicons').removeClass('dashicons-clipboard').addClass('dashicons-yes');
+                            setTimeout(function() {
+                                button.find('.dashicons').removeClass('dashicons-yes').addClass('dashicons-clipboard');
+                            }, 2000);
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        var tempInput = $('<input>');
+                        $('body').append(tempInput);
+                        tempInput.val(textToCopy).select();
+                        document.execCommand('copy');
+                        tempInput.remove();
+
+                        button.find('.dashicons').removeClass('dashicons-clipboard').addClass('dashicons-yes');
+                        setTimeout(function() {
+                            button.find('.dashicons').removeClass('dashicons-yes').addClass('dashicons-clipboard');
+                        }, 2000);
+                    }
+                });
+
+                // Auto-format the code input
+                $('#so_ssl_verify_code').on('input', function() {
+                    var value = $(this).val().replace(/\D/g, '');
+                    if (value.length > 6) {
+                        value = value.substr(0, 6);
+                    }
+                    $(this).val(value);
+                });
+
+                // Verify code
                 $('#so_ssl_verify_code_button').on('click', function() {
                     var code = $('#so_ssl_verify_code').val();
+                    var button = $(this);
+
+                    if (code.length !== 6) {
+                        $('#so_ssl_verify_result')
+                            .removeClass('success')
+                            .addClass('error')
+                            .html('<span class="dashicons dashicons-no"></span> <?php esc_html_e('Please enter a 6-digit code', 'so-ssl'); ?>')
+                            .show();
+                        return;
+                    }
+
+                    button.prop('disabled', true).text('<?php esc_html_e('Verifying...', 'so-ssl'); ?>');
+
                     var data = {
                         'action': 'so_ssl_verify_totp_code',
                         'user_id': <?php echo esc_js($user->ID); ?>,
@@ -225,16 +588,34 @@ class So_SSL_Two_Factor {
 
                     $.post(ajaxurl, data, function(response) {
                         if (response.success) {
-                            $('#so_ssl_verify_result').html('<span style="color:green;">' + response.data.message + '</span>');
+                            $('#so_ssl_verify_result')
+                                .removeClass('error')
+                                .addClass('success')
+                                .html('<span class="dashicons dashicons-yes"></span> ' + response.data.message)
+                                .show();
                         } else {
-                            $('#so_ssl_verify_result').html('<span style="color:red;">' + response.data.message + '</span>');
+                            $('#so_ssl_verify_result')
+                                .removeClass('success')
+                                .addClass('error')
+                                .html('<span class="dashicons dashicons-no"></span> ' + response.data.message)
+                                .show();
                         }
+
+                        button.prop('disabled', false).text('<?php esc_html_e('Verify Code', 'so-ssl'); ?>');
+                    }).fail(function() {
+                        $('#so_ssl_verify_result')
+                            .removeClass('success')
+                            .addClass('error')
+                            .html('<span class="dashicons dashicons-no"></span> <?php esc_html_e('Verification failed. Please try again.', 'so-ssl'); ?>')
+                            .show();
+
+                        button.prop('disabled', false).text('<?php esc_html_e('Verify Code', 'so-ssl'); ?>');
                     });
                 });
             });
         </script>
-        <?php
-    }
+		<?php
+	}
 
     /**
      * Save 2FA user fields
