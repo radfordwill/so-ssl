@@ -182,6 +182,16 @@ class So_SSL_Two_Factor {
                     <div id="so_ssl_backup_codes_container" style="display:none; margin-top: 10px;">
                         <p><?php esc_html_e('Save these backup codes in a safe place. They can be used if you lose access to your authentication method.', 'so-ssl'); ?></p>
                         <div id="so_ssl_backup_codes"></div>
+                        <div id="so_ssl_backup_codes_actions" style="margin-top: 15px;">
+                            <label>
+                                <input type="checkbox" id="so_ssl_email_backup_codes" checked="checked" />
+						        <?php esc_html_e('Email backup codes to:', 'so-ssl'); ?>
+                                <strong><?php echo esc_html($user->user_email); ?></strong>
+                            </label>
+                            <button type="button" id="so_ssl_send_backup_codes" class="button" style="margin-left: 10px; display: none;">
+						        <?php esc_html_e('Send Codes to Email', 'so-ssl'); ?>
+                            </button>
+                        </div>
                     </div>
                 </td>
             </tr>
@@ -203,13 +213,42 @@ class So_SSL_Two_Factor {
                     var data = {
                         'action': 'so_ssl_generate_backup_codes',
                         'user_id': <?php echo esc_js($user->ID); ?>,
-                        'nonce': '<?php echo esc_js(wp_create_nonce('so_ssl_2fa_nonce')); ?>'
+                        'nonce': '<?php echo esc_js(wp_create_nonce('so_ssl_2fa_nonce')); ?>',
+                        'send_email': $('#so_ssl_email_backup_codes').is(':checked') ? 1 : 0
                     };
 
                     $.post(ajaxurl, data, function(response) {
                         if (response.success) {
                             $('#so_ssl_backup_codes').html(response.data.codes_html);
                             $('#so_ssl_backup_codes_container').show();
+                            $('#so_ssl_send_backup_codes').show();
+
+                            if (response.data.email_sent) {
+                                alert('<?php esc_html_e('Backup codes have been generated and sent to your email.', 'so-ssl'); ?>');
+                            }
+                        } else {
+                            alert(response.data.message);
+                        }
+                    });
+                });
+
+                // Handle sending backup codes separately
+                $('#so_ssl_send_backup_codes').on('click', function() {
+                    var codes = [];
+                    $('#so_ssl_backup_codes code').each(function() {
+                        codes.push($(this).text());
+                    });
+
+                    var data = {
+                        'action': 'so_ssl_email_backup_codes',
+                        'user_id': <?php echo esc_js($user->ID); ?>,
+                        'codes': codes,
+                        'nonce': '<?php echo esc_js(wp_create_nonce('so_ssl_2fa_nonce')); ?>'
+                    };
+
+                    $.post(ajaxurl, data, function(response) {
+                        if (response.success) {
+                            alert(response.data.message);
                         } else {
                             alert(response.data.message);
                         }
@@ -944,33 +983,44 @@ class So_SSL_Two_Factor {
     /**
      * AJAX handler for generating backup codes
      */
-    public static function generate_backup_codes() {
-        check_ajax_referer('so_ssl_2fa_nonce', 'nonce');
+	public static function generate_backup_codes() {
+		check_ajax_referer('so_ssl_2fa_nonce', 'nonce');
 
-        $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
+		$user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
+		$send_email = isset($_POST['send_email']) ? intval($_POST['send_email']) : 0;
 
-        if (!current_user_can('edit_user', $user_id)) {
-            wp_send_json_error(array('message' => __('You do not have permission to perform this action.', 'so-ssl')));
-        }
+		if (!current_user_can('edit_user', $user_id)) {
+			wp_send_json_error(array('message' => __('You do not have permission to perform this action.', 'so-ssl')));
+		}
 
-        // Generate 10 backup codes
-        $backup_codes = array();
-        for ($i = 0; $i < 10; $i++) {
-            $backup_codes[] = self::generate_backup_code();
-        }
+		// Generate 10 backup codes
+		$backup_codes = array();
+		for ($i = 0; $i < 10; $i++) {
+			$backup_codes[] = self::generate_backup_code();
+		}
 
-        // Save to user meta
-        update_user_meta($user_id, 'so_ssl_2fa_backup_codes', $backup_codes);
+		// Save to user meta
+		update_user_meta($user_id, 'so_ssl_2fa_backup_codes', $backup_codes);
 
-        // Prepare HTML for display
-        $codes_html = '<ul class="so-ssl-backup-codes">';
-        foreach ($backup_codes as $code) {
-            $codes_html .= '<li><code>' . esc_html($code) . '</code></li>';
-        }
-        $codes_html .= '</ul>';
+		// Prepare HTML for display
+		$codes_html = '<ul class="so-ssl-backup-codes">';
+		foreach ($backup_codes as $code) {
+			$codes_html .= '<li><code>' . esc_html($code) . '</code></li>';
+		}
+		$codes_html .= '</ul>';
 
-        wp_send_json_success(array('codes_html' => $codes_html));
-    }
+		$email_sent = false;
+
+		// Send email if requested
+		if ($send_email) {
+			$email_sent = self::send_backup_codes_email($user_id, $backup_codes);
+		}
+
+		wp_send_json_success(array(
+			'codes_html' => $codes_html,
+			'email_sent' => $email_sent
+		));
+	}
 
     /**
      * Generate a random backup code
@@ -1024,6 +1074,78 @@ class So_SSL_Two_Factor {
             wp_send_json_error(array('message' => __('Invalid code. Please try again.', 'so-ssl')));
         }
     }
+
+	/**
+	 * Send backup codes via email
+	 *
+	 * @param int $user_id The user ID
+	 * @param array $backup_codes The backup codes
+	 * @return bool Success or failure
+	 */
+	public static function send_backup_codes_email($user_id, $backup_codes) {
+		$user = get_userdata($user_id);
+		if (!$user) {
+			return false;
+		}
+
+		// Prepare email
+		$subject = sprintf(
+		/* translators: %s: Site name */
+			__('[%s] Your Two-Factor Authentication Backup Codes', 'so-ssl'),
+			get_bloginfo('name')
+		);
+
+		$message = sprintf(
+		           /* translators: %s: User's display name */
+			           __('Hello %s,', 'so-ssl'),
+			           $user->display_name
+		           ) . "\n\n";
+
+		$message .= __('Here are your Two-Factor Authentication backup codes. Store them in a safe place.', 'so-ssl') . "\n\n";
+		$message .= __('Each code can only be used once:', 'so-ssl') . "\n\n";
+
+		foreach ($backup_codes as $code) {
+			$message .= $code . "\n";
+		}
+
+		$message .= "\n" . __('Important:', 'so-ssl') . "\n";
+		$message .= __('- Keep these codes secure and do not share them with anyone', 'so-ssl') . "\n";
+		$message .= __('- Each code can only be used once', 'so-ssl') . "\n";
+		$message .= __('- Generate new codes if you run out', 'so-ssl') . "\n\n";
+
+		$message .= sprintf(
+		/* translators: %s: Site name */
+			__('If you did not request these codes, please contact your site administrator immediately.', 'so-ssl'),
+			get_bloginfo('name')
+		);
+
+		// Send email
+		return wp_mail($user->user_email, $subject, $message);
+	}
+
+	/**
+	 * AJAX handler for emailing backup codes separately
+	 */
+	public static function ajax_email_backup_codes() {
+		check_ajax_referer('so_ssl_2fa_nonce', 'nonce');
+
+		$user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
+		$codes = isset($_POST['codes']) ? array_map('sanitize_text_field', $_POST['codes']) : array();
+
+		if (!current_user_can('edit_user', $user_id)) {
+			wp_send_json_error(array('message' => __('You do not have permission to perform this action.', 'so-ssl')));
+		}
+
+		if (empty($codes)) {
+			wp_send_json_error(array('message' => __('No backup codes to send.', 'so-ssl')));
+		}
+
+		if (self::send_backup_codes_email($user_id, $codes)) {
+			wp_send_json_success(array('message' => __('Backup codes have been sent to your email.', 'so-ssl')));
+		} else {
+			wp_send_json_error(array('message' => __('Failed to send backup codes. Please try again.', 'so-ssl')));
+		}
+	}
 }
 
 // Initialize the class
@@ -1032,3 +1154,7 @@ So_SSL_Two_Factor::init();
 // Register AJAX handlers
 add_action('wp_ajax_so_ssl_generate_backup_codes', array('So_SSL_Two_Factor', 'generate_backup_codes'));
 add_action('wp_ajax_so_ssl_verify_totp_code', array('So_SSL_Two_Factor', 'verify_totp_code'));
+// Register AJAX handlers
+add_action('wp_ajax_so_ssl_generate_backup_codes', array('So_SSL_Two_Factor', 'generate_backup_codes'));
+add_action('wp_ajax_so_ssl_verify_totp_code', array('So_SSL_Two_Factor', 'verify_totp_code'));
+add_action('wp_ajax_so_ssl_email_backup_codes', array('So_SSL_Two_Factor', 'ajax_email_backup_codes')); // Add this line
