@@ -501,7 +501,7 @@ class So_SSL {
                 </div>
 
                 <!-- Add hidden input for active tab -->
-                <input type="hidden" name="active_tab" id="active_tab" value="<?php echo esc_attr(get_option('so_ssl_active_tab', 'ssl-settings')); ?>">
+                <input type="hidden" name="so_ssl_active_tab" id="active_tab" value="<?php echo esc_attr(get_option('so_ssl_active_tab', 'ssl-settings')); ?>">
                 <?php
                 submit_button(); ?>
             </form>
@@ -586,16 +586,18 @@ class So_SSL {
         </div>
 
         <!-- Inline script to ensure tabs work correctly -->
-        <!-- Inline script to ensure tabs work correctly -->
         <script type="text/javascript">
             jQuery(document).ready(function($) {
                 // Get active tab - check URL hash first, then saved value, then default
                 let activeTab = '<?php echo esc_js(get_option('so_ssl_active_tab', 'ssl-settings')); ?>';
                 const urlHash = window.location.hash.substring(1);
 
+                // Give precedence to URL hash if it exists and corresponds to a valid tab
                 if (urlHash && $('#' + urlHash).length) {
                     activeTab = urlHash;
                 }
+
+                console.log('Initial activeTab:', activeTab); // Debugging
 
                 // Initially hide all tabs
                 $('.settings-tab').hide();
@@ -606,11 +608,15 @@ class So_SSL {
                     $('#' + activeTab).show();
                     $('.nav-tab[href="#' + activeTab + '"]').addClass('nav-tab-active');
                     $('#active_tab').val(activeTab);
+
+                    // Also update localStorage for redundancy
+                    localStorage.setItem('so_ssl_active_tab', activeTab);
                 } else {
                     // Fallback to first tab if the saved tab doesn't exist
                     $('#ssl-settings').show();
                     $('.nav-tab[href="#ssl-settings"]').addClass('nav-tab-active');
                     $('#active_tab').val('ssl-settings');
+                    localStorage.setItem('so_ssl_active_tab', 'ssl-settings');
                     activeTab = 'ssl-settings';
                 }
 
@@ -620,6 +626,7 @@ class So_SSL {
 
                     // Get target tab
                     const tabId = $(this).attr('href').substring(1);
+                    console.log('Clicked tab:', tabId); // Debugging
 
                     // If already on this tab, do nothing
                     if ($(this).hasClass('nav-tab-active')) {
@@ -643,6 +650,9 @@ class So_SSL {
                     // Update hidden input value - CRITICAL for form submission
                     $('#active_tab').val(tabId);
 
+                    // Update localStorage for redundancy
+                    localStorage.setItem('so_ssl_active_tab', tabId);
+
                     // Update URL hash
                     if (history.pushState) {
                         history.pushState(null, null, '#' + tabId);
@@ -652,10 +662,20 @@ class So_SSL {
                 });
 
                 // Save active tab on form submission
-                $('form').on('submit', function() {
-                    // Create a new hidden input field to ensure the active tab is saved
-                    // This is backup in case the #active_tab field is somehow lost
-                    $(this).append('<input type="hidden" name="so_ssl_active_tab" value="' + $('#active_tab').val() + '">');
+                $('form').on('submit', function(e) {
+                    const currentTab = $('#active_tab').val();
+                    console.log('Submitting form with active tab:', currentTab); // Debugging
+
+                    // Make sure the hidden input is properly named for WP options
+                    if ($('#active_tab').attr('name') !== 'so_ssl_active_tab') {
+                        // Update the name to match the registered option
+                        $('#active_tab').attr('name', 'so_ssl_active_tab');
+                    }
+
+                    // For redundancy, also add another hidden field
+                    if (!$(this).find('input[name="so_ssl_active_tab"]').length) {
+                        $(this).append('<input type="hidden" name="so_ssl_active_tab" value="' + currentTab + '">');
+                    }
                 });
             });
         </script>
