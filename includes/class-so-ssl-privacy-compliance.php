@@ -32,7 +32,11 @@ class So_SSL_Privacy_Compliance {
 
 		// Add hook for admin scripts (for TinyMCE editor)
 		add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_admin_scripts'));
-	}
+
+		// Fix logout links
+		add_filter('logout_url', array(__CLASS__, 'fix_logout_url'), 10, 2);
+
+    }
 
 	public static function enqueue_admin_scripts($hook) {
 		// Only load on our plugin's settings page
@@ -85,20 +89,44 @@ class So_SSL_Privacy_Compliance {
 		}
 	}
 
-	/**
-	 * Check if user has acknowledged the privacy notice
-	 */
-	public static function check_privacy_acknowledgment() {
-		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+   /**
+    *
+    * Check if user has acknowledged the privacy notice
+    *
+    */
+    public static function check_privacy_acknowledgment() {
+            $page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
 
-		// Exclude First admin ( User ID#1 ) from Privacy Acknowledgement Compliance
-        if (defined('SO_SSL_DISABLE_PRIVACY_CHECK') && SO_SSL_DISABLE_PRIVACY_CHECK) {
+	    // Skip if this is a logout request with bypass flag
+	    if ( isset( $_GET['bypass_privacy_check'] ) && $_GET['bypass_privacy_check'] == '1' ) {
+		      return;
+	      }
+
+        // Exclude First admin ( User ID#1 ) from Privacy Acknowledgement Compliance
+		if (defined('SO_SSL_DISABLE_PRIVACY_CHECK') && SO_SSL_DISABLE_PRIVACY_CHECK) {
 			return;
 		}
 
 		// Skip for AJAX, Cron, CLI, or admin-ajax.php requests
 		if (wp_doing_ajax() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI) ||
 		    (isset($_SERVER['SCRIPT_FILENAME']) && strpos(sanitize_text_field(wp_unslash($_SERVER['SCRIPT_FILENAME'])), 'admin-ajax.php') !== false)) {
+			return;
+		}
+
+		// IMPORTANT: Skip for logout action
+		if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+			return;
+		}
+
+		// IMPORTANT: Skip for wp-login.php with logout action
+		if (isset($_SERVER['REQUEST_URI']) &&
+		    (strpos($_SERVER['REQUEST_URI'], 'wp-login.php') !== false &&
+		     isset($_GET['action']) && $_GET['action'] === 'logout')) {
+			return;
+		}
+
+		// IMPORTANT: Skip if we're processing the logout
+		if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'logout') {
 			return;
 		}
 
@@ -447,6 +475,19 @@ class So_SSL_Privacy_Compliance {
 	}
 
 	/**
+	 * Fix logout URL to prevent privacy compliance interference
+	 *
+	 * @param string $logout_url The logout URL
+	 * @param string $redirect The redirect URL after logout
+	 * @return string The fixed logout URL
+	 */
+	public static function fix_logout_url($logout_url, $redirect) {
+		// Add a parameter to identify this as a logout action
+		$logout_url = add_query_arg('bypass_privacy_check', '1', $logout_url);
+		return $logout_url;
+	}
+
+	/**
 	 * Register the privacy acknowledgment template
 	 */
 	public static function register_privacy_template() {
@@ -499,14 +540,21 @@ class So_SSL_Privacy_Compliance {
 							wp_die('Error: Unable to save privacy acknowledgment.');
 						}
 
-						// Clear cookies with proper domain handling for localhost
+						// Clear cookies with better domain handling
 						$cookie_domain = COOKIE_DOMAIN ?: '';
 						$cookie_path = COOKIEPATH ?: '/';
 
-						setcookie('so_ssl_privacy_needed', '', time() - 3600, $cookie_path, $cookie_domain, false, true);
-						setcookie('so_ssl_privacy_redirect', '', time() - 3600, $cookie_path, $cookie_domain, false, true);
+                        // If we're on localhost or a local development environment, handle differently
+						if (in_array($_SERVER['HTTP_HOST'], array('localhost', '127.0.0.1', '::1')) ||
+						    strpos($_SERVER['HTTP_HOST'], '.local') !== false ||
+						    strpos($_SERVER['HTTP_HOST'], '.test') !== false) {
+							$cookie_domain = '';
+						}
 
-						// Determine redirect URL
+						setcookie('so_ssl_privacy_needed', '', time() - 3600, $cookie_path, $cookie_domain, is_ssl(), true);
+						setcookie('so_ssl_privacy_redirect', '', time() - 3600, $cookie_path, $cookie_domain, is_ssl(), true);
+
+                        // Determine redirect URL
 						$redirect = admin_url(); // Default to admin
 
 						if (isset($_COOKIE['so_ssl_privacy_redirect'])) {
@@ -724,6 +772,11 @@ class So_SSL_Privacy_Compliance {
                     </div>
 				<?php endif; ?>
             </div>
+            <div class="so-ssl-privacy-links">
+                <a href="<?php echo esc_url(wp_logout_url(home_url())); ?>">
+			        <?php esc_html_e('Disagree and logout', 'so-ssl'); ?>
+                </a>
+            </div>
         </div>
 
         <script>
@@ -747,7 +800,15 @@ class So_SSL_Privacy_Compliance {
                         if (!checkbox.checked) {
                             e.preventDefault();
                             alert('Please check the box to accept the privacy notice.');
+                            return false;
                         }
+
+                        // Add a visual indication that the form is being submitted
+                        submitBtn.textContent = 'Processing...';
+                        submitBtn.disabled = true;
+
+                        // Allow the form to submit
+                        return true;
                     });
                 }
             });
