@@ -524,19 +524,6 @@ class So_SSL_Privacy_Compliance {
 				}
 			}
 
-			// Handle logout with disagreement
-			if (isset($_GET['disagree']) && $_GET['disagree'] == '1') {
-				// Clear any privacy cookies
-				$cookie_domain = COOKIE_DOMAIN ?: '';
-				$cookie_path = COOKIEPATH ?: '/';
-				setcookie('so_ssl_privacy_needed', '', time() - 3600, $cookie_path, $cookie_domain, false, true);
-				setcookie('so_ssl_privacy_redirect', '', time() - 3600, $cookie_path, $cookie_domain, false, true);
-
-				// Redirect to logout URL
-				wp_redirect(wp_logout_url(home_url()));
-				exit;
-			}
-
 			// Set redirect cookie with proper domain handling
 			if (isset($_SERVER['HTTP_REFERER'])) {
 				$referer = wp_sanitize_redirect(wp_unslash($_SERVER['HTTP_REFERER']));
@@ -561,8 +548,9 @@ class So_SSL_Privacy_Compliance {
 		$checkbox_text = get_option('so_ssl_privacy_checkbox_text', '');
 		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
 
-		// Start output buffering to capture all output
-		ob_start();
+		// Debug
+		error_log('So SSL Privacy: Displaying privacy page for user ' . get_current_user_id());
+
 		?>
         <!DOCTYPE html>
         <html <?php language_attributes(); ?>>
@@ -572,6 +560,7 @@ class So_SSL_Privacy_Compliance {
             <title><?php echo esc_html($page_title); ?> - <?php bloginfo('name'); ?></title>
 			<?php wp_head(); ?>
             <style>
+                /* Your existing styles here */
                 body {
                     background: #f0f6fc;
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
@@ -646,29 +635,10 @@ class So_SSL_Privacy_Compliance {
                     border-color: #135e96;
                 }
                 .so-ssl-privacy-submit:disabled {
-                    background: #c3c4c7 !important;
-                    border-color: #c3c4c7 !important;
-                    color: #50575e !important;
+                    background: #c3c4c7;
+                    border-color: #c3c4c7;
+                    color: #50575e;
                     cursor: not-allowed;
-                }
-                .so-ssl-privacy-actions {
-                    display: flex;
-                    gap: 15px;
-                    align-items: center;
-                }
-                .so-ssl-disagree-logout {
-                    color: #646970;
-                    text-decoration: none;
-                    font-weight: 500;
-                    padding: 8px 15px;
-                    border: 1px solid #dcdcde;
-                    border-radius: 3px;
-                    transition: all 0.2s;
-                }
-                .so-ssl-disagree-logout:hover {
-                    background: #fcf0f1;
-                    color: #d63638;
-                    border-color: #d63638;
                 }
                 .so-ssl-privacy-error {
                     color: #d63638;
@@ -712,45 +682,40 @@ class So_SSL_Privacy_Compliance {
                 }
             </style>
         </head>
-        <body <?php body_class(); ?>>
+        <body>
         <div class="so-ssl-privacy-page">
             <div class="so-ssl-privacy-header">
-                <h1 class="so-ssl-privacy-title">
-                    <span class="dashicons dashicons-privacy"></span>
-					<?php echo esc_html($page_title); ?>
-                </h1>
+                <h1><?php echo esc_html($page_title); ?></h1>
             </div>
 
             <div class="so-ssl-privacy-content">
                 <div class="so-ssl-privacy-notice">
-					<?php echo $notice_text; ?>
+					<?php echo wp_kses_post($notice_text); ?>
                 </div>
 
 				<?php
-				$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
-				echo '<form class="so-ssl-privacy-form" method="post" action="' . esc_url(add_query_arg($page_slug, '1', site_url())) . '">';?>
-				<?php wp_nonce_field('so_ssl_privacy_acknowledgment', 'so_ssl_privacy_nonce'); ?>
+				// Use the current URL to maintain the query parameter
+				$current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") .
+				               "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+				error_log('So SSL Privacy: Form action URL: ' . $current_url);
+				?>
 
-                <div class="so-ssl-privacy-checkbox">
-                    <label>
-                        <input type="checkbox" name="so_ssl_privacy_accept" value="1" required>
-						<?php echo esc_html($checkbox_text); ?>
-                    </label>
-                </div>
+                <form method="post" action="<?php echo esc_url($current_url); ?>">
+					<?php wp_nonce_field('so_ssl_privacy_acknowledgment', 'so_ssl_privacy_nonce'); ?>
 
-                <div class="so-ssl-privacy-actions">
-                    <button type="submit" name="so_ssl_privacy_submit" class="so-ssl-privacy-submit" id="privacy-submit-btn" disabled>
-						<?php esc_html_e('Continue', 'so-ssl'); ?>
-                    </button>
+                    <div class="so-ssl-privacy-checkbox">
+                        <label>
+                            <input type="checkbox" id="privacy_accept" name="so_ssl_privacy_accept" value="1">
+							<?php echo esc_html($checkbox_text); ?>
+                        </label>
+                    </div>
 
-					<?php
-					$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
-					$disagree_url = add_query_arg(array($page_slug => '1', 'disagree' => '1'), site_url());
-					?>
-                    <a href="<?php echo esc_url($disagree_url); ?>" class="so-ssl-disagree-logout">
-						<?php esc_html_e('Disagree and Logout', 'so-ssl'); ?>
-                    </a>
-                </div>
+                    <div class="so-ssl-privacy-actions">
+                        <button type="submit" name="so_ssl_privacy_submit" value="1" class="so-ssl-privacy-submit" id="privacy-submit-btn">
+							<?php esc_html_e('Continue', 'so-ssl'); ?>
+                        </button>
+                    </div>
+                </form>
 
 				<?php if (isset($_POST['so_ssl_privacy_submit']) &&
 				          (!isset($_POST['so_ssl_privacy_accept']) || $_POST['so_ssl_privacy_accept'] != '1')): ?>
@@ -758,27 +723,31 @@ class So_SSL_Privacy_Compliance {
 						<?php esc_html_e('You must acknowledge the privacy notice to continue.', 'so-ssl'); ?>
                     </div>
 				<?php endif; ?>
-                </form>
-            </div>
-
-            <div class="so-ssl-privacy-links">
-                <a href="<?php echo esc_url(wp_logout_url(home_url())); ?>">
-					<?php esc_html_e('Logout', 'so-ssl'); ?>
-                </a>
             </div>
         </div>
 
         <script>
-            // Simple script to enable/disable submit button based on checkbox
+            // Simplified JavaScript
             document.addEventListener('DOMContentLoaded', function() {
-                var checkbox = document.querySelector('input[name="so_ssl_privacy_accept"]');
+                var checkbox = document.getElementById('privacy_accept');
                 var submitBtn = document.getElementById('privacy-submit-btn');
 
                 if (checkbox && submitBtn) {
-                    submitBtn.disabled = !checkbox.checked;
+                    // Enable/disable button based on checkbox
+                    function updateButton() {
+                        submitBtn.disabled = !checkbox.checked;
+                    }
 
-                    checkbox.addEventListener('change', function() {
-                        submitBtn.disabled = !this.checked;
+                    updateButton(); // Initial state
+                    checkbox.addEventListener('change', updateButton);
+
+                    // Log form submission
+                    document.querySelector('form').addEventListener('submit', function(e) {
+                        console.log('Form submitting, checkbox checked:', checkbox.checked);
+                        if (!checkbox.checked) {
+                            e.preventDefault();
+                            alert('Please check the box to accept the privacy notice.');
+                        }
                     });
                 }
             });
@@ -788,8 +757,6 @@ class So_SSL_Privacy_Compliance {
         </body>
         </html>
 		<?php
-		// Output the buffered content
-		echo ob_get_clean();
 	}
 
 	/**
