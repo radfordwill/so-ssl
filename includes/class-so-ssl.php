@@ -50,6 +50,14 @@ class So_SSL {
         $this->plugin_path = SO_SSL_PATH;
         $this->plugin_url = SO_SSL_URL;
 
+	    // Ensure plugin path and URL are never null
+	    if (empty($this->plugin_path)) {
+		    $this->plugin_path = dirname(__FILE__) . '/';
+	    }
+	    if (empty($this->plugin_url)) {
+		    $this->plugin_url = plugins_url('/', __FILE__);
+	    }
+
         $this->load_dependencies();
     }
 
@@ -174,17 +182,26 @@ class So_SSL {
      *
      * @since    1.0.2
      */
-    public function add_admin_menu() {
-        add_options_page(
-            /* translators: %s: Plugin Settings*/
-            __('So SSL Settings', 'so-ssl'),
-            /* translators: %s: Plugin Title */
-            __('So SSL', 'so-ssl'),
-            'manage_options',
-            'so-ssl',
-            array($this, 'display_options_page')
-        );
-    }
+	public function add_admin_menu() {
+		$page_title = __('So SSL Settings', 'so-ssl');
+		$menu_title = __('So SSL', 'so-ssl');
+
+		// Ensure titles are never null
+		if (empty($page_title)) {
+			$page_title = 'So SSL Settings';
+		}
+		if (empty($menu_title)) {
+			$menu_title = 'So SSL';
+		}
+
+		add_options_page(
+			'So SSL Settings',  // Use string literal as fallback
+			'So SSL',          // Use string literal as fallback
+			'manage_options',
+			'so-ssl',
+			array($this, 'display_options_page')
+		);
+	}
 
     /**
      * Enqueue admin styles
@@ -1351,6 +1368,16 @@ class So_SSL {
 			)
 		);
 
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_privacy_exempt_original_admin',
+			array(
+				'type' => 'boolean',
+				'sanitize_callback' => 'intval',
+				'default' => true,
+			)
+		);
+
 		// Add settings fields
 		add_settings_field(
 			'so_ssl_enable_privacy_compliance',
@@ -1634,6 +1661,16 @@ class So_SSL {
 		echo esc_html__('Always exempt administrators', 'so-ssl');
 		echo '</label>';
 		echo '<p class="description">' . esc_html__('When checked, administrators will never be required to acknowledge the privacy notice, regardless of role selection above.', 'so-ssl') . '</p>';
+		echo '</div>';
+
+		// Add option to exempt original admin (user ID 1)
+		$exempt_original_admin = get_option('so_ssl_privacy_exempt_original_admin', true);
+		echo '<div style="margin-top: 10px;">';
+		echo '<label for="so_ssl_privacy_exempt_original_admin">';
+		echo '<input type="checkbox" id="so_ssl_privacy_exempt_original_admin" name="so_ssl_privacy_exempt_original_admin" value="1" ' . checked(1, $exempt_original_admin, false) . '/>';
+		echo esc_html__('Always exempt original admin (user ID 1)', 'so-ssl');
+		echo '</label>';
+		echo '<p class="description">' . esc_html__('When checked, the original admin user (ID 1) will never be required to acknowledge the privacy notice.', 'so-ssl') . '</p>';
 		echo '</div>';
 	}
 

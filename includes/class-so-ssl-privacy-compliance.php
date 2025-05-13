@@ -90,6 +90,12 @@ class So_SSL_Privacy_Compliance {
 	 */
 	public static function check_privacy_acknowledgment() {
 		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+
+		// Exclude First admin ( User ID#1 ) from Privacy Acknowledgement Compliance
+        if (defined('SO_SSL_DISABLE_PRIVACY_CHECK') && SO_SSL_DISABLE_PRIVACY_CHECK) {
+			return;
+		}
+
 		// Skip for AJAX, Cron, CLI, or admin-ajax.php requests
 		if (wp_doing_ajax() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI) ||
 		    (isset($_SERVER['SCRIPT_FILENAME']) && strpos(sanitize_text_field(wp_unslash($_SERVER['SCRIPT_FILENAME'])), 'admin-ajax.php') !== false)) {
@@ -110,11 +116,36 @@ class So_SSL_Privacy_Compliance {
 		$current_user = wp_get_current_user();
 		$user_id = $current_user->ID;
 
-		// Check user role requirements (keep existing role checking code)
-		// ...
+		// Check if admins are exempt
+		$exempt_admins = get_option('so_ssl_privacy_exempt_admins', true);
 
-		// Debugging - could be temporarily added to troubleshoot
-		// error_log('Checking privacy acknowledgment for user ID: ' . $user_id);
+		// If administrator exemption is enabled and user is admin, skip check
+		if ($exempt_admins && current_user_can('manage_options')) {
+			return;
+		}
+
+		// Special check for the original admin (user ID 1)
+		$exempt_original_admin = get_option('so_ssl_privacy_exempt_original_admin', true);
+		if ($exempt_original_admin && $user_id === 1) {
+			return;
+		}
+
+		// Check user role requirements
+		$required_roles = get_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
+		$user_requires_check = false;
+
+		// Check if user has any of the required roles
+		foreach ($current_user->roles as $role) {
+			if (in_array($role, $required_roles)) {
+				$user_requires_check = true;
+				break;
+			}
+		}
+
+		// If user doesn't need to check, exit early
+		if (!$user_requires_check) {
+			return;
+		}
 
 		// Check acknowledgment status
 		$acknowledgment = get_user_meta($user_id, 'so_ssl_privacy_acknowledged', true);
@@ -123,9 +154,6 @@ class So_SSL_Privacy_Compliance {
 		// Check if acknowledgment has expired or doesn't exist
 		if (empty($acknowledgment) ||
 		    (time() - intval($acknowledgment)) > ($expiry_days * DAY_IN_SECONDS)) {
-
-			// Debugging - could be temporarily added to troubleshoot
-			// error_log('Redirecting to privacy page. Acknowledgment: ' . $acknowledgment);
 
 			// Redirect to privacy acknowledgment page
 			wp_redirect(add_query_arg($page_slug, '1', site_url()));
@@ -455,41 +483,56 @@ class So_SSL_Privacy_Compliance {
 			if (isset($_POST['so_ssl_privacy_submit']) && isset($_POST['so_ssl_privacy_nonce'])) {
 				if (wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_privacy_nonce'])), 'so_ssl_privacy_acknowledgment')) {
 					if (isset($_POST['so_ssl_privacy_accept']) && $_POST['so_ssl_privacy_accept'] == '1') {
-						// User has acknowledged - CRITICAL FIX HERE
+						// User has acknowledged
 						$user_id = get_current_user_id();
-						update_user_meta($user_id, 'so_ssl_privacy_acknowledged', time());
 
-						// Clear the privacy needed cookie
-						setcookie('so_ssl_privacy_needed', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
-
-						// Redirect to home or dashboard instead of previous page
-						// This prevents the redirect loop by ensuring we don't go back to the privacy page
-						$redirect = isset($_COOKIE['so_ssl_privacy_redirect'])
-							? sanitize_url(wp_unslash($_COOKIE['so_ssl_privacy_redirect']))
-							: admin_url();
-
-						// Clear the redirect cookie
-						setcookie('so_ssl_privacy_redirect', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
-
-						// Verify we're not redirecting back to the privacy page itself
-						if (strpos($redirect, $page_slug.'=1') !== false) {
-							$redirect = admin_url(); // Fallback to admin if redirect would cause a loop
+						// Debug: Check if we have a valid user ID
+						if (!$user_id) {
+							wp_die('Error: Unable to identify the current user.');
 						}
 
+						// Save acknowledgment
+						$update_result = update_user_meta($user_id, 'so_ssl_privacy_acknowledged', time());
+
+						// Debug: Check if user meta was saved
+						if ($update_result === false) {
+							wp_die('Error: Unable to save privacy acknowledgment.');
+						}
+
+						// Clear cookies with proper domain handling for localhost
+						$cookie_domain = COOKIE_DOMAIN ?: '';
+						$cookie_path = COOKIEPATH ?: '/';
+
+						setcookie('so_ssl_privacy_needed', '', time() - 3600, $cookie_path, $cookie_domain, false, true);
+						setcookie('so_ssl_privacy_redirect', '', time() - 3600, $cookie_path, $cookie_domain, false, true);
+
+						// Determine redirect URL
+						$redirect = admin_url(); // Default to admin
+
+						if (isset($_COOKIE['so_ssl_privacy_redirect'])) {
+							$cookie_redirect = sanitize_url(wp_unslash($_COOKIE['so_ssl_privacy_redirect']));
+							// Only use cookie redirect if it's not the privacy page
+							if (strpos($cookie_redirect, $page_slug.'=1') === false) {
+								$redirect = $cookie_redirect;
+							}
+						}
+
+						// Do the redirect
 						wp_redirect($redirect);
 						exit;
 					}
 				}
 			}
 
-			// Set redirect cookie if referrer is available
+			// Set redirect cookie with proper domain handling
 			if (isset($_SERVER['HTTP_REFERER'])) {
 				$referer = wp_sanitize_redirect(wp_unslash($_SERVER['HTTP_REFERER']));
-
-				// Only set if it's on the same domain AND not the privacy page itself
 				$site_url = site_url();
+
 				if (strpos($referer, $site_url) === 0 && strpos($referer, $page_slug.'=1') === false) {
-					setcookie('so_ssl_privacy_redirect', $referer, 0, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+					$cookie_domain = COOKIE_DOMAIN ?: '';
+					$cookie_path = COOKIEPATH ?: '/';
+					setcookie('so_ssl_privacy_redirect', $referer, 0, $cookie_path, $cookie_domain, false, true);
 				}
 			}
 

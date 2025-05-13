@@ -17,6 +17,45 @@ if (!defined('WPINC')) {
 	die;
 }
 
+// PHP 8.1+ compatibility fixes
+if (!defined('SO_SSL_PHP8_COMPAT')) {
+	define('SO_SSL_PHP8_COMPAT', true);
+
+	// Fix for null string parameters
+	add_action('init', function() {
+		// Fix for gettext returning null
+		add_filter('gettext', function($translation, $text, $domain) {
+			return $translation !== null ? $translation : $text;
+		}, 1, 3);
+
+		add_filter('gettext_with_context', function($translation, $text, $context, $domain) {
+			return $translation !== null ? $translation : $text;
+		}, 1, 4);
+
+		add_filter('ngettext', function($translation, $single, $plural, $number, $domain) {
+			return $translation !== null ? $translation : ($number == 1 ? $single : $plural);
+		}, 1, 5);
+	}, 1);
+
+	// Fix for admin title
+	add_filter('admin_title', function($admin_title, $title) {
+		if ($admin_title === null) {
+			$admin_title = '';
+		}
+		return $admin_title;
+	}, 1, 2);
+
+	// Fix for plugin row meta
+	add_filter('plugin_row_meta', function($plugin_meta, $plugin_file) {
+		if (!is_array($plugin_meta)) {
+			return array();
+		}
+		return array_map(function($meta) {
+			return $meta !== null ? $meta : '';
+		}, $plugin_meta);
+	}, 1, 2);
+}
+
 /**
  * Current plugin version.
  */
@@ -129,6 +168,9 @@ function activate_so_ssl() {
 	add_option('so_ssl_admin_agreement_text', 'By using this plugin, you agree to adhere to security best practices and ensure all data collected will be handled in accordance with applicable privacy laws. You acknowledge that this plugin makes changes to your website\'s security configuration that you are responsible for monitoring and maintaining.');
 	add_option('so_ssl_admin_agreement_checkbox_text', 'I understand and agree to these terms');
 	add_option('so_ssl_admin_agreement_expiry_days', 365);
+
+	// Exclude First admin ( User ID#1 ) from Privacy Acknowledgement Compliance
+	add_option('so_ssl_privacy_exempt_original_admin', true);
 }
 
 /**
@@ -138,7 +180,39 @@ function deactivate_so_ssl() {
 
 }
 
+/**
+ * Ensure menu titles are never null
+ *
+ * @param string $title The title to check
+ * @param string $default The default value if title is empty
+ * @return string The sanitized title
+ */
+function so_ssl_ensure_title($title, $default = '') {
+	return !empty($title) ? $title : $default;
+}
+
+/**
+ * Load the plugin text domain for translation
+ */
+function so_ssl_load_textdomain() {
+	load_plugin_textdomain(
+		'so-ssl',
+		false,
+		dirname(plugin_basename(__FILE__)) . '/languages/'
+	);
+}
+add_action('plugins_loaded', 'so_ssl_load_textdomain');
+
+/**
+ * Safe translation function that never returns null
+ */
+function so_ssl_safe_translate($text, $domain = 'so-ssl') {
+	$translation = __($text, $domain);
+	return !empty($translation) ? $translation : $text;
+	add_action('plugins_loaded', 'so_ssl_safe_translate');}
+
 register_activation_hook(__FILE__, 'activate_so_ssl');
+
 register_deactivation_hook(__FILE__, 'deactivate_so_ssl');
 
 /**

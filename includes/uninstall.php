@@ -70,6 +70,9 @@ function so_ssl_delete_plugin_options() {
         delete_option($option_name);
     }
 
+	// Admin excluded from privacy compliance
+	delete_option('so_ssl_privacy_exempt_original_admin');
+
     // Two-Factor Authentication
     delete_option('so_ssl_enable_2fa');
     delete_option('so_ssl_2fa_user_roles');
