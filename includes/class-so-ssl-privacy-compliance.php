@@ -42,6 +42,10 @@ class So_SSL_Privacy_Compliance {
 
 		// Fix logout links
 		add_filter('logout_url', array(__CLASS__, 'fix_logout_url'), 10, 2);
+
+		// Add modal to pages when needed
+		add_action('wp_footer', array(__CLASS__, 'maybe_add_privacy_modal'));
+		add_action('admin_footer', array(__CLASS__, 'maybe_add_privacy_modal'));
 	}
 
 	/**
@@ -105,9 +109,8 @@ class So_SSL_Privacy_Compliance {
 			}
 		}
 
-		// Display the privacy page
-		self::display_privacy_page();
-		exit;
+		// Instead of displaying a full page, we'll set a flag to show the modal
+		add_filter('so_ssl_show_privacy_modal', '__return_true');
 	}
 
 	/**
@@ -186,14 +189,8 @@ class So_SSL_Privacy_Compliance {
 		    (intval($acknowledgment) === 0) ||
 		    (time() - intval($acknowledgment)) > ($expiry_days * DAY_IN_SECONDS)) {
 
-			// Save current URL for redirect after acknowledgment
-			$current_url = (is_ssl() ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-			setcookie('so_ssl_privacy_redirect', $current_url, 0, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
-
-			// Redirect to privacy acknowledgment page
-			$privacy_url = add_query_arg($page_slug, '1', admin_url('index.php'));
-			wp_safe_redirect($privacy_url);
-			exit;
+			// Set a flag to show the modal
+			add_filter('so_ssl_show_privacy_modal', '__return_true');
 		}
 	}
 
@@ -267,30 +264,27 @@ class So_SSL_Privacy_Compliance {
 		    (intval($acknowledgment) === 0) ||
 		    (time() - intval($acknowledgment)) > ($expiry_days * DAY_IN_SECONDS)) {
 
-			// Save current URL for redirect after acknowledgment
-			$current_url = (is_ssl() ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-			setcookie('so_ssl_privacy_redirect', $current_url, 0, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
-
-			// Redirect to privacy acknowledgment page
-			$privacy_url = add_query_arg($page_slug, '1', site_url());
-			wp_safe_redirect($privacy_url);
-			exit;
+			// Set a flag to show the modal
+			add_filter('so_ssl_show_privacy_modal', '__return_true');
 		}
 	}
 
 	/**
-	 * Display privacy page
+	 * Add privacy modal to pages when needed
 	 */
-	public static function display_privacy_page() {
+	public static function maybe_add_privacy_modal() {
+		if (!apply_filters('so_ssl_show_privacy_modal', false)) {
+			return;
+		}
+
 		// Ensure user is logged in
 		if (!is_user_logged_in()) {
-			auth_redirect();
+			return;
 		}
 
 		$page_title = get_option('so_ssl_privacy_page_title', 'Privacy Acknowledgment Required');
 		$notice_text = get_option('so_ssl_privacy_notice_text', '');
 		$checkbox_text = get_option('so_ssl_privacy_checkbox_text', '');
-		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
 
 		// Show error message if form was submitted without checkbox
 		$show_error = false;
@@ -300,164 +294,191 @@ class So_SSL_Privacy_Compliance {
 		}
 
 		?>
-        <!DOCTYPE html>
-        <html <?php language_attributes(); ?>>
-        <head>
-            <meta charset="<?php bloginfo('charset'); ?>">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title><?php echo esc_html($page_title); ?> - <?php bloginfo('name'); ?></title>
-			<?php wp_head(); ?>
-            <style>
-                body {
-                    background: #f0f6fc;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                    margin: 0;
-                    padding: 0;
-                    line-height: 1.6;
-                }
-                .so-ssl-privacy-page {
-                    max-width: 800px;
-                    margin: 50px auto;
-                    padding: 0;
-                    background: #fff;
-                    border-radius: 5px;
-                    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-                    overflow: hidden;
-                }
-                .so-ssl-privacy-header {
-                    background: #fff;
-                    border-bottom: 1px solid #dcdcde;
-                    padding: 20px 25px;
-                }
-                .so-ssl-privacy-title {
-                    color: #2271b1;
-                    font-size: 24px;
-                    font-weight: 600;
-                    margin: 0;
-                    padding: 0;
-                    display: flex;
-                    align-items: center;
-                }
-                .so-ssl-privacy-title .dashicons {
-                    margin-right: 10px;
-                    color: #2271b1;
-                }
-                .so-ssl-privacy-content {
-                    padding: 25px;
-                    margin-bottom: 0;
-                    line-height: 1.6;
-                    color: #1d2327;
-                }
-                .so-ssl-privacy-form {
-                    padding: 20px 25px;
-                    background: #f8f9fa;
-                    border-top: 1px solid #dcdcde;
-                }
-                .so-ssl-privacy-notice {
-                    background: #f0f6fc;
-                    border-left: 4px solid #2271b1;
-                    padding: 15px 20px;
-                    margin-bottom: 25px;
-                    border-radius: 0 4px 4px 0;
-                }
-                .so-ssl-privacy-checkbox {
-                    margin: 15px 0 20px;
-                }
-                .so-ssl-privacy-checkbox input[type="checkbox"] {
-                    margin-right: 8px;
-                }
-                .so-ssl-privacy-submit {
-                    background: #2271b1;
-                    border: 1px solid #2271b1;
-                    color: #fff;
-                    padding: 8px 15px;
-                    border-radius: 3px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    font-weight: 500;
-                    transition: all 0.2s ease;
-                }
-                .so-ssl-privacy-submit:hover {
-                    background: #135e96;
-                    border-color: #135e96;
-                }
-                .so-ssl-privacy-submit:disabled {
-                    background: #c3c4c7;
-                    border-color: #c3c4c7;
-                    color: #50575e;
-                    cursor: not-allowed;
-                }
-                .so-ssl-privacy-error {
-                    color: #d63638;
-                    background: #fcf0f1;
-                    border-left: 4px solid #d63638;
-                    padding: 10px 15px;
-                    margin-top: 15px;
-                    border-radius: 0 4px 4px 0;
-                }
-                .so-ssl-privacy-links {
-                    background: #f0f0f1;
-                    border-top: 1px solid #dcdcde;
-                    padding: 15px 25px;
-                    color: #646970;
-                    font-size: 13px;
-                    text-align: center;
-                }
-                .so-ssl-privacy-links a {
-                    color: #2271b1;
-                    text-decoration: none;
-                    transition: color 0.2s ease;
-                }
-                .so-ssl-privacy-links a:hover {
-                    color: #135e96;
-                    text-decoration: underline;
-                }
-            </style>
-        </head>
-        <body>
-        <div class="so-ssl-privacy-page">
-            <div class="so-ssl-privacy-header">
-                <h1 class="so-ssl-privacy-title">
-                    <span class="dashicons dashicons-shield"></span>
-					<?php echo esc_html($page_title); ?>
-                </h1>
-            </div>
+        <style>
+            .so-ssl-privacy-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 999999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
 
-            <div class="so-ssl-privacy-content">
-                <div class="so-ssl-privacy-notice">
-					<?php echo wp_kses_post($notice_text); ?>
+            .so-ssl-privacy-modal {
+                width: 60%;
+                max-width: 800px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                max-height: 90vh;
+                overflow-y: auto;
+                position: relative;
+            }
+
+            .so-ssl-privacy-header {
+                background: #fff;
+                border-bottom: 1px solid #dcdcde;
+                padding: 20px 25px;
+                border-radius: 8px 8px 0 0;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .so-ssl-privacy-title {
+                color: #2271b1;
+                font-size: 24px;
+                font-weight: 600;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                align-items: center;
+            }
+
+            .so-ssl-privacy-title .dashicons {
+                margin-right: 10px;
+                color: #2271b1;
+            }
+
+            .so-ssl-privacy-content {
+                padding: 25px;
+                margin-bottom: 0;
+                line-height: 1.6;
+                color: #1d2327;
+            }
+
+            .so-ssl-privacy-form {
+                padding: 20px 25px;
+                background: #f8f9fa;
+                border-top: 1px solid #dcdcde;
+                border-radius: 0 0 8px 8px;
+            }
+
+            .so-ssl-privacy-notice {
+                background: #f0f6fc;
+                border-left: 4px solid #2271b1;
+                padding: 15px 20px;
+                margin-bottom: 25px;
+                border-radius: 0 4px 4px 0;
+            }
+
+            .so-ssl-privacy-checkbox {
+                margin: 15px 0 20px;
+            }
+
+            .so-ssl-privacy-checkbox input[type="checkbox"] {
+                margin-right: 8px;
+            }
+
+            .so-ssl-privacy-checkbox label {
+                font-weight: 500;
+                color: #1d2327;
+            }
+
+            .so-ssl-privacy-actions {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .so-ssl-privacy-submit {
+                background: #2271b1;
+                border: 1px solid #2271b1;
+                color: #fff;
+                padding: 8px 15px;
+                border-radius: 3px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            }
+
+            .so-ssl-privacy-submit:hover {
+                background: #135e96;
+                border-color: #135e96;
+            }
+
+            .so-ssl-privacy-submit:disabled {
+                background: #c3c4c7 !important;
+                border-color: #c3c4c7 !important;
+                color: #50575e !important;
+                cursor: not-allowed;
+            }
+
+            .so-ssl-privacy-error {
+                color: #d63638;
+                background: #fcf0f1;
+                border-left: 4px solid #d63638;
+                padding: 10px 15px;
+                margin-top: 15px;
+                border-radius: 0 4px 4px 0;
+            }
+
+            .so-ssl-privacy-logout {
+                color: #646970;
+                text-decoration: none;
+                font-size: 14px;
+            }
+
+            .so-ssl-privacy-logout:hover {
+                color: #d63638;
+            }
+
+            @media (max-width: 768px) {
+                .so-ssl-privacy-modal {
+                    width: 90%;
+                    margin: 20px;
+                }
+            }
+        </style>
+
+        <div class="so-ssl-privacy-modal-overlay">
+            <div class="so-ssl-privacy-modal">
+                <div class="so-ssl-privacy-header">
+                    <h1 class="so-ssl-privacy-title">
+                        <span class="dashicons dashicons-shield"></span>
+						<?php echo esc_html($page_title); ?>
+                    </h1>
                 </div>
 
-                <div class="so-ssl-privacy-form">
-                    <form method="post" action="">
-						<?php wp_nonce_field('so_ssl_privacy_acknowledgment', 'so_ssl_privacy_nonce'); ?>
+                <div class="so-ssl-privacy-content">
+                    <div class="so-ssl-privacy-notice">
+						<?php echo wp_kses_post($notice_text); ?>
+                    </div>
 
-                        <div class="so-ssl-privacy-checkbox">
-                            <label>
-                                <input type="checkbox" id="privacy_accept" name="so_ssl_privacy_accept" value="1">
-								<?php echo esc_html($checkbox_text); ?>
-                            </label>
-                        </div>
+                    <div class="so-ssl-privacy-form">
+                        <form method="post" action="">
+							<?php wp_nonce_field('so_ssl_privacy_acknowledgment', 'so_ssl_privacy_nonce'); ?>
 
-                        <div class="so-ssl-privacy-actions">
-                            <button type="submit" name="so_ssl_privacy_submit" value="1" class="so-ssl-privacy-submit" id="privacy-submit-btn">
-								<?php esc_html_e('Continue', 'so-ssl'); ?>
-                            </button>
-                        </div>
-                    </form>
+                            <div class="so-ssl-privacy-checkbox">
+                                <label>
+                                    <input type="checkbox" id="privacy_accept" name="so_ssl_privacy_accept" value="1">
+									<?php echo esc_html($checkbox_text); ?>
+                                </label>
+                            </div>
 
-					<?php if ($show_error): ?>
-                        <div class="so-ssl-privacy-error">
-							<?php esc_html_e('You must acknowledge the privacy notice to continue.', 'so-ssl'); ?>
-                        </div>
-					<?php endif; ?>
+                            <div class="so-ssl-privacy-actions">
+                                <button type="submit" name="so_ssl_privacy_submit" value="1" class="so-ssl-privacy-submit" id="privacy-submit-btn">
+									<?php esc_html_e('Continue', 'so-ssl'); ?>
+                                </button>
+
+                                <a href="<?php echo esc_url(wp_logout_url(home_url())); ?>" class="so-ssl-privacy-logout">
+									<?php esc_html_e('Disagree and logout', 'so-ssl'); ?>
+                                </a>
+                            </div>
+                        </form>
+
+						<?php if ($show_error): ?>
+                            <div class="so-ssl-privacy-error">
+								<?php esc_html_e('You must acknowledge the privacy notice to continue.', 'so-ssl'); ?>
+                            </div>
+						<?php endif; ?>
+                    </div>
                 </div>
-            </div>
-
-            <div class="so-ssl-privacy-links">
-                <a href="<?php echo esc_url(wp_logout_url(home_url())); ?>">
-					<?php esc_html_e('Disagree and logout', 'so-ssl'); ?>
-                </a>
             </div>
         </div>
 
@@ -474,13 +495,35 @@ class So_SSL_Privacy_Compliance {
                     updateButton();
                     checkbox.addEventListener('change', updateButton);
                 }
+
+                // Prevent closing the modal by clicking outside
+                var overlay = document.querySelector('.so-ssl-privacy-modal-overlay');
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === overlay) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                });
             });
         </script>
-
-		<?php wp_footer(); ?>
-        </body>
-        </html>
 		<?php
+	}
+
+	/**
+	 * Display privacy page (fallback for compatibility)
+	 */
+	public static function display_privacy_page() {
+		// Ensure user is logged in
+		if (!is_user_logged_in()) {
+			auth_redirect();
+		}
+
+		// Set the filter to show the modal
+		add_filter('so_ssl_show_privacy_modal', '__return_true');
+
+		// Display the modal
+		self::maybe_add_privacy_modal();
+		exit;
 	}
 
 	public static function enqueue_admin_scripts($hook) {
@@ -735,9 +778,6 @@ class So_SSL_Privacy_Compliance {
 
 	/**
 	 * Privacy compliance section description
-	 *
-	 * @since    1.4.5
-	 * @access   private
 	 */
 	public static function privacy_compliance_section_callback() {
 		echo '<p>' . esc_html__('Configure privacy compliance settings to inform users about data collection and tracking.', 'so-ssl') . '</p>';
@@ -773,9 +813,6 @@ class So_SSL_Privacy_Compliance {
 
 	/**
 	 * Privacy page slug field callback
-	 *
-	 * @since    1.4.0
-	 * @access   private
 	 */
 	public static function privacy_page_slug_callback() {
 		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
@@ -795,10 +832,6 @@ class So_SSL_Privacy_Compliance {
 
 	/**
 	 * Privacy notice text field callback
-	 *
-	 * @since    1.4.4
-	 * @access   private
-	 *
 	 */
 	public static function privacy_notice_text_callback() {
 		$notice_text = get_option('so_ssl_privacy_notice_text', 'This site tracks certain information for security purposes including IP addresses, login attempts, and session data. By using this site, you acknowledge and consent to this data collection in accordance with our Privacy Policy and applicable data protection laws including GDPR and US privacy regulations.');
@@ -910,7 +943,6 @@ class So_SSL_Privacy_Compliance {
 		<?php
 	}
 
-
 	/**
 	 * Show troubleshooting section with flush rewrite rules button
 	 */
@@ -941,7 +973,7 @@ class So_SSL_Privacy_Compliance {
 	}
 
 	/**
-	 * Add JavaScript to update the preview in real-time
+	 * Add JavaScript to admin footer
 	 */
 	public static function add_admin_footer_js() {
 		?>
