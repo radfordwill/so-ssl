@@ -23,9 +23,13 @@ class So_SSL_Privacy_Compliance {
 
 		// Handle template loading and form processing - must be early
 		add_action('template_redirect', array(__CLASS__, 'handle_privacy_page'), 5);
+		add_action('admin_init', array(__CLASS__, 'handle_privacy_page'), 5);
 
-		// Check if user has acknowledged the privacy notice - must be later
+		// Check if user has acknowledged the privacy notice - for front-end
 		add_action('template_redirect', array(__CLASS__, 'check_privacy_acknowledgment'), 20);
+
+		// Check if user has acknowledged the privacy notice - for admin
+		add_action('admin_init', array(__CLASS__, 'check_privacy_acknowledgment_admin'), 20);
 
 		// Add acknowledgment page
 		add_action('wp_login', array(__CLASS__, 'flag_user_for_privacy_check'), 10, 2);
@@ -106,59 +110,95 @@ class So_SSL_Privacy_Compliance {
 		exit;
 	}
 
-	public static function enqueue_admin_scripts($hook) {
-		// Only load on our plugin's settings page
-		if (strpos($hook, 'so-ssl') !== false || $hook === 'settings_page_so-ssl') {
-			wp_enqueue_editor();
-			wp_enqueue_media();
-		}
-	}
-
 	/**
-	 * Flag user for privacy check after login
-	 *
-	 * @param string $user_login The username
-	 * @param WP_User $user The user object
+	 * Check privacy acknowledgment for admin pages
 	 */
-	public static function flag_user_for_privacy_check($user_login, $user) {
-		// Check if user requires acknowledgment based on role
-		$required_roles = get_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
-		$exempt_admins = get_option('so_ssl_privacy_exempt_admins', true);
+	public static function check_privacy_acknowledgment_admin() {
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
 
-		$user_requires_check = false;
-
-		// If administrator exemption is enabled and user is admin, skip check
-		if ($exempt_admins && user_can($user->ID, 'manage_options')) {
+		// Skip if this is a logout request
+		if (isset($_GET['action']) && $_GET['action'] === 'logout') {
 			return;
 		}
 
-		// Check if user has any of the required roles
-		foreach ($user->roles as $role) {
+		// Skip for AJAX, Cron, CLI requests
+		if (wp_doing_ajax() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
+			return;
+		}
+
+		// Only check for logged-in users
+		if (!is_user_logged_in()) {
+			return;
+		}
+
+		// Don't check if we're already on the privacy page
+		if (isset($_GET[$page_slug]) && $_GET[$page_slug] == '1') {
+			return;
+		}
+
+		// Skip if we're on the privacy acknowledgment page URL
+		$request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+		if (strpos($request_uri, $page_slug.'=1') !== false) {
+			return;
+		}
+
+		// Get current user
+		$current_user = wp_get_current_user();
+		$user_id = $current_user->ID;
+
+		// Check if admins are exempt
+		$exempt_admins = get_option('so_ssl_privacy_exempt_admins', true);
+		if ($exempt_admins && current_user_can('manage_options')) {
+			return;
+		}
+
+		// Special check for the original admin (user ID 1)
+		$exempt_original_admin = get_option('so_ssl_privacy_exempt_original_admin', true);
+		if ($exempt_original_admin && $user_id === 1) {
+			return;
+		}
+
+		// Check user role requirements
+		$required_roles = get_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
+		$user_requires_check = false;
+
+		foreach ($current_user->roles as $role) {
 			if (in_array($role, $required_roles)) {
 				$user_requires_check = true;
 				break;
 			}
 		}
 
-		// If user doesn't need to check, exit early
 		if (!$user_requires_check) {
 			return;
 		}
 
-		// Check acknowledgment status
-		$acknowledgment = get_user_meta($user->ID, 'so_ssl_privacy_acknowledged', true);
+		// Force fresh check of user meta
+		clean_user_cache($user_id);
+		wp_cache_delete($user_id, 'user_meta');
+
+		// Check acknowledgment status - use get_user_meta with single=true
+		$acknowledgment = get_user_meta($user_id, 'so_ssl_privacy_acknowledged', true);
 		$expiry_days = intval(get_option('so_ssl_privacy_expiry_days', 30));
 
 		// Check if acknowledgment has expired or doesn't exist
 		if (empty($acknowledgment) ||
+		    (intval($acknowledgment) === 0) ||
 		    (time() - intval($acknowledgment)) > ($expiry_days * DAY_IN_SECONDS)) {
-			// Set session cookie to indicate privacy notice needed
-			setcookie('so_ssl_privacy_needed', '1', 0, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+
+			// Save current URL for redirect after acknowledgment
+			$current_url = (is_ssl() ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+			setcookie('so_ssl_privacy_redirect', $current_url, 0, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+
+			// Redirect to privacy acknowledgment page
+			$privacy_url = add_query_arg($page_slug, '1', admin_url('index.php'));
+			wp_safe_redirect($privacy_url);
+			exit;
 		}
 	}
 
 	/**
-	 * Check if user has acknowledged the privacy notice
+	 * Check if user has acknowledged the privacy notice - for front-end
 	 */
 	public static function check_privacy_acknowledgment() {
 		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
@@ -221,9 +261,6 @@ class So_SSL_Privacy_Compliance {
 		// Check acknowledgment status - use get_user_meta with single=true
 		$acknowledgment = get_user_meta($user_id, 'so_ssl_privacy_acknowledged', true);
 		$expiry_days = intval(get_option('so_ssl_privacy_expiry_days', 30));
-
-		// Debug logging (remove in production)
-		error_log('Privacy check for user ' . $user_id . ': ' . print_r($acknowledgment, true));
 
 		// Check if acknowledgment has expired or doesn't exist
 		if (empty($acknowledgment) ||
@@ -446,6 +483,57 @@ class So_SSL_Privacy_Compliance {
 		<?php
 	}
 
+	public static function enqueue_admin_scripts($hook) {
+		// Only load on our plugin's settings page
+		if (strpos($hook, 'so-ssl') !== false || $hook === 'settings_page_so-ssl') {
+			wp_enqueue_editor();
+			wp_enqueue_media();
+		}
+	}
+
+	/**
+	 * Flag user for privacy check after login
+	 *
+	 * @param string $user_login The username
+	 * @param WP_User $user The user object
+	 */
+	public static function flag_user_for_privacy_check($user_login, $user) {
+		// Check if user requires acknowledgment based on role
+		$required_roles = get_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
+		$exempt_admins = get_option('so_ssl_privacy_exempt_admins', true);
+
+		$user_requires_check = false;
+
+		// If administrator exemption is enabled and user is admin, skip check
+		if ($exempt_admins && user_can($user->ID, 'manage_options')) {
+			return;
+		}
+
+		// Check if user has any of the required roles
+		foreach ($user->roles as $role) {
+			if (in_array($role, $required_roles)) {
+				$user_requires_check = true;
+				break;
+			}
+		}
+
+		// If user doesn't need to check, exit early
+		if (!$user_requires_check) {
+			return;
+		}
+
+		// Check acknowledgment status
+		$acknowledgment = get_user_meta($user->ID, 'so_ssl_privacy_acknowledged', true);
+		$expiry_days = intval(get_option('so_ssl_privacy_expiry_days', 30));
+
+		// Check if acknowledgment has expired or doesn't exist
+		if (empty($acknowledgment) ||
+		    (time() - intval($acknowledgment)) > ($expiry_days * DAY_IN_SECONDS)) {
+			// Set session cookie to indicate privacy notice needed
+			setcookie('so_ssl_privacy_needed', '1', 0, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+		}
+	}
+
 	/**
 	 * Fix logout URL to prevent privacy compliance interference
 	 *
@@ -563,6 +651,16 @@ class So_SSL_Privacy_Compliance {
 		register_setting(
 			'so_ssl_options',
 			'so_ssl_privacy_exempt_admins',
+			array(
+				'type' => 'boolean',
+				'sanitize_callback' => 'intval',
+				'default' => true,
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_privacy_exempt_original_admin',
 			array(
 				'type' => 'boolean',
 				'sanitize_callback' => 'intval',
@@ -772,6 +870,74 @@ class So_SSL_Privacy_Compliance {
 		echo '</label>';
 		echo '<p class="description">' . esc_html__('When checked, the original admin user (ID 1) will never be required to acknowledge the privacy notice.', 'so-ssl') . '</p>';
 		echo '</div>';
+	}
+
+	/**
+	 * Privacy troubleshooting callback
+	 */
+	public static function privacy_troubleshoot_callback() {
+		// Call the function directly that outputs the properly escaped HTML
+		self::output_flush_rules_button();
+	}
+
+	/**
+	 * Output the troubleshooting section with flush rewrite rules button
+	 * This outputs directly rather than returning a string
+	 */
+	public static function output_flush_rules_button() {
+		// Only show to admins
+		if (!current_user_can('manage_options')) {
+			return;
+		}
+
+		// Process the flush if requested
+		if (isset($_POST['so_ssl_flush_rules_nonce']) &&
+		    wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_flush_rules_nonce'])), 'so_ssl_flush_rules')) {
+			flush_rewrite_rules();
+			echo '<div class="notice notice-success"><p>' . esc_html__('Rewrite rules have been flushed successfully.', 'so-ssl') . '</p></div>';
+		}
+
+		// Display the button
+		?>
+        <div class="so-ssl-admin-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #72aee6;">
+            <h3><?php esc_html_e('Troubleshooting', 'so-ssl'); ?></h3>
+            <p><?php esc_html_e('If the privacy page is returning a 404 error, try flushing the rewrite rules:', 'so-ssl'); ?></p>
+            <form method="post">
+				<?php wp_nonce_field('so_ssl_flush_rules', 'so_ssl_flush_rules_nonce'); ?>
+                <input type="submit" class="button button-secondary" value="<?php esc_attr_e('Flush Rewrite Rules', 'so-ssl'); ?>">
+            </form>
+        </div>
+		<?php
+	}
+
+
+	/**
+	 * Show troubleshooting section with flush rewrite rules button
+	 */
+	public static function add_flush_rules_button() {
+		// Only show to admins
+		if (!current_user_can('manage_options')) {
+			return;
+		}
+
+		// Process the flush if requested
+		if (isset($_POST['so_ssl_flush_rules_nonce']) &&
+		    wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_flush_rules_nonce'])), 'so_ssl_flush_rules')) {
+			flush_rewrite_rules();
+			echo '<div class="notice notice-success"><p>' . esc_html__('Rewrite rules have been flushed successfully.', 'so-ssl') . '</p></div>';
+		}
+
+		// Display the button
+		?>
+        <div class="so-ssl-admin-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #72aee6;">
+            <h3><?php esc_html_e('Troubleshooting', 'so-ssl'); ?></h3>
+            <p><?php esc_html_e('If the privacy page is returning a 404 error, try flushing the rewrite rules:', 'so-ssl'); ?></p>
+            <form method="post">
+				<?php wp_nonce_field('so_ssl_flush_rules', 'so_ssl_flush_rules_nonce'); ?>
+                <input type="submit" class="button button-secondary" value="<?php esc_attr_e('Flush Rewrite Rules', 'so-ssl'); ?>">
+            </form>
+        </div>
+		<?php
 	}
 
 	/**
