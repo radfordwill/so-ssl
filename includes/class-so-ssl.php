@@ -50,6 +50,14 @@ class So_SSL {
         $this->plugin_path = SO_SSL_PATH;
         $this->plugin_url = SO_SSL_URL;
 
+	    // Ensure plugin path and URL are never null
+	    if (empty($this->plugin_path)) {
+		    $this->plugin_path = dirname(__FILE__) . '/';
+	    }
+	    if (empty($this->plugin_url)) {
+		    $this->plugin_url = plugins_url('/', __FILE__);
+	    }
+
         $this->load_dependencies();
     }
 
@@ -174,17 +182,26 @@ class So_SSL {
      *
      * @since    1.0.2
      */
-    public function add_admin_menu() {
-        add_options_page(
-            /* translators: %s: Plugin Settings*/
-            __('So SSL Settings', 'so-ssl'),
-            /* translators: %s: Plugin Title */
-            __('So SSL', 'so-ssl'),
-            'manage_options',
-            'so-ssl',
-            array($this, 'display_options_page')
-        );
-    }
+	public function add_admin_menu() {
+		$page_title = __('So SSL Settings', 'so-ssl');
+		$menu_title = __('So SSL', 'so-ssl');
+
+		// Ensure titles are never null
+		if (empty($page_title)) {
+			$page_title = 'So SSL Settings';
+		}
+		if (empty($menu_title)) {
+			$menu_title = 'So SSL';
+		}
+
+		add_options_page(
+			'So SSL Settings',  // Use string literal as fallback
+			'So SSL',          // Use string literal as fallback
+			'manage_options',
+			'so-ssl',
+			array($this, 'display_options_page')
+		);
+	}
 
     /**
      * Enqueue admin styles
@@ -418,20 +435,89 @@ class So_SSL {
                 <!-- Two-Factor Authentication Tab -->
                 <div id="two-factor" class="settings-tab">
                     <h2><?php esc_html_e('Two-Factor Authentication', 'so-ssl'); ?></h2>
-                    <?php
-                    do_settings_sections('so-ssl-2fa');
-                    ?>
 
-                    <?php if (get_option('so_ssl_enable_2fa', 0)): ?>
-                    <div class="so-ssl-notice">
-                        <p><strong><?php esc_html_e('Next Steps:', 'so-ssl'); ?></strong></p>
-                        <ol>
-                            <li><?php esc_html_e('Enable 2FA for specific user roles above', 'so-ssl'); ?></li>
-                            <li><?php esc_html_e('Users will need to configure 2FA in their profile settings', 'so-ssl'); ?></li>
-                            <li><?php esc_html_e('Users should generate backup codes for emergency access', 'so-ssl'); ?></li>
-                        </ol>
+                    <!-- Administrator Setup Guide -->
+                    <div class="so-ssl-admin-guide" style="background: #f0f6fc; border-left: 4px solid #2271b1; padding: 20px; margin-bottom: 20px; border-radius: 0 4px 4px 0;">
+                        <h3 style="margin-top: 0; color: #2271b1;">
+                            <span class="dashicons dashicons-admin-users" style="margin-right: 5px;"></span>
+				            <?php esc_html_e('Administrator Setup Guide', 'so-ssl'); ?>
+                        </h3>
+
+                        <div style="margin-bottom: 20px;">
+                            <h4><?php esc_html_e('Step 1: Choose Authentication Method', 'so-ssl'); ?></h4>
+                            <ul style="list-style-type: disc; margin-left: 20px;">
+                                <li><strong><?php esc_html_e('Email Verification:', 'so-ssl'); ?></strong> <?php esc_html_e('Easier to set up, sends codes via email. Good for most users.', 'so-ssl'); ?></li>
+                                <li><strong><?php esc_html_e('Authenticator App:', 'so-ssl'); ?></strong> <?php esc_html_e('More secure, requires mobile app. Best for administrators and high-privilege users.', 'so-ssl'); ?></li>
+                            </ul>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <h4><?php esc_html_e('Step 2: Select User Roles', 'so-ssl'); ?></h4>
+                            <p><?php esc_html_e('Choose which user roles will be required to use 2FA. We recommend:', 'so-ssl'); ?></p>
+                            <ul style="list-style-type: disc; margin-left: 20px;">
+                                <li><?php esc_html_e('Administrators - Always enable (highest privileges)', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Editors - Recommended (can publish content)', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Authors - Optional (can write posts)', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Subscribers - Usually not needed', 'so-ssl'); ?></li>
+                            </ul>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <h4><?php esc_html_e('Step 3: User Setup Process', 'so-ssl'); ?></h4>
+                            <p><?php esc_html_e('After enabling 2FA, users must:', 'so-ssl'); ?></p>
+                            <ol style="margin-left: 20px;">
+                                <li><?php esc_html_e('Go to their WordPress profile page', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Enable 2FA in the "Two-Factor Authentication" section', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Complete the setup process for their chosen method', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Generate and save backup codes', 'so-ssl'); ?></li>
+                            </ol>
+                        </div>
+
+                        <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px;">
+                            <h4 style="margin-top: 0; color: #856404;">
+                                <span class="dashicons dashicons-warning" style="color: #856404;"></span>
+					            <?php esc_html_e('Important Considerations', 'so-ssl'); ?>
+                            </h4>
+                            <ul style="list-style-type: disc; margin-left: 20px;">
+                                <li><?php esc_html_e('Test 2FA with a test account before enabling for all users', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Ensure users have valid email addresses for email verification', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Educate users about backup codes and keeping them safe', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Have a recovery plan if users lose access to their 2FA method', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Consider creating documentation for your users', 'so-ssl'); ?></li>
+                            </ul>
+                        </div>
                     </div>
-                    <?php endif; ?>
+
+		            <?php
+		            do_settings_sections('so-ssl-2fa');
+		            ?>
+
+		            <?php if (get_option('so_ssl_enable_2fa', 0)): ?>
+                        <div class="so-ssl-notice" style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin-top: 20px;">
+                            <h4 style="margin-top: 0; color: #155724;"><?php esc_html_e('✓ Two-Factor Authentication is Enabled', 'so-ssl'); ?></h4>
+                            <p><strong><?php esc_html_e('Next Steps:', 'so-ssl'); ?></strong></p>
+                            <ol>
+                                <li><?php esc_html_e('Verify the authentication method is set correctly above', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Check that the correct user roles are selected', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Inform users to set up 2FA in their profile settings', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Test the 2FA login process with a test account', 'so-ssl'); ?></li>
+                                <li><?php esc_html_e('Monitor for any user issues or support requests', 'so-ssl'); ?></li>
+                            </ol>
+
+                            <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                                <p style="margin: 0;">
+                                    <strong><?php esc_html_e('Quick Links:', 'so-ssl'); ?></strong>
+                                    <a href="<?php echo admin_url('profile.php#so_ssl_2fa_enabled'); ?>" style="margin: 0 10px;"><?php esc_html_e('Your 2FA Settings', 'so-ssl'); ?></a>
+                                    <a href="<?php echo admin_url('users.php'); ?>" style="margin: 0 10px;"><?php esc_html_e('User Management', 'so-ssl'); ?></a>
+                                </p>
+                            </div>
+                        </div>
+		            <?php else: ?>
+                        <div class="so-ssl-notice" style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin-top: 20px;">
+                            <h4 style="margin-top: 0; color: #721c24;"><?php esc_html_e('Two-Factor Authentication is Disabled', 'so-ssl'); ?></h4>
+                            <p><?php esc_html_e('Enable 2FA above to add an extra layer of security to your WordPress login process.', 'so-ssl'); ?></p>
+                        </div>
+		            <?php endif; ?>
                 </div>
 
                 <!-- Login Protection Tab -->
@@ -1282,6 +1368,16 @@ class So_SSL {
 			)
 		);
 
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_privacy_exempt_original_admin',
+			array(
+				'type' => 'boolean',
+				'sanitize_callback' => 'intval',
+				'default' => true,
+			)
+		);
+
 		// Add settings fields
 		add_settings_field(
 			'so_ssl_enable_privacy_compliance',
@@ -1400,6 +1496,31 @@ class So_SSL {
 				'type' => 'integer',
 				'sanitize_callback' => 'intval',
 				'default' => 365,
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_admin_agreement_required_roles',
+			array(
+				'type' => 'array',
+				'sanitize_callback' => function($input) {
+					if (!is_array($input)) {
+						return array('administrator');
+					}
+					return array_map('sanitize_text_field', $input);
+				},
+				'default' => array('administrator'),
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_admin_agreement_exempt_original_admin',
+			array(
+				'type' => 'boolean',
+				'sanitize_callback' => 'intval',
+				'default' => true,
 			)
 		);
 
@@ -1566,6 +1687,16 @@ class So_SSL {
 		echo '</label>';
 		echo '<p class="description">' . esc_html__('When checked, administrators will never be required to acknowledge the privacy notice, regardless of role selection above.', 'so-ssl') . '</p>';
 		echo '</div>';
+
+		// Add option to exempt original admin (user ID 1)
+		$exempt_original_admin = get_option('so_ssl_privacy_exempt_original_admin', true);
+		echo '<div style="margin-top: 10px;">';
+		echo '<label for="so_ssl_privacy_exempt_original_admin">';
+		echo '<input type="checkbox" id="so_ssl_privacy_exempt_original_admin" name="so_ssl_privacy_exempt_original_admin" value="1" ' . checked(1, $exempt_original_admin, false) . '/>';
+		echo esc_html__('Always exempt original admin (user ID 1)', 'so-ssl');
+		echo '</label>';
+		echo '<p class="description">' . esc_html__('When checked, the original admin user (ID 1) will never be required to acknowledge the privacy notice.', 'so-ssl') . '</p>';
+		echo '</div>';
 	}
 
 	/**
@@ -1652,15 +1783,29 @@ class So_SSL {
         }
     }
 
-/**
- * Two-Factor Authentication section description.
- *
- * @since    1.2.0
- */
-public function two_factor_section_callback() {
-    echo '<p>' . esc_html__('Configure Two-Factor Authentication (2FA) settings for your WordPress users.', 'so-ssl') . '</p>';
-    echo '<p>' . esc_html__('Two-Factor Authentication adds an extra layer of security by requiring a second verification method in addition to the password.', 'so-ssl') . '</p>';
-}
+	/**
+	 * Two-Factor Authentication section description.
+	 *
+	 * @since    1.2.0
+	 */
+	public function two_factor_section_callback() {
+		echo '<p>' . esc_html__('Configure Two-Factor Authentication (2FA) settings for your WordPress users.', 'so-ssl') . '</p>';
+		echo '<p>' . esc_html__('Two-Factor Authentication adds an extra layer of security by requiring a second verification method in addition to the password.', 'so-ssl') . '</p>';
+
+		// Quick setup checklist
+		echo '<div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-top: 15px;">';
+		echo '<h4 style="margin-top: 0;">' . esc_html__('Quick Setup Checklist:', 'so-ssl') . '</h4>';
+		echo '<ol style="margin-bottom: 0;">';
+		echo '<li>' . esc_html__('Enable 2FA below', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('Choose authentication method (email or app)', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('Select which user roles require 2FA', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('Save settings', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('Set up 2FA in your own profile first', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('Test the login process', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('Communicate with users about the new requirement', 'so-ssl') . '</li>';
+		echo '</ol>';
+		echo '</div>';
+	}
 
 /**
  * Password Security section description.
@@ -1724,20 +1869,49 @@ public function disable_weak_passwords_callback() {
 		echo '<p class="description">' . esc_html__('Select which user roles will be required to use Two-Factor Authentication. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
 	}
 
-/**
- * Two-Factor Authentication method field callback.
- *
- * @since    1.2.0
- */
-public function two_factor_method_callback() {
-    $method = get_option('so_ssl_2fa_method', 'email');
+	/**
+	 * Two-Factor Authentication method field callback.
+	 *
+	 * @since    1.2.0
+	 */
+	public function two_factor_method_callback() {
+		$method = get_option('so_ssl_2fa_method', 'email');
 
-    echo '<select id="so_ssl_2fa_method" name="so_ssl_2fa_method">';
-    echo '<option value="email" ' . selected('email', $method, false) . '>' . esc_html__('Email - Send verification code via email', 'so-ssl') . '</option>';
-    echo '<option value="authenticator" ' . selected('authenticator', $method, false) . '>' . esc_html__('Authenticator App - Use Google Authenticator or similar apps', 'so-ssl') . '</option>';
-    echo '</select>';
-    echo '<p class="description">' . esc_html__('Select the Two-Factor Authentication method to use.', 'so-ssl') . '</p>';
-}
+		echo '<select id="so_ssl_2fa_method" name="so_ssl_2fa_method">';
+		echo '<option value="email" ' . selected('email', $method, false) . '>' . esc_html__('Email - Send verification code via email', 'so-ssl') . '</option>';
+		echo '<option value="authenticator" ' . selected('authenticator', $method, false) . '>' . esc_html__('Authenticator App - Use Google Authenticator or similar apps', 'so-ssl') . '</option>';
+		echo '</select>';
+		echo '<p class="description">' . esc_html__('Select the Two-Factor Authentication method to use.', 'so-ssl') . '</p>';
+
+		// Add detailed method comparison
+		echo '<div style="margin-top: 15px; display: flex; gap: 20px;">';
+
+		// Email method info
+		echo '<div style="flex: 1; background: #f0f6fc; padding: 15px; border-radius: 4px;">';
+		echo '<h4 style="margin-top: 0; color: #2271b1;">' . esc_html__('Email Method', 'so-ssl') . '</h4>';
+		echo '<ul style="margin: 0; padding-left: 20px;">';
+		echo '<li>' . esc_html__('✓ Easy to set up', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('✓ No app required', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('✓ Works on any device', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('✗ Requires email access', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('✗ Less secure than app', 'so-ssl') . '</li>';
+		echo '</ul>';
+		echo '</div>';
+
+		// Authenticator method info
+		echo '<div style="flex: 1; background: #f0f6fc; padding: 15px; border-radius: 4px;">';
+		echo '<h4 style="margin-top: 0; color: #2271b1;">' . esc_html__('Authenticator App', 'so-ssl') . '</h4>';
+		echo '<ul style="margin: 0; padding-left: 20px;">';
+		echo '<li>' . esc_html__('✓ More secure', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('✓ Works offline', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('✓ Instant codes', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('✗ Requires smartphone', 'so-ssl') . '</li>';
+		echo '<li>' . esc_html__('✗ Initial setup needed', 'so-ssl') . '</li>';
+		echo '</ul>';
+		echo '</div>';
+
+		echo '</div>';
+	}
 
 /**
  * HSTS section description.

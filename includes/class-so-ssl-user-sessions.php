@@ -146,16 +146,23 @@ class So_SSL_User_Sessions {
     /**
      * Add admin menu for global sessions management
      */
-    public static function add_sessions_menu() {
-        add_submenu_page(
-            'options-general.php',
-            __('User Sessions', 'so-ssl'),
-            __('User Sessions', 'so-ssl'),
-            'manage_options',
-            'so-ssl-sessions',
-            array('So_SSL_User_Sessions', 'display_sessions_page')
-        );
-    }
+	public static function add_sessions_menu() {
+		$page_title = __('User Sessions', 'so-ssl');
+		$menu_title = __('User Sessions', 'so-ssl');
+
+		// Ensure titles are never null
+		$page_title = !empty($page_title) ? $page_title : 'User Sessions';
+		$menu_title = !empty($menu_title) ? $menu_title : 'User Sessions';
+
+		add_submenu_page(
+			'options-general.php',
+			$page_title,
+			$menu_title,
+			'manage_options',
+			'so-ssl-sessions',
+			array('So_SSL_User_Sessions', 'display_sessions_page')
+		);
+	}
 
     /**
      * Display global sessions management page

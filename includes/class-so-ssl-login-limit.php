@@ -384,16 +384,23 @@ class So_SSL_Login_Limit {
     /**
      * Add admin menu for login limiting
      */
-    public static function add_login_limit_menu() {
-        add_submenu_page(
-            'options-general.php',
-            esc_html__('Login Security', 'so-ssl'),
-            esc_html__('Login Security', 'so-ssl'),
-            'manage_options',
-            'class-so-ssl-login-limit',
-            array('So_SSL_Login_Limit', 'display_login_limit_page')
-        );
-    }
+	public static function add_login_limit_menu() {
+		$page_title = __('Login Security', 'so-ssl');
+		$menu_title = __('Login Security', 'so-ssl');
+
+		// Ensure titles are never null
+		$page_title = !empty($page_title) ? $page_title : 'Login Security';
+		$menu_title = !empty($menu_title) ? $menu_title : 'Login Security';
+
+		add_submenu_page(
+			'options-general.php',
+			$page_title,
+			$menu_title,
+			'manage_options',
+			'class-so-ssl-login-limit',
+			array('So_SSL_Login_Limit', 'display_login_limit_page')
+		);
+	}
 
     /**
      * Display login limiting admin page

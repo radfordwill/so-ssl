@@ -97,8 +97,32 @@ class So_SSL_Admin_Agreement {
 			return;
 		}
 
+		// Get current user
+		$current_user = wp_get_current_user();
+		$user_id = $current_user->ID;
+
+		// Check if original admin (user ID 1) is exempt
+		$exempt_original_admin = get_option('so_ssl_admin_agreement_exempt_original_admin', true);
+		if ($exempt_original_admin && $user_id === 1) {
+			return;
+		}
+
+		// Check user role requirements
+		$required_roles = get_option('so_ssl_admin_agreement_required_roles', array('administrator'));
+		$user_requires_check = false;
+
+		foreach ($current_user->roles as $role) {
+			if (in_array($role, $required_roles)) {
+				$user_requires_check = true;
+				break;
+			}
+		}
+
+		if (!$user_requires_check) {
+			return;
+		}
+
 		// Check if admin has already agreed
-		$user_id = get_current_user_id();
 		$agreement = get_user_meta($user_id, 'so_ssl_admin_agreement_accepted', true);
 		$expiry_days = intval(get_option('so_ssl_admin_agreement_expiry_days', 365));
 
@@ -293,6 +317,32 @@ class So_SSL_Admin_Agreement {
 			)
 		);
 
+		// Add new settings for role selection and original admin exemption
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_admin_agreement_required_roles',
+			array(
+				'type' => 'array',
+				'sanitize_callback' => function($input) {
+					if (!is_array($input)) {
+						return array('administrator');
+					}
+					return array_map('sanitize_text_field', $input);
+				},
+				'default' => array('administrator'),
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_admin_agreement_exempt_original_admin',
+			array(
+				'type' => 'boolean',
+				'sanitize_callback' => 'intval',
+				'default' => true,
+			)
+		);
+
 		// Admin Agreement Settings Section
 		add_settings_section(
 			'so_ssl_admin_agreement_section',
@@ -337,6 +387,15 @@ class So_SSL_Admin_Agreement {
 			'so_ssl_admin_agreement_expiry_days',
 			__('Agreement Expiry (Days)', 'so-ssl'),
 			array(__CLASS__, 'admin_agreement_expiry_days_callback'),
+			'so-ssl-admin-agreement',
+			'so_ssl_admin_agreement_section'
+		);
+
+		// Add new field for role selection
+		add_settings_field(
+			'so_ssl_admin_agreement_required_roles',
+			__('Required for User Roles', 'so-ssl'),
+			array(__CLASS__, 'admin_agreement_required_roles_callback'),
 			'so-ssl-admin-agreement',
 			'so_ssl_admin_agreement_section'
 		);
@@ -410,6 +469,31 @@ class So_SSL_Admin_Agreement {
 
 		echo '<input type="number" id="so_ssl_admin_agreement_expiry_days" name="so_ssl_admin_agreement_expiry_days" value="' . esc_attr($expiry_days) . '" min="1" max="3650" />';
 		echo '<p class="description">' . esc_html__('Number of days before administrators need to re-accept the agreement. Default is 365 days (yearly).', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Admin agreement required roles field callback
+	 */
+	public static function admin_agreement_required_roles_callback() {
+		$required_roles = get_option('so_ssl_admin_agreement_required_roles', array('administrator'));
+		$roles = wp_roles()->get_names();
+
+		echo '<select multiple id="so_ssl_admin_agreement_required_roles" name="so_ssl_admin_agreement_required_roles[]" class="regular-text" style="height: 120px;">';
+		foreach ($roles as $role_value => $role_name) {
+			echo '<option value="' . esc_attr($role_value) . '" ' . selected(in_array($role_value, $required_roles), true, false) . '>' . esc_html($role_name) . '</option>';
+		}
+		echo '</select>';
+		echo '<p class="description">' . esc_html__('Select which user roles will be required to acknowledge the administrator agreement. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
+
+		// Add option to exempt original admin (user ID 1)
+		$exempt_original_admin = get_option('so_ssl_admin_agreement_exempt_original_admin', false);
+		echo '<div style="margin-top: 10px;">';
+		echo '<label for="so_ssl_admin_agreement_exempt_original_admin">';
+		echo '<input type="checkbox" id="so_ssl_admin_agreement_exempt_original_admin" name="so_ssl_admin_agreement_exempt_original_admin" value="1" ' . checked(1, $exempt_original_admin, false) . '/>';
+		echo esc_html__('Always exempt original admin (user ID 1)', 'so-ssl');
+		echo '</label>';
+		echo '<p class="description">' . esc_html__('When checked, the original admin user (ID 1) will never be required to acknowledge the admin agreement.', 'so-ssl') . '</p>';
+		echo '</div>';
 	}
 
 	/**
@@ -489,7 +573,7 @@ class So_SSL_Admin_Agreement {
                 background: #2271b1;
                 border-color: #2271b1;
                 color: #fff;
-                padding: 7px 15px;
+                padding: 8px 15px;
                 height: auto;
                 transition: all 0.2s ease;
             }
