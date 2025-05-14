@@ -1499,6 +1499,31 @@ class So_SSL {
 			)
 		);
 
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_admin_agreement_required_roles',
+			array(
+				'type' => 'array',
+				'sanitize_callback' => function($input) {
+					if (!is_array($input)) {
+						return array('administrator');
+					}
+					return array_map('sanitize_text_field', $input);
+				},
+				'default' => array('administrator'),
+			)
+		);
+
+		register_setting(
+			'so_ssl_options',
+			'so_ssl_admin_agreement_exempt_original_admin',
+			array(
+				'type' => 'boolean',
+				'sanitize_callback' => 'intval',
+				'default' => true,
+			)
+		);
+
 		// Admin Agreement Settings Section
 		add_settings_section(
 			'so_ssl_admin_agreement_section',

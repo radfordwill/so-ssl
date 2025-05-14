@@ -125,6 +125,10 @@ function activate_so_ssl() {
     // Login Protection
     add_option('so_ssl_disable_weak_passwords', 0);
 
+	// Admin Agreement exempt the original admin
+	add_option('so_ssl_admin_agreement_required_roles', array('administrator'));
+	add_option('so_ssl_admin_agreement_exempt_original_admin', true);
+
     // Define default permissions
     $permissions = array(
         'accelerometer', 'ambient-light-sensor', 'autoplay', 'battery', 'camera',
