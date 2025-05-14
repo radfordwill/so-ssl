@@ -21,8 +21,11 @@ class So_SSL_Privacy_Compliance {
 			return;
 		}
 
-		// Check if user has acknowledged the privacy notice
-		add_action('init', array(__CLASS__, 'check_privacy_acknowledgment'));
+		// Handle template loading and form processing - must be early
+		add_action('template_redirect', array(__CLASS__, 'handle_privacy_page'), 5);
+
+		// Check if user has acknowledged the privacy notice - must be later
+		add_action('template_redirect', array(__CLASS__, 'check_privacy_acknowledgment'), 20);
 
 		// Add acknowledgment page
 		add_action('wp_login', array(__CLASS__, 'flag_user_for_privacy_check'), 10, 2);
@@ -35,8 +38,73 @@ class So_SSL_Privacy_Compliance {
 
 		// Fix logout links
 		add_filter('logout_url', array(__CLASS__, 'fix_logout_url'), 10, 2);
+	}
 
-    }
+	/**
+	 * Handle privacy page display and form processing
+	 */
+	public static function handle_privacy_page() {
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+
+		// Check if we're on the privacy page
+		if (!isset($_GET[$page_slug]) || $_GET[$page_slug] != '1') {
+			return;
+		}
+
+		// Process form submission if present
+		if (isset($_POST['so_ssl_privacy_submit']) && isset($_POST['so_ssl_privacy_nonce'])) {
+			if (wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_privacy_nonce'])), 'so_ssl_privacy_acknowledgment')) {
+				if (isset($_POST['so_ssl_privacy_accept']) && $_POST['so_ssl_privacy_accept'] == '1') {
+					// User has acknowledged
+					$user_id = get_current_user_id();
+
+					if (!$user_id) {
+						wp_die('Error: Unable to identify the current user.');
+					}
+
+					// Save acknowledgment with current timestamp
+					update_user_meta($user_id, 'so_ssl_privacy_acknowledged', time());
+
+					// Force clear any cached data
+					clean_user_cache($user_id);
+					wp_cache_delete($user_id, 'user_meta');
+
+					// Determine redirect URL
+					$redirect = '';
+
+					// Try to get the redirect URL from cookie
+					if (isset($_COOKIE['so_ssl_privacy_redirect'])) {
+						$cookie_redirect = sanitize_url(wp_unslash($_COOKIE['so_ssl_privacy_redirect']));
+						// Only use cookie redirect if it's not the privacy page
+						if ($cookie_redirect && strpos($cookie_redirect, $page_slug.'=1') === false) {
+							$redirect = $cookie_redirect;
+						}
+					}
+
+					// If no valid redirect from cookie, use admin URL
+					if (empty($redirect)) {
+						$redirect = admin_url();
+					}
+
+					// Clear cookies before redirect
+					if (isset($_COOKIE['so_ssl_privacy_needed'])) {
+						setcookie('so_ssl_privacy_needed', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+					}
+					if (isset($_COOKIE['so_ssl_privacy_redirect'])) {
+						setcookie('so_ssl_privacy_redirect', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+					}
+
+					// Do the redirect
+					wp_safe_redirect($redirect);
+					exit;
+				}
+			}
+		}
+
+		// Display the privacy page
+		self::display_privacy_page();
+		exit;
+	}
 
 	public static function enqueue_admin_scripts($hook) {
 		// Only load on our plugin's settings page
@@ -89,44 +157,19 @@ class So_SSL_Privacy_Compliance {
 		}
 	}
 
-   /**
-    *
-    * Check if user has acknowledged the privacy notice
-    *
-    */
-    public static function check_privacy_acknowledgment() {
-            $page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+	/**
+	 * Check if user has acknowledged the privacy notice
+	 */
+	public static function check_privacy_acknowledgment() {
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
 
-	    // Skip if this is a logout request with bypass flag
-	    if ( isset( $_GET['bypass_privacy_check'] ) && $_GET['bypass_privacy_check'] == '1' ) {
-		      return;
-	      }
-
-        // Exclude First admin ( User ID#1 ) from Privacy Acknowledgement Compliance
-		if (defined('SO_SSL_DISABLE_PRIVACY_CHECK') && SO_SSL_DISABLE_PRIVACY_CHECK) {
-			return;
-		}
-
-		// Skip for AJAX, Cron, CLI, or admin-ajax.php requests
-		if (wp_doing_ajax() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI) ||
-		    (isset($_SERVER['SCRIPT_FILENAME']) && strpos(sanitize_text_field(wp_unslash($_SERVER['SCRIPT_FILENAME'])), 'admin-ajax.php') !== false)) {
-			return;
-		}
-
-		// IMPORTANT: Skip for logout action
+		// Skip if this is a logout request
 		if (isset($_GET['action']) && $_GET['action'] === 'logout') {
 			return;
 		}
 
-		// IMPORTANT: Skip for wp-login.php with logout action
-		if (isset($_SERVER['REQUEST_URI']) &&
-		    (strpos($_SERVER['REQUEST_URI'], 'wp-login.php') !== false &&
-		     isset($_GET['action']) && $_GET['action'] === 'logout')) {
-			return;
-		}
-
-		// IMPORTANT: Skip if we're processing the logout
-		if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'logout') {
+		// Skip for AJAX, Cron, CLI requests
+		if (wp_doing_ajax() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
 			return;
 		}
 
@@ -146,8 +189,6 @@ class So_SSL_Privacy_Compliance {
 
 		// Check if admins are exempt
 		$exempt_admins = get_option('so_ssl_privacy_exempt_admins', true);
-
-		// If administrator exemption is enabled and user is admin, skip check
 		if ($exempt_admins && current_user_can('manage_options')) {
 			return;
 		}
@@ -162,7 +203,6 @@ class So_SSL_Privacy_Compliance {
 		$required_roles = get_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
 		$user_requires_check = false;
 
-		// Check if user has any of the required roles
 		foreach ($current_user->roles as $role) {
 			if (in_array($role, $required_roles)) {
 				$user_requires_check = true;
@@ -170,23 +210,273 @@ class So_SSL_Privacy_Compliance {
 			}
 		}
 
-		// If user doesn't need to check, exit early
 		if (!$user_requires_check) {
 			return;
 		}
 
-		// Check acknowledgment status
+		// Force fresh check of user meta
+		clean_user_cache($user_id);
+		wp_cache_delete($user_id, 'user_meta');
+
+		// Check acknowledgment status - use get_user_meta with single=true
 		$acknowledgment = get_user_meta($user_id, 'so_ssl_privacy_acknowledged', true);
 		$expiry_days = intval(get_option('so_ssl_privacy_expiry_days', 30));
 
+		// Debug logging (remove in production)
+		error_log('Privacy check for user ' . $user_id . ': ' . print_r($acknowledgment, true));
+
 		// Check if acknowledgment has expired or doesn't exist
 		if (empty($acknowledgment) ||
+		    (intval($acknowledgment) === 0) ||
 		    (time() - intval($acknowledgment)) > ($expiry_days * DAY_IN_SECONDS)) {
 
+			// Save current URL for redirect after acknowledgment
+			$current_url = (is_ssl() ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+			setcookie('so_ssl_privacy_redirect', $current_url, 0, COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true);
+
 			// Redirect to privacy acknowledgment page
-			wp_redirect(add_query_arg($page_slug, '1', site_url()));
+			$privacy_url = add_query_arg($page_slug, '1', site_url());
+			wp_safe_redirect($privacy_url);
 			exit;
 		}
+	}
+
+	/**
+	 * Display privacy page
+	 */
+	public static function display_privacy_page() {
+		// Ensure user is logged in
+		if (!is_user_logged_in()) {
+			auth_redirect();
+		}
+
+		$page_title = get_option('so_ssl_privacy_page_title', 'Privacy Acknowledgment Required');
+		$notice_text = get_option('so_ssl_privacy_notice_text', '');
+		$checkbox_text = get_option('so_ssl_privacy_checkbox_text', '');
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+
+		// Show error message if form was submitted without checkbox
+		$show_error = false;
+		if (isset($_POST['so_ssl_privacy_submit']) &&
+		    (!isset($_POST['so_ssl_privacy_accept']) || $_POST['so_ssl_privacy_accept'] != '1')) {
+			$show_error = true;
+		}
+
+		?>
+        <!DOCTYPE html>
+        <html <?php language_attributes(); ?>>
+        <head>
+            <meta charset="<?php bloginfo('charset'); ?>">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title><?php echo esc_html($page_title); ?> - <?php bloginfo('name'); ?></title>
+			<?php wp_head(); ?>
+            <style>
+                body {
+                    background: #f0f6fc;
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    line-height: 1.6;
+                }
+                .so-ssl-privacy-page {
+                    max-width: 800px;
+                    margin: 50px auto;
+                    padding: 0;
+                    background: #fff;
+                    border-radius: 5px;
+                    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+                    overflow: hidden;
+                }
+                .so-ssl-privacy-header {
+                    background: #fff;
+                    border-bottom: 1px solid #dcdcde;
+                    padding: 20px 25px;
+                }
+                .so-ssl-privacy-title {
+                    color: #2271b1;
+                    font-size: 24px;
+                    font-weight: 600;
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                }
+                .so-ssl-privacy-title .dashicons {
+                    margin-right: 10px;
+                    color: #2271b1;
+                }
+                .so-ssl-privacy-content {
+                    padding: 25px;
+                    margin-bottom: 0;
+                    line-height: 1.6;
+                    color: #1d2327;
+                }
+                .so-ssl-privacy-form {
+                    padding: 20px 25px;
+                    background: #f8f9fa;
+                    border-top: 1px solid #dcdcde;
+                }
+                .so-ssl-privacy-notice {
+                    background: #f0f6fc;
+                    border-left: 4px solid #2271b1;
+                    padding: 15px 20px;
+                    margin-bottom: 25px;
+                    border-radius: 0 4px 4px 0;
+                }
+                .so-ssl-privacy-checkbox {
+                    margin: 15px 0 20px;
+                }
+                .so-ssl-privacy-checkbox input[type="checkbox"] {
+                    margin-right: 8px;
+                }
+                .so-ssl-privacy-submit {
+                    background: #2271b1;
+                    border: 1px solid #2271b1;
+                    color: #fff;
+                    padding: 8px 15px;
+                    border-radius: 3px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 500;
+                    transition: all 0.2s ease;
+                }
+                .so-ssl-privacy-submit:hover {
+                    background: #135e96;
+                    border-color: #135e96;
+                }
+                .so-ssl-privacy-submit:disabled {
+                    background: #c3c4c7;
+                    border-color: #c3c4c7;
+                    color: #50575e;
+                    cursor: not-allowed;
+                }
+                .so-ssl-privacy-error {
+                    color: #d63638;
+                    background: #fcf0f1;
+                    border-left: 4px solid #d63638;
+                    padding: 10px 15px;
+                    margin-top: 15px;
+                    border-radius: 0 4px 4px 0;
+                }
+                .so-ssl-privacy-links {
+                    background: #f0f0f1;
+                    border-top: 1px solid #dcdcde;
+                    padding: 15px 25px;
+                    color: #646970;
+                    font-size: 13px;
+                    text-align: center;
+                }
+                .so-ssl-privacy-links a {
+                    color: #2271b1;
+                    text-decoration: none;
+                    transition: color 0.2s ease;
+                }
+                .so-ssl-privacy-links a:hover {
+                    color: #135e96;
+                    text-decoration: underline;
+                }
+            </style>
+        </head>
+        <body>
+        <div class="so-ssl-privacy-page">
+            <div class="so-ssl-privacy-header">
+                <h1 class="so-ssl-privacy-title">
+                    <span class="dashicons dashicons-shield"></span>
+					<?php echo esc_html($page_title); ?>
+                </h1>
+            </div>
+
+            <div class="so-ssl-privacy-content">
+                <div class="so-ssl-privacy-notice">
+					<?php echo wp_kses_post($notice_text); ?>
+                </div>
+
+                <div class="so-ssl-privacy-form">
+                    <form method="post" action="">
+						<?php wp_nonce_field('so_ssl_privacy_acknowledgment', 'so_ssl_privacy_nonce'); ?>
+
+                        <div class="so-ssl-privacy-checkbox">
+                            <label>
+                                <input type="checkbox" id="privacy_accept" name="so_ssl_privacy_accept" value="1">
+								<?php echo esc_html($checkbox_text); ?>
+                            </label>
+                        </div>
+
+                        <div class="so-ssl-privacy-actions">
+                            <button type="submit" name="so_ssl_privacy_submit" value="1" class="so-ssl-privacy-submit" id="privacy-submit-btn">
+								<?php esc_html_e('Continue', 'so-ssl'); ?>
+                            </button>
+                        </div>
+                    </form>
+
+					<?php if ($show_error): ?>
+                        <div class="so-ssl-privacy-error">
+							<?php esc_html_e('You must acknowledge the privacy notice to continue.', 'so-ssl'); ?>
+                        </div>
+					<?php endif; ?>
+                </div>
+            </div>
+
+            <div class="so-ssl-privacy-links">
+                <a href="<?php echo esc_url(wp_logout_url(home_url())); ?>">
+					<?php esc_html_e('Disagree and logout', 'so-ssl'); ?>
+                </a>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var checkbox = document.getElementById('privacy_accept');
+                var submitBtn = document.getElementById('privacy-submit-btn');
+
+                if (checkbox && submitBtn) {
+                    function updateButton() {
+                        submitBtn.disabled = !checkbox.checked;
+                    }
+
+                    updateButton();
+                    checkbox.addEventListener('change', updateButton);
+                }
+            });
+        </script>
+
+		<?php wp_footer(); ?>
+        </body>
+        </html>
+		<?php
+	}
+
+	/**
+	 * Fix logout URL to prevent privacy compliance interference
+	 *
+	 * @param string $logout_url The logout URL
+	 * @param string $redirect The redirect URL after logout
+	 * @return string The fixed logout URL
+	 */
+	public static function fix_logout_url($logout_url, $redirect) {
+		// Add a parameter to identify this as a logout action
+		$logout_url = add_query_arg('bypass_privacy_check', '1', $logout_url);
+		return $logout_url;
+	}
+
+	/**
+	 * Register the privacy acknowledgment template
+	 */
+	public static function register_privacy_template() {
+		// Register query var
+		add_filter('query_vars', array(__CLASS__, 'add_query_vars'));
+	}
+
+	/**
+	 * Add custom query vars
+	 *
+	 * @param array $vars The array of available query variables
+	 * @return array Modified array of query variables
+	 */
+	public static function add_query_vars($vars) {
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+		$vars[] = $page_slug;
+		return $vars;
 	}
 
 	/**
@@ -347,8 +637,8 @@ class So_SSL_Privacy_Compliance {
 
 	/**
 	 * Privacy compliance section description
-     *
-     * @since    1.4.5
+	 *
+	 * @since    1.4.5
 	 * @access   private
 	 */
 	public static function privacy_compliance_section_callback() {
@@ -407,8 +697,8 @@ class So_SSL_Privacy_Compliance {
 
 	/**
 	 * Privacy notice text field callback
-     *
-     * @since    1.4.4
+	 *
+	 * @since    1.4.4
 	 * @access   private
 	 *
 	 */
@@ -458,8 +748,8 @@ class So_SSL_Privacy_Compliance {
 
 		echo '<select multiple id="so_ssl_privacy_required_roles" name="so_ssl_privacy_required_roles[]" class="regular-text" style="height: 120px;">';
 		foreach ($roles as $role_value => $role_name) {
-		echo '<option value="' . esc_attr($role_value) . '" ' . selected(in_array($role_value, $required_roles), true, false) . '>' . esc_html($role_name) . '</option>';
-        }
+			echo '<option value="' . esc_attr($role_value) . '" ' . selected(in_array($role_value, $required_roles), true, false) . '>' . esc_html($role_name) . '</option>';
+		}
 		echo '</select>';
 		echo '<p class="description">' . esc_html__('Select which user roles will be required to acknowledge the privacy notice. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
 
@@ -472,352 +762,16 @@ class So_SSL_Privacy_Compliance {
 		echo '</label>';
 		echo '<p class="description">' . esc_html__('When checked, administrators will never be required to acknowledge the privacy notice, regardless of role selection above.', 'so-ssl') . '</p>';
 		echo '</div>';
-	}
 
-	/**
-	 * Fix logout URL to prevent privacy compliance interference
-	 *
-	 * @param string $logout_url The logout URL
-	 * @param string $redirect The redirect URL after logout
-	 * @return string The fixed logout URL
-	 */
-	public static function fix_logout_url($logout_url, $redirect) {
-		// Add a parameter to identify this as a logout action
-		$logout_url = add_query_arg('bypass_privacy_check', '1', $logout_url);
-		return $logout_url;
-	}
-
-	/**
-	 * Register the privacy acknowledgment template
-	 */
-	public static function register_privacy_template() {
-		// Register query var (keep this part)
-		add_filter('query_vars', array(__CLASS__, 'add_query_vars'));
-
-		// Remove the rewrite rules part entirely
-		// NO LONGER NEEDED: add_action('init', array(__CLASS__, 'add_rewrite_rules'), 10);
-
-		// Handle template loading - keep this but modify implementation
-		add_action('template_redirect', array(__CLASS__, 'load_privacy_template'));
-	}
-
-	/**
-	 * Add custom query vars
-	 *
-	 * @param array $vars The array of available query variables
-	 * @return array Modified array of query variables
-	 */
-	public static function add_query_vars($vars) {
-		$vars[] = 'so_ssl_privacy';
-		return $vars;
-	}
-
-	/**
-	 * Load the privacy template with fixed form handling
-	 */
-	public static function load_privacy_template() {
-		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
-
-		// Check for the query parameter
-		if (isset($_GET[$page_slug]) && $_GET[$page_slug] == '1') {
-			// Process form submission
-			if (isset($_POST['so_ssl_privacy_submit']) && isset($_POST['so_ssl_privacy_nonce'])) {
-				if (wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_privacy_nonce'])), 'so_ssl_privacy_acknowledgment')) {
-					if (isset($_POST['so_ssl_privacy_accept']) && $_POST['so_ssl_privacy_accept'] == '1') {
-						// User has acknowledged
-						$user_id = get_current_user_id();
-
-						// Debug: Check if we have a valid user ID
-						if (!$user_id) {
-							wp_die('Error: Unable to identify the current user.');
-						}
-
-						// Save acknowledgment
-						$update_result = update_user_meta($user_id, 'so_ssl_privacy_acknowledged', time());
-
-						// Debug: Check if user meta was saved
-						if ($update_result === false) {
-							wp_die('Error: Unable to save privacy acknowledgment.');
-						}
-
-						// Clear cookies with better domain handling
-						$cookie_domain = COOKIE_DOMAIN ?: '';
-						$cookie_path = COOKIEPATH ?: '/';
-
-                        // If we're on localhost or a local development environment, handle differently
-						if (in_array($_SERVER['HTTP_HOST'], array('localhost', '127.0.0.1', '::1')) ||
-						    strpos($_SERVER['HTTP_HOST'], '.local') !== false ||
-						    strpos($_SERVER['HTTP_HOST'], '.test') !== false) {
-							$cookie_domain = '';
-						}
-
-						setcookie('so_ssl_privacy_needed', '', time() - 3600, $cookie_path, $cookie_domain, is_ssl(), true);
-						setcookie('so_ssl_privacy_redirect', '', time() - 3600, $cookie_path, $cookie_domain, is_ssl(), true);
-
-                        // Determine redirect URL
-						$redirect = admin_url(); // Default to admin
-
-						if (isset($_COOKIE['so_ssl_privacy_redirect'])) {
-							$cookie_redirect = sanitize_url(wp_unslash($_COOKIE['so_ssl_privacy_redirect']));
-							// Only use cookie redirect if it's not the privacy page
-							if (strpos($cookie_redirect, $page_slug.'=1') === false) {
-								$redirect = $cookie_redirect;
-							}
-						}
-
-						// Do the redirect
-						wp_redirect($redirect);
-						exit;
-					}
-				}
-			}
-
-			// Set redirect cookie with proper domain handling
-			if (isset($_SERVER['HTTP_REFERER'])) {
-				$referer = wp_sanitize_redirect(wp_unslash($_SERVER['HTTP_REFERER']));
-				$site_url = site_url();
-
-				if (strpos($referer, $site_url) === 0 && strpos($referer, $page_slug.'=1') === false) {
-					$cookie_domain = COOKIE_DOMAIN ?: '';
-					$cookie_path = COOKIEPATH ?: '/';
-					setcookie('so_ssl_privacy_redirect', $referer, 0, $cookie_path, $cookie_domain, false, true);
-				}
-			}
-
-			// Load the template
-			self::display_privacy_page();
-			exit;
-		}
-	}
-
-	public static function display_privacy_page() {
-		$page_title = get_option('so_ssl_privacy_page_title', 'Privacy Acknowledgment Required');
-		$notice_text = get_option('so_ssl_privacy_notice_text', '');
-		$checkbox_text = get_option('so_ssl_privacy_checkbox_text', '');
-		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
-
-		// Debug
-		error_log('So SSL Privacy: Displaying privacy page for user ' . get_current_user_id());
-
-		?>
-        <!DOCTYPE html>
-        <html <?php language_attributes(); ?>>
-        <head>
-            <meta charset="<?php bloginfo('charset'); ?>">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title><?php echo esc_html($page_title); ?> - <?php bloginfo('name'); ?></title>
-			<?php wp_head(); ?>
-            <style>
-                /* Your existing styles here */
-                body {
-                    background: #f0f6fc;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-                    margin: 0;
-                    padding: 0;
-                    line-height: 1.6;
-                }
-                .so-ssl-privacy-page {
-                    max-width: 800px;
-                    margin: 50px auto;
-                    padding: 0;
-                    background: #fff;
-                    border-radius: 5px;
-                    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-                    overflow: hidden;
-                }
-                .so-ssl-privacy-header {
-                    background: #fff;
-                    border-bottom: 1px solid #dcdcde;
-                    padding: 20px 25px;
-                }
-                .so-ssl-privacy-title {
-                    color: #2271b1;
-                    font-size: 24px;
-                    font-weight: 600;
-                    margin: 0;
-                    padding: 0;
-                    display: flex;
-                    align-items: center;
-                }
-                .so-ssl-privacy-title .dashicons {
-                    margin-right: 10px;
-                    color: #2271b1;
-                }
-                .so-ssl-privacy-content {
-                    padding: 25px;
-                    margin-bottom: 0;
-                    line-height: 1.6;
-                    color: #1d2327;
-                }
-                .so-ssl-privacy-form {
-                    padding: 20px 25px;
-                    background: #f8f9fa;
-                    border-top: 1px solid #dcdcde;
-                }
-                .so-ssl-privacy-notice {
-                    background: #f0f6fc;
-                    border-left: 4px solid #2271b1;
-                    padding: 15px 20px;
-                    margin-bottom: 25px;
-                    border-radius: 0 4px 4px 0;
-                }
-                .so-ssl-privacy-checkbox {
-                    margin: 15px 0 20px;
-                }
-                .so-ssl-privacy-checkbox input[type="checkbox"] {
-                    margin-right: 8px;
-                }
-                .so-ssl-privacy-submit {
-                    background: #2271b1;
-                    border: 1px solid #2271b1;
-                    color: #fff;
-                    padding: 8px 15px;
-                    border-radius: 3px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    font-weight: 500;
-                    transition: all 0.2s ease;
-                }
-                .so-ssl-privacy-submit:hover {
-                    background: #135e96;
-                    border-color: #135e96;
-                }
-                .so-ssl-privacy-submit:disabled {
-                    background: #c3c4c7;
-                    border-color: #c3c4c7;
-                    color: #50575e;
-                    cursor: not-allowed;
-                }
-                .so-ssl-privacy-error {
-                    color: #d63638;
-                    background: #fcf0f1;
-                    border-left: 4px solid #d63638;
-                    padding: 10px 15px;
-                    margin-top: 15px;
-                    border-radius: 0 4px 4px 0;
-                }
-                .so-ssl-privacy-links {
-                    background: #f0f0f1;
-                    border-top: 1px solid #dcdcde;
-                    padding: 15px 25px;
-                    color: #646970;
-                    font-size: 13px;
-                    text-align: center;
-                }
-                .so-ssl-privacy-links a {
-                    color: #2271b1;
-                    text-decoration: none;
-                    transition: color 0.2s ease;
-                }
-                .so-ssl-privacy-links a:hover {
-                    color: #135e96;
-                    text-decoration: underline;
-                }
-                @media screen and (max-width: 782px) {
-                    .so-ssl-privacy-page {
-                        margin: 20px;
-                        width: auto;
-                        max-width: none;
-                    }
-                    .so-ssl-privacy-title {
-                        font-size: 20px;
-                    }
-                    .so-ssl-privacy-content,
-                    .so-ssl-privacy-form,
-                    .so-ssl-privacy-links {
-                        padding: 15px;
-                    }
-                }
-            </style>
-        </head>
-        <body>
-        <div class="so-ssl-privacy-page">
-            <div class="so-ssl-privacy-header">
-                <h1><?php echo esc_html($page_title); ?></h1>
-            </div>
-
-            <div class="so-ssl-privacy-content">
-                <div class="so-ssl-privacy-notice">
-					<?php echo wp_kses_post($notice_text); ?>
-                </div>
-
-				<?php
-				// Use the current URL to maintain the query parameter
-				$current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") .
-				               "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-				error_log('So SSL Privacy: Form action URL: ' . $current_url);
-				?>
-
-                <form method="post" action="<?php echo esc_url($current_url); ?>">
-					<?php wp_nonce_field('so_ssl_privacy_acknowledgment', 'so_ssl_privacy_nonce'); ?>
-
-                    <div class="so-ssl-privacy-checkbox">
-                        <label>
-                            <input type="checkbox" id="privacy_accept" name="so_ssl_privacy_accept" value="1">
-							<?php echo esc_html($checkbox_text); ?>
-                        </label>
-                    </div>
-
-                    <div class="so-ssl-privacy-actions">
-                        <button type="submit" name="so_ssl_privacy_submit" value="1" class="so-ssl-privacy-submit" id="privacy-submit-btn">
-							<?php esc_html_e('Continue', 'so-ssl'); ?>
-                        </button>
-                    </div>
-                </form>
-
-				<?php if (isset($_POST['so_ssl_privacy_submit']) &&
-				          (!isset($_POST['so_ssl_privacy_accept']) || $_POST['so_ssl_privacy_accept'] != '1')): ?>
-                    <div class="so-ssl-privacy-error">
-						<?php esc_html_e('You must acknowledge the privacy notice to continue.', 'so-ssl'); ?>
-                    </div>
-				<?php endif; ?>
-            </div>
-            <div class="so-ssl-privacy-links">
-                <a href="<?php echo esc_url(wp_logout_url(home_url())); ?>">
-			        <?php esc_html_e('Disagree and logout', 'so-ssl'); ?>
-                </a>
-            </div>
-        </div>
-
-        <script>
-            // Simplified JavaScript
-            document.addEventListener('DOMContentLoaded', function() {
-                var checkbox = document.getElementById('privacy_accept');
-                var submitBtn = document.getElementById('privacy-submit-btn');
-
-                if (checkbox && submitBtn) {
-                    // Enable/disable button based on checkbox
-                    function updateButton() {
-                        submitBtn.disabled = !checkbox.checked;
-                    }
-
-                    updateButton(); // Initial state
-                    checkbox.addEventListener('change', updateButton);
-
-                    // Log form submission
-                    document.querySelector('form').addEventListener('submit', function(e) {
-                        console.log('Form submitting, checkbox checked:', checkbox.checked);
-                        if (!checkbox.checked) {
-                            e.preventDefault();
-                            alert('Please check the box to accept the privacy notice.');
-                            return false;
-                        }
-
-                        // Add a visual indication that the form is being submitted
-                        submitBtn.textContent = 'Processing...';
-                        submitBtn.disabled = true;
-
-                        // Allow the form to submit
-                        return true;
-                    });
-                }
-            });
-        </script>
-
-		<?php wp_footer(); ?>
-        </body>
-        </html>
-		<?php
+		// Add option to exempt original admin (user ID 1)
+		$exempt_original_admin = get_option('so_ssl_privacy_exempt_original_admin', true);
+		echo '<div style="margin-top: 10px;">';
+		echo '<label for="so_ssl_privacy_exempt_original_admin">';
+		echo '<input type="checkbox" id="so_ssl_privacy_exempt_original_admin" name="so_ssl_privacy_exempt_original_admin" value="1" ' . checked(1, $exempt_original_admin, false) . '/>';
+		echo esc_html__('Always exempt original admin (user ID 1)', 'so-ssl');
+		echo '</label>';
+		echo '<p class="description">' . esc_html__('When checked, the original admin user (ID 1) will never be required to acknowledge the privacy notice.', 'so-ssl') . '</p>';
+		echo '</div>';
 	}
 
 	/**
