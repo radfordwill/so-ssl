@@ -128,6 +128,9 @@ class So_SSL_Admin_Agreement {
 
 		// Check if agreement has expired or doesn't exist
 		if (empty($agreement) || (time() - intval($agreement)) > ($expiry_days * DAY_IN_SECONDS)) {
+			// Set filter to indicate admin agreement is being shown
+			add_filter('so_ssl_showing_admin_agreement', '__return_true');
+
 			// Display admin notice instead of redirecting
 			add_action('admin_notices', array(__CLASS__, 'display_agreement_notice'));
 
@@ -224,16 +227,53 @@ class So_SSL_Admin_Agreement {
 	 */
 	public static function add_agreement_overlay_script() {
 		?>
+        <style>
+            #so-ssl-agreement-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(255,255,255,0.95);
+                z-index: 999999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #so-ssl-agreement-content {
+                background: white;
+                padding: 30px;
+                max-width: 600px;
+                text-align: center;
+                box-shadow: 0 0 20px rgba(0,0,0,0.2);
+                border-radius: 5px;
+            }
+
+            #so-ssl-agreement-content h2 {
+                color: #2271b1;
+                margin-bottom: 20px;
+            }
+
+            #so-ssl-agreement-content .button-primary {
+                margin: 0 5px;
+            }
+        </style>
+
         <script>
             jQuery(document).ready(function($) {
                 // Create overlay elements
-                var $overlay = $('<div id="so-ssl-agreement-overlay" style="position: fixed; top: 32px; left: 160px; right: 0; bottom: 0; background: rgba(255,255,255,0.9); z-index: 99999; display: flex; align-items: center; justify-content: center;"></div>');
-                var $content = $('<div style="background: white; padding: 30px; max-width: 600px; text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.2); border-radius: 5px;"></div>');
+                var $overlay = $('<div id="so-ssl-agreement-overlay"></div>');
+                var $content = $('<div id="so-ssl-agreement-content"></div>');
 
-                $content.html('<h2>Administrator Agreement Required</h2>' +
-                    '<p>You must accept the So SSL administrator agreement before accessing plugin features.</p>' +
-                    '<p><a href="<?php echo esc_url(admin_url('admin.php?page=so-ssl-agreement')); ?>" class="button button-primary">View & Accept Agreement</a> ' +
-                    '<a href="<?php echo esc_url(admin_url('options-general.php')); ?>" class="button">Back to Settings</a></p>');
+                $content.html(
+                    '<h2><?php echo esc_js(__('Administrator Agreement Required', 'so-ssl')); ?></h2>' +
+                    '<p><?php echo esc_js(__('You must accept the So SSL administrator agreement before accessing plugin features.', 'so-ssl')); ?></p>' +
+                    '<p>' +
+                    '<a href="<?php echo esc_url(admin_url('admin.php?page=so-ssl-agreement')); ?>" class="button button-primary"><?php echo esc_js(__('View & Accept Agreement', 'so-ssl')); ?></a> ' +
+                    '<a href="<?php echo esc_url(admin_url('options-general.php')); ?>" class="button"><?php echo esc_js(__('Back to Settings', 'so-ssl')); ?></a>' +
+                    '</p>'
+                );
 
                 $overlay.append($content);
                 $('body').append($overlay);

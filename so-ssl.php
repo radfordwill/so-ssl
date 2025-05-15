@@ -245,6 +245,11 @@ require_once SO_SSL_PATH . 'includes/class-so-ssl-privacy-compliance.php';
 require_once SO_SSL_PATH . 'includes/class-so-ssl-admin-agreement.php';
 
 /**
+ * Agreement compliance controller
+ */
+require_once SO_SSL_PATH . 'includes/class-so-ssl-modal-controller.php';
+
+/**
  * Begins execution of the plugin.
  */
 function run_so_ssl() {

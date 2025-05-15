@@ -1,11 +1,9 @@
-
-
-
 <?php
 /**
- * So SSL Privacy Compliance Module
+ * So SSL Privacy Compliance Module - Using Admin Agreement Method
  *
  * This file implements a GDPR and US privacy law compliance module for the So SSL plugin.
+ * Updated to use the same modal approach as the Admin Agreement class.
  */
 
 // If this file is called directly, abort.
@@ -27,108 +25,68 @@ class So_SSL_Privacy_Compliance {
 		// Register admin settings
 		add_action('admin_init', array(__CLASS__, 'register_settings'));
 
-		// Add the privacy page - using 'admin_menu' priority 5 to ensure it's registered early
-		add_action('admin_menu', array(__CLASS__, 'add_privacy_menu'), 5);
+		// Handle form processing
+		add_action('init', array(__CLASS__, 'process_privacy_form'), 1);
 
-		// Check if user has acknowledged the privacy notice - lower priority to run after menu is registered
+		// Check if user has acknowledged the privacy notice
+		add_action('template_redirect', array(__CLASS__, 'check_privacy_acknowledgment'), 20);
 		add_action('admin_init', array(__CLASS__, 'check_privacy_acknowledgment'), 20);
+
+		// Add the privacy page - using 'admin_menu' priority 5 like admin agreement
+		add_action('admin_menu', array(__CLASS__, 'add_privacy_menu'), 5);
 
 		// Add AJAX handler for saving acknowledgment
 		add_action('wp_ajax_so_ssl_save_privacy_acknowledgment', array(__CLASS__, 'ajax_save_privacy_acknowledgment'));
 
-		// Add notice on plugins page to inform users about the emergency override
-		add_action('admin_notices', array(__CLASS__, 'maybe_show_emergency_notice'));
-
-		// Check for front-end pages
-		add_action('template_redirect', array(__CLASS__, 'check_privacy_acknowledgment_frontend'), 20);
+		// Add hook for admin scripts (for TinyMCE editor)
+		add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_admin_scripts'));
 	}
 
 	/**
-	 * Show emergency notice on plugins page
+	 * Process privacy form submission (non-AJAX fallback)
 	 */
-	public static function maybe_show_emergency_notice() {
-		$screen = get_current_screen();
-		if ($screen && ($screen->id === 'plugins' || strpos($screen->id, 'so-ssl') !== false)) {
-			echo '<div class="notice notice-info is-dismissible">';
-			echo '<p><strong>So SSL Tip:</strong> If you ever get locked out due to the privacy compliance, you can use this URL to disable it: <code>' . admin_url('index.php?disable_so_ssl_privacy=1') . '</code></p>';
-			echo '</div>';
+	public static function process_privacy_form() {
+		// Only process if form was submitted via POST
+		if (!isset($_POST['so_ssl_privacy_fallback']) || !isset($_POST['so_ssl_privacy_nonce'])) {
+			return;
 		}
+
+		// Verify nonce
+		if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_privacy_nonce'])), 'so_ssl_privacy_acknowledgment')) {
+			wp_die(__('Security verification failed.', 'so-ssl'));
+			return;
+		}
+
+		// Check if accepted
+		if (!isset($_POST['so_ssl_privacy_accept']) || $_POST['so_ssl_privacy_accept'] != '1') {
+			wp_die(__('You must accept the privacy notice to continue.', 'so-ssl'));
+			return;
+		}
+
+		$user_id = get_current_user_id();
+		if (!$user_id) {
+			wp_die(__('You must be logged in.', 'so-ssl'));
+			return;
+		}
+
+		// Save acknowledgment
+		update_user_meta($user_id, 'so_ssl_privacy_acknowledged', time());
+
+		// Clear caches
+		clean_user_cache($user_id);
+		wp_cache_delete($user_id, 'user_meta');
+
+		// Redirect
+		$redirect = isset($_POST['so_ssl_redirect_url']) ? esc_url_raw($_POST['so_ssl_redirect_url']) : admin_url();
+		wp_safe_redirect($redirect);
+		exit;
 	}
 
 	/**
-	 * Check if user has acknowledged the privacy notice for admin pages
+	 * Check if user has acknowledged the privacy notice
+	 * Using the same approach as admin agreement
 	 */
 	public static function check_privacy_acknowledgment() {
-		// Skip for AJAX, Cron, CLI, or admin-ajax.php requests
-		if (wp_doing_ajax() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI) ||
-		    (isset($_SERVER['SCRIPT_FILENAME']) && strpos(sanitize_text_field(wp_unslash($_SERVER['SCRIPT_FILENAME'])), 'admin-ajax.php') !== false)) {
-			return;
-		}
-
-		// Only check for logged-in users
-		if (!is_user_logged_in()) {
-			return;
-		}
-
-		// Exception for the privacy page itself
-		if (isset($_GET['page']) && $_GET['page'] === 'so-ssl-privacy') {
-			return;
-		}
-
-		// Skip if this is a logout request
-		if (isset($_GET['action']) && $_GET['action'] === 'logout') {
-			return;
-		}
-
-		// Get current user
-		$current_user = wp_get_current_user();
-		$user_id = $current_user->ID;
-
-		// Check if admins are exempt
-		$exempt_admins = get_option('so_ssl_privacy_exempt_admins', true);
-		if ($exempt_admins && current_user_can('manage_options')) {
-			return;
-		}
-
-		// Special check for the original admin (user ID 1)
-		$exempt_original_admin = get_option('so_ssl_privacy_exempt_original_admin', true);
-		if ($exempt_original_admin && $user_id === 1) {
-			return;
-		}
-
-		// Check user role requirements
-		$required_roles = get_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
-		$user_requires_check = false;
-
-		foreach ($current_user->roles as $role) {
-			if (in_array($role, $required_roles)) {
-				$user_requires_check = true;
-				break;
-			}
-		}
-
-		if (!$user_requires_check) {
-			return;
-		}
-
-		// Check if user has already acknowledged
-		$acknowledgment = get_user_meta($user_id, 'so_ssl_privacy_acknowledged', true);
-		$expiry_days = intval(get_option('so_ssl_privacy_expiry_days', 30));
-
-		// Check if acknowledgment has expired or doesn't exist
-		if (empty($acknowledgment) || (time() - intval($acknowledgment)) > ($expiry_days * DAY_IN_SECONDS)) {
-			// Display privacy notice instead of redirecting
-			add_action('admin_notices', array(__CLASS__, 'display_privacy_notice'));
-
-			// Use JavaScript to control access to site content
-			add_action('admin_footer', array(__CLASS__, 'add_privacy_overlay_script'));
-		}
-	}
-
-	/**
-	 * Check privacy acknowledgment for front-end pages
-	 */
-	public static function check_privacy_acknowledgment_frontend() {
 		// Skip for AJAX, Cron, CLI requests
 		if (wp_doing_ajax() || wp_doing_cron() || (defined('WP_CLI') && WP_CLI)) {
 			return;
@@ -139,8 +97,13 @@ class So_SSL_Privacy_Compliance {
 			return;
 		}
 
-		// Skip if this is a logout request
+		// Skip logout requests
 		if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+			return;
+		}
+
+		// Exception for the privacy page itself
+		if (isset($_GET['page']) && $_GET['page'] === 'so-ssl-privacy') {
 			return;
 		}
 
@@ -154,7 +117,7 @@ class So_SSL_Privacy_Compliance {
 			return;
 		}
 
-		// Special check for the original admin (user ID 1)
+		// Check if original admin (user ID 1) is exempt
 		$exempt_original_admin = get_option('so_ssl_privacy_exempt_original_admin', true);
 		if ($exempt_original_admin && $user_id === 1) {
 			return;
@@ -181,18 +144,24 @@ class So_SSL_Privacy_Compliance {
 
 		// Check if acknowledgment has expired or doesn't exist
 		if (empty($acknowledgment) || (time() - intval($acknowledgment)) > ($expiry_days * DAY_IN_SECONDS)) {
-			// Add privacy overlay to front-end
-			add_action('wp_footer', array(__CLASS__, 'add_privacy_overlay_script'));
+			// Display notice and overlay like admin agreement does
+			if (is_admin()) {
+				add_action('admin_notices', array(__CLASS__, 'display_privacy_notice'));
+				add_action('admin_footer', array(__CLASS__, 'add_privacy_overlay_script'));
+			} else {
+				// For frontend, use footer
+				add_action('wp_footer', array(__CLASS__, 'add_privacy_overlay_script'));
+			}
 		}
 	}
 
 	/**
-	 * Display privacy notice about acknowledgment requirement
+	 * Display privacy notice (similar to admin agreement notice)
 	 */
 	public static function display_privacy_notice() {
 		$privacy_url = admin_url('admin.php?page=so-ssl-privacy');
 
-		// Custom CSS to style the notice
+		// Custom CSS to style the notice (same style as admin agreement)
 		$custom_css = "
         .so-ssl-privacy-notice {
             background-color: #f0f6fc;
@@ -239,51 +208,85 @@ class So_SSL_Privacy_Compliance {
             background: #135e96;
             border-color: #135e96;
         }
-        .so-ssl-privacy-notice .button-secondary {
-            background: #f6f7f7;
-            border: 1px solid #c3c4c7;
-            color: #50575e;
-            text-decoration: none;
-            padding: 6px 12px;
-            margin-left: 10px;
-            transition: all 0.2s ease;
-        }
-        .so-ssl-privacy-notice .button-secondary:hover {
-            background: #f0f0f1;
-            border-color: #8c8f94;
-            color: #1d2327;
-        }
-    ";
+        ";
 
 		// Output the CSS
 		echo '<style>' . $custom_css . '</style>';
 
-		// Output the enhanced notice
+		// Output the notice
 		echo '<div class="so-ssl-privacy-notice">';
-		echo '<h3><span class="dashicons dashicons-shield"></span>' . esc_html__('Privacy Acknowledgment Required', 'so-ssl') . '</h3>';
+		echo '<h3><span class="dashicons dashicons-privacy"></span>' . esc_html__('Privacy Acknowledgment Required', 'so-ssl') . '</h3>';
 		echo '<p>' . esc_html__('A privacy acknowledgment is required before using this site. Please review and accept the privacy notice to continue.', 'so-ssl') . '</p>';
 		echo '<div class="so-ssl-privacy-actions">';
 		echo '<a href="' . esc_url($privacy_url) . '" class="button button-primary">' . esc_html__('View & Accept Privacy Notice', 'so-ssl') . '</a>';
-		echo '<a href="' . esc_url(home_url()) . '" class="button-secondary">' . esc_html__('Back to Home', 'so-ssl') . '</a>';
 		echo '</div>';
 		echo '</div>';
 	}
 
 	/**
-	 * Add JavaScript to overlay site content until privacy notice is accepted
+	 * Add JavaScript to overlay content until privacy is acknowledged
+	 * Using the same approach as admin agreement
 	 */
 	public static function add_privacy_overlay_script() {
 		?>
+        <style>
+            #so-ssl-privacy-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(255,255,255,0.95);
+                z-index: 999999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #so-ssl-privacy-content {
+                background: white;
+                padding: 30px;
+                max-width: 600px;
+                text-align: center;
+                box-shadow: 0 0 20px rgba(0,0,0,0.2);
+                border-radius: 5px;
+            }
+
+            #so-ssl-privacy-content h2 {
+                color: #2271b1;
+                margin-bottom: 20px;
+            }
+
+            #so-ssl-privacy-content .button-primary {
+                margin: 0 5px;
+            }
+
+            /* Adjust for admin bar if present */
+            body.admin-bar #so-ssl-privacy-overlay {
+                top: 32px;
+            }
+
+            @media screen and (max-width: 782px) {
+                body.admin-bar #so-ssl-privacy-overlay {
+                    top: 46px;
+                }
+            }
+        </style>
+
         <script>
             jQuery(document).ready(function($) {
                 // Create overlay elements
-                var $overlay = $('<div id="so-ssl-privacy-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); z-index: 99999; display: flex; align-items: center; justify-content: center;"></div>');
-                var $content = $('<div style="background: white; padding: 30px; max-width: 600px; text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.2); border-radius: 5px;"></div>');
+                var $overlay = $('<div id="so-ssl-privacy-overlay"></div>');
+                var $content = $('<div id="so-ssl-privacy-content"></div>');
 
-                $content.html('<h2>Privacy Acknowledgment Required</h2>' +
-                    '<p>You must accept the privacy notice before accessing site content.</p>' +
-                    '<p><a href="<?php echo esc_url(admin_url('admin.php?page=so-ssl-privacy')); ?>" class="button button-primary">View & Accept Privacy Notice</a> ' +
-                    '<a href="<?php echo esc_url(home_url()); ?>" class="button">Back to Home</a></p>');
+                $content.html(
+                    '<h2><?php echo esc_js(__('Privacy Acknowledgment Required', 'so-ssl')); ?></h2>' +
+                    '<p><?php echo esc_js(__('You must accept the privacy notice before accessing this site.', 'so-ssl')); ?></p>' +
+                    '<p>' +
+                    '<a href="<?php echo esc_url(admin_url('admin.php?page=so-ssl-privacy')); ?>" class="button button-primary"><?php echo esc_js(__('View & Accept Privacy Notice', 'so-ssl')); ?></a> ' +
+                    '<a href="<?php echo esc_url(wp_logout_url(home_url())); ?>" class="button"><?php echo esc_js(__('Logout', 'so-ssl')); ?></a>' +
+                    '</p>'
+                );
 
                 $overlay.append($content);
                 $('body').append($overlay);
@@ -296,16 +299,15 @@ class So_SSL_Privacy_Compliance {
 	 * Add privacy menu
 	 */
 	public static function add_privacy_menu() {
-		// Add a direct admin page (not under options-general.php)
-		// This ensures it's available even if there are permission issues
+		// Add a direct admin page (not under settings)
 		add_menu_page(
 			__('Privacy Notice', 'so-ssl'),
 			__('Privacy Notice', 'so-ssl'),
-			'read', // Allow any logged-in user to access the privacy page
+			'read', // Allow any logged-in user to access
 			'so-ssl-privacy',
 			array(__CLASS__, 'display_privacy_page'),
-			'dashicons-shield',
-			998
+			'dashicons-privacy',
+			999
 		);
 
 		// Hide this from the menu - it's only for direct access
@@ -313,7 +315,7 @@ class So_SSL_Privacy_Compliance {
 	}
 
 	/**
-	 * Display privacy page
+	 * Display privacy page (similar to admin agreement page)
 	 */
 	public static function display_privacy_page() {
 		// Check user capabilities - any logged in user can view
@@ -328,9 +330,9 @@ class So_SSL_Privacy_Compliance {
 
 		// Get the referring page (for return after acceptance)
 		$referer = isset($_SERVER['HTTP_REFERER']) ? wp_unslash($_SERVER['HTTP_REFERER']) : '';
-		$redirect_url = !empty($referer) ? $referer : admin_url();
+		$redirect_url = !empty($referer) ? $referer : (is_admin() ? admin_url() : home_url());
 
-		// Add CSS for the privacy page - using the plugin's color palette
+		// Add CSS for the privacy page - using the same style as admin agreement
 		?>
         <style>
             .so-ssl-privacy-wrap {
@@ -364,7 +366,8 @@ class So_SSL_Privacy_Compliance {
                 border-left: 4px solid #2271b1;
                 padding: 20px;
                 margin-bottom: 25px;
-                border-radius: 0 4px 4px 0;
+                color: #1d2327;
+                line-height: 1.5;
             }
             .so-ssl-privacy-form {
                 background: #f8f9fa;
@@ -393,18 +396,12 @@ class So_SSL_Privacy_Compliance {
             }
             .so-ssl-privacy-actions button:hover {
                 background: #135e96;
-                border-color: #135e96;
             }
             .so-ssl-privacy-actions button:disabled {
                 background: #c3c4c7 !important;
                 border-color: #c3c4c7 !important;
                 color: #50575e !important;
                 cursor: not-allowed;
-            }
-            .so-ssl-privacy-options {
-                margin-top: 25px;
-                padding-top: 15px;
-                border-top: 1px solid #dcdcde;
             }
             .so-ssl-privacy-message {
                 padding: 10px 15px;
@@ -444,29 +441,13 @@ class So_SSL_Privacy_Compliance {
                 border-color: #8c8f94;
                 color: #1d2327;
             }
-            .so-ssl-emergency-button {
-                background: #f6f7f7;
-                border: 1px solid #c3c4c7;
-                color: #50575e;
-                text-decoration: none;
-                display: inline-block;
-                padding: 6px 12px;
-                border-radius: 3px;
-                margin-top: 10px;
-                transition: all 0.2s ease;
-            }
-            .so-ssl-emergency-button:hover {
-                background: #f0f0f1;
-                border-color: #8c8f94;
-                color: #1d2327;
-            }
         </style>
 
         <div class="wrap so-ssl-privacy-wrap">
             <div class="so-ssl-privacy-container">
                 <div class="so-ssl-privacy-header">
                     <h1>
-                        <span class="dashicons dashicons-shield so-ssl-security-icon"></span>
+                        <span class="dashicons dashicons-privacy so-ssl-security-icon"></span>
 						<?php echo esc_html($page_title); ?>
                     </h1>
                 </div>
@@ -476,71 +457,89 @@ class So_SSL_Privacy_Compliance {
                 </div>
 
                 <div class="so-ssl-privacy-form">
-                    <form id="so-ssl-privacy-form">
-						<?php wp_nonce_field('so_ssl_privacy_acknowledgment', 'so_ssl_privacy_nonce'); ?>
-                        <input type="hidden" id="so_ssl_redirect_url" value="<?php echo esc_url($redirect_url); ?>">
+                    <form id="so-ssl-privacy-form" method="post" action="">
+			            <?php wp_nonce_field('so_ssl_privacy_acknowledgment', 'so_ssl_privacy_nonce'); ?>
+                        <input type="hidden" id="so_ssl_redirect_url" name="so_ssl_redirect_url" value="<?php echo esc_url($redirect_url); ?>">
 
                         <div class="so-ssl-privacy-checkbox">
                             <label>
                                 <input type="checkbox" id="so_ssl_privacy_accept" name="so_ssl_privacy_accept" value="1" required>
-								<?php echo esc_html($checkbox_text); ?>
+					            <?php echo esc_html($checkbox_text); ?>
                             </label>
                         </div>
 
                         <div class="so-ssl-privacy-actions">
                             <button type="submit" id="so_ssl_privacy_submit" class="button button-primary" disabled>
-								<?php esc_html_e('Accept and Continue', 'so-ssl'); ?>
+					            <?php esc_html_e('Accept and Continue', 'so-ssl'); ?>
                             </button>
 
                             <a href="<?php echo esc_url(wp_logout_url(home_url())); ?>" class="so-ssl-alternate-button">
-								<?php esc_html_e('Disagree and Logout', 'so-ssl'); ?>
+					            <?php esc_html_e('Disagree and Logout', 'so-ssl'); ?>
                             </a>
                         </div>
 
                         <div id="so-ssl-privacy-message" class="so-ssl-privacy-message" style="display: none;"></div>
-                    </form>
-                </div>
 
-                <div class="so-ssl-privacy-options">
-                    <p>
-						<?php esc_html_e('Need to disable this privacy compliance feature?', 'so-ssl'); ?>
-                    </p>
-                    <a href="<?php echo esc_url(admin_url('index.php?disable_so_ssl_privacy=1')); ?>" class="so-ssl-emergency-button">
-                        <span class="dashicons dashicons-dismiss" style="margin-right: 4px; margin-top: 3px;"></span>
-						<?php esc_html_e('Disable Privacy Compliance', 'so-ssl'); ?>
-                    </a>
-                    <a href="<?php echo esc_url(admin_url()); ?>" class="so-ssl-emergency-button">
-                        <span class="dashicons dashicons-undo" style="margin-right: 4px; margin-top: 3px;"></span>
-						<?php esc_html_e('Return to Admin', 'so-ssl'); ?>
-                    </a>
+                        <!-- Fallback for when AJAX fails -->
+                        <noscript>
+                            <input type="hidden" name="so_ssl_privacy_fallback" value="1">
+                            <style>#so_ssl_privacy_submit { display: none; }</style>
+                            <button type="submit" name="so_ssl_privacy_fallback_submit" class="button button-primary">
+					            <?php esc_html_e('Accept and Continue (No JavaScript)', 'so-ssl'); ?>
+                            </button>
+                        </noscript>
+                    </form>
+
+                    <!-- Debug button to test direct submission -->
+                    <div style="margin-top: 20px; padding: 10px; background: #f0f0f1; display: none;" id="debug-fallback">
+                        <p><strong>Debug Mode:</strong> If the AJAX submission is not working, try the direct submission:</p>
+                        <form method="post" action="">
+				            <?php wp_nonce_field('so_ssl_privacy_acknowledgment', 'so_ssl_privacy_nonce'); ?>
+                            <input type="hidden" name="so_ssl_redirect_url" value="<?php echo esc_url($redirect_url); ?>">
+                            <input type="hidden" name="so_ssl_privacy_accept" value="1">
+                            <input type="hidden" name="so_ssl_privacy_fallback" value="1">
+                            <button type="submit" class="button">Direct Submit (Debug)</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
 
         <script>
             jQuery(document).ready(function($) {
+                console.log('Privacy form initialized');
+
                 // Enable/disable submit button based on checkbox
                 $('#so_ssl_privacy_accept').on('change', function() {
+                    console.log('Checkbox changed:', $(this).is(':checked'));
                     $('#so_ssl_privacy_submit').prop('disabled', !$(this).is(':checked'));
                 });
 
                 // Handle form submission
                 $('#so-ssl-privacy-form').on('submit', function(e) {
                     e.preventDefault();
+                    console.log('Form submitted');
 
                     // Show loading state
                     $('#so_ssl_privacy_submit').prop('disabled', true).text('<?php esc_html_e('Processing...', 'so-ssl'); ?>');
+
+                    var formData = {
+                        action: 'so_ssl_save_privacy_acknowledgment',
+                        nonce: $('#so_ssl_privacy_nonce').val(),
+                        accept: $('#so_ssl_privacy_accept').is(':checked') ? 1 : 0
+                    };
+
+                    console.log('Sending AJAX with data:', formData);
+                    console.log('AJAX URL:', ajaxurl);
 
                     // Send AJAX request
                     $.ajax({
                         url: ajaxurl,
                         type: 'POST',
-                        data: {
-                            action: 'so_ssl_save_privacy_acknowledgment',
-                            nonce: $('#so_ssl_privacy_nonce').val(),
-                            accept: $('#so_ssl_privacy_accept').is(':checked') ? 1 : 0
-                        },
+                        data: formData,
                         success: function(response) {
+                            console.log('AJAX success response:', response);
+
                             if (response.success) {
                                 $('#so-ssl-privacy-message')
                                     .removeClass('error')
@@ -548,11 +547,20 @@ class So_SSL_Privacy_Compliance {
                                     .html('<p>' + response.data.message + '</p>')
                                     .show();
 
+                                // Log debug info if available
+                                if (response.data.debug) {
+                                    console.log('Debug info:', response.data.debug);
+                                }
+
                                 // Redirect to the original page after 1 second
                                 setTimeout(function() {
-                                    window.location.href = $('#so_ssl_redirect_url').val();
+                                    var redirectUrl = $('#so_ssl_redirect_url').val();
+                                    console.log('Redirecting to:', redirectUrl);
+                                    window.location.href = redirectUrl;
                                 }, 1000);
                             } else {
+                                console.log('AJAX error response:', response);
+
                                 $('#so-ssl-privacy-message')
                                     .removeClass('success')
                                     .addClass('error')
@@ -563,7 +571,10 @@ class So_SSL_Privacy_Compliance {
                                 $('#so_ssl_privacy_submit').prop('disabled', false).text('<?php esc_html_e('Accept and Continue', 'so-ssl'); ?>');
                             }
                         },
-                        error: function() {
+                        error: function(xhr, textStatus, errorThrown) {
+                            console.log('AJAX error:', textStatus, errorThrown);
+                            console.log('Response:', xhr.responseText);
+
                             $('#so-ssl-privacy-message')
                                 .removeClass('success')
                                 .addClass('error')
@@ -575,37 +586,84 @@ class So_SSL_Privacy_Compliance {
                         }
                     });
                 });
-            });
-        </script>
+            });</script>
 		<?php
 	}
 
 	/**
-	 * AJAX handler for saving privacy acknowledgment
+	 * AJAX handler for saving privacy acknowledgment - DEBUG VERSION
 	 */
 	public static function ajax_save_privacy_acknowledgment() {
+		// Debug logging
+		error_log('SO SSL Privacy: AJAX handler called');
+
 		// Verify nonce
-		if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'so_ssl_privacy_acknowledgment')) {
-			wp_send_json_error(array('message' => __('Security verification failed.', 'so-ssl')));
+		if (!isset($_POST['nonce'])) {
+			error_log('SO SSL Privacy: No nonce provided');
+			wp_send_json_error(array('message' => __('No security token provided.', 'so-ssl')));
+			return;
 		}
+
+		$nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
+		if (!wp_verify_nonce($nonce, 'so_ssl_privacy_acknowledgment')) {
+			error_log('SO SSL Privacy: Nonce verification failed. Provided: ' . $nonce);
+			wp_send_json_error(array('message' => __('Security verification failed.', 'so-ssl')));
+			return;
+		}
+
+		error_log('SO SSL Privacy: Nonce verified');
 
 		// Verify user is logged in
 		if (!is_user_logged_in()) {
+			error_log('SO SSL Privacy: User not logged in');
 			wp_send_json_error(array('message' => __('You must be logged in to perform this action.', 'so-ssl')));
+			return;
 		}
+
+		$user_id = get_current_user_id();
+		error_log('SO SSL Privacy: User ID: ' . $user_id);
 
 		// Get acceptance value
 		$accept = isset($_POST['accept']) ? absint($_POST['accept']) : 0;
+		error_log('SO SSL Privacy: Accept value: ' . $accept);
 
 		if ($accept !== 1) {
+			error_log('SO SSL Privacy: Not accepted');
 			wp_send_json_error(array('message' => __('You must accept the privacy notice to continue.', 'so-ssl')));
+			return;
 		}
 
 		// Save acceptance to user meta
-		$user_id = get_current_user_id();
-		update_user_meta($user_id, 'so_ssl_privacy_acknowledged', time());
+		$result = update_user_meta($user_id, 'so_ssl_privacy_acknowledged', time());
+		error_log('SO SSL Privacy: Update user meta result: ' . ($result ? 'success' : 'failed'));
 
-		wp_send_json_success(array('message' => __('Privacy notice accepted. Redirecting...', 'so-ssl')));
+		// Verify it was saved
+		$check = get_user_meta($user_id, 'so_ssl_privacy_acknowledged', true);
+		error_log('SO SSL Privacy: Verification check: ' . $check);
+
+		// Clear caches
+		clean_user_cache($user_id);
+		wp_cache_delete($user_id, 'user_meta');
+
+		wp_send_json_success(array(
+			'message' => __('Privacy notice accepted. Redirecting...', 'so-ssl'),
+			'debug' => array(
+				'user_id' => $user_id,
+				'saved' => $result,
+				'check' => $check
+			)
+		));
+	}
+
+	/**
+	 * Enqueue admin scripts
+	 */
+	public static function enqueue_admin_scripts($hook) {
+		// Only load on our plugin's settings page
+		if (strpos($hook, 'so-ssl') !== false || $hook === 'settings_page_so-ssl') {
+			wp_enqueue_editor();
+			wp_enqueue_media();
+		}
 	}
 
 	/**
@@ -630,16 +688,6 @@ class So_SSL_Privacy_Compliance {
 				'type' => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 				'default' => 'Privacy Acknowledgment Required',
-			)
-		);
-
-		register_setting(
-			'so_ssl_options',
-			'so_ssl_privacy_page_slug',
-			array(
-				'type' => 'string',
-				'sanitize_callback' => 'sanitize_title',
-				'default' => 'privacy-acknowledgment',
 			)
 		);
 
@@ -673,7 +721,6 @@ class So_SSL_Privacy_Compliance {
 			)
 		);
 
-		// Privacy Compliance User Roles setting
 		register_setting(
 			'so_ssl_options',
 			'so_ssl_privacy_required_roles',
@@ -708,266 +755,8 @@ class So_SSL_Privacy_Compliance {
 				'default' => true,
 			)
 		);
-
-		// Privacy Compliance Settings Section
-		add_settings_section(
-			'so_ssl_privacy_compliance_section',
-			__('Privacy Compliance Settings', 'so-ssl'),
-			array(__CLASS__, 'privacy_compliance_section_callback'),
-			'so-ssl-privacy'
-		);
-
-		add_settings_field(
-			'so_ssl_enable_privacy_compliance',
-			__('Enable Privacy Compliance', 'so-ssl'),
-			array(__CLASS__, 'enable_privacy_compliance_callback'),
-			'so-ssl-privacy',
-			'so_ssl_privacy_compliance_section'
-		);
-
-		add_settings_field(
-			'so_ssl_privacy_page_title',
-			__('Privacy Page Title', 'so-ssl'),
-			array(__CLASS__, 'privacy_page_title_callback'),
-			'so-ssl-privacy',
-			'so_ssl_privacy_compliance_section'
-		);
-
-		add_settings_field(
-			'so_ssl_privacy_page_slug',
-			__('Privacy Page Slug', 'so-ssl'),
-			array(__CLASS__, 'privacy_page_slug_callback'),
-			'so-ssl-privacy',
-			'so_ssl_privacy_compliance_section'
-		);
-
-		add_settings_field(
-			'so_ssl_privacy_notice_text',
-			__('Privacy Notice Text', 'so-ssl'),
-			array(__CLASS__, 'privacy_notice_text_callback'),
-			'so-ssl-privacy',
-			'so_ssl_privacy_compliance_section'
-		);
-
-		add_settings_field(
-			'so_ssl_privacy_checkbox_text',
-			__('Acknowledgment Checkbox Text', 'so-ssl'),
-			array(__CLASS__, 'privacy_checkbox_text_callback'),
-			'so-ssl-privacy',
-			'so_ssl_privacy_compliance_section'
-		);
-
-		add_settings_field(
-			'so_ssl_privacy_expiry_days',
-			__('Acknowledgment Expiry (Days)', 'so-ssl'),
-			array(__CLASS__, 'privacy_expiry_days_callback'),
-			'so-ssl-privacy',
-			'so_ssl_privacy_compliance_section'
-		);
-
-		add_settings_field(
-			'so_ssl_privacy_required_roles',
-			__('Required for User Roles', 'so-ssl'),
-			array(__CLASS__, 'privacy_required_roles_callback'),
-			'so-ssl-privacy',
-			'so_ssl_privacy_compliance_section'
-		);
 	}
-
-	/**
-	 * Privacy compliance section description
-	 */
-	public static function privacy_compliance_section_callback() {
-    echo '<p>' . esc_html__('Configure privacy compliance settings to inform users about data collection and tracking.', 'so-ssl') . '</p>';
-   	echo '<p>' . esc_html__('When enabled, users will be required to acknowledge a privacy notice before accessing logged-in areas of the site.', 'so-ssl') . '</p>';
-   	echo '<p><a href="#privacy-preview" class="so-ssl-preview-link">' . esc_html__('Jump to preview', 'so-ssl') . '</a></p>';
-   }
-
-   /**
-    * Enable privacy compliance field callback
-    */
-   public static function enable_privacy_compliance_callback() {
-   	$enable_privacy_compliance = get_option('so_ssl_enable_privacy_compliance', 0);
-
-   	echo '<label for="so_ssl_enable_privacy_compliance">';
-   	echo '<input type="checkbox" id="so_ssl_enable_privacy_compliance" name="so_ssl_enable_privacy_compliance" value="1" ' . checked(1, $enable_privacy_compliance, false) . '/>';
-   	echo esc_html__('Enable privacy compliance acknowledgment page', 'so-ssl');
-   	echo '</label>';
-   	echo '<p class="description">' . esc_html__('Requires users to acknowledge a privacy notice after login.', 'so-ssl') . '</p>';
-   }
-
-   /**
-    * Privacy page title field callback
-    */
-   public static function privacy_page_title_callback() {
-   	$page_title = get_option('so_ssl_privacy_page_title', 'Privacy Acknowledgment Required');
-
-   	echo '<input type="text" id="so_ssl_privacy_page_title" name="so_ssl_privacy_page_title" value="' . esc_attr($page_title) . '" class="regular-text" />';
-   	echo '<p class="description">' . esc_html__('Title of the privacy acknowledgment page.', 'so-ssl') . '</p>';
-   }
-
-   /**
-    * Privacy page slug field callback
-    */
-   public static function privacy_page_slug_callback() {
-   	$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
-   	// This field is now deprecated since we're using a query parameter
-   	echo '<p class="description">' .
-   	     esc_html__('Using query parameter: ', 'so-ssl') .
-   	     '<code>' . site_url('/?'.$page_slug.'=1') . '</code></p>';
-
-   	// Keep the input field for backward compatibility
-   	$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
-   	echo '<input type="hidden" id="so_ssl_privacy_page_slug" name="so_ssl_privacy_page_slug" value="' . esc_attr($page_slug) . '" />';
-
-   	echo '<p class="description">' .
-   	     esc_html__('The privacy page now uses a query parameter instead of a custom URL for improved compatibility.', 'so-ssl') .
-   	     '</p>';
-   }
-
-   /**
-    * Privacy notice text field callback
-    */
-   public static function privacy_notice_text_callback() {
-   	$notice_text = get_option('so_ssl_privacy_notice_text', 'This site tracks certain information for security purposes including IP addresses, login attempts, and session data. By using this site, you acknowledge and consent to this data collection in accordance with our Privacy Policy and applicable data protection laws including GDPR and US privacy regulations.');
-
-   	$editor_id = 'so_ssl_privacy_notice_text_editor';
-   	$editor_settings = array(
-   		'textarea_name' => 'so_ssl_privacy_notice_text',
-   		'textarea_rows' => 10,
-   		'media_buttons' => true,
-   		'tinymce'       => true,
-   		'quicktags'     => true,
-   	);
-
-   	wp_editor($notice_text, $editor_id, $editor_settings);
-
-   	echo '<p class="description">' . esc_html__('Text explaining what data is collected and why. HTML is allowed.', 'so-ssl') . '</p>';
-   }
-
-   /**
-    * Privacy checkbox text field callback
-    */
-   public static function privacy_checkbox_text_callback() {
-   	$checkbox_text = get_option('so_ssl_privacy_checkbox_text', 'I acknowledge and consent to the privacy notice above');
-
-   	echo '<input type="text" id="so_ssl_privacy_checkbox_text" name="so_ssl_privacy_checkbox_text" value="' . esc_attr($checkbox_text) . '" class="regular-text" />';
-   	echo '<p class="description">' . esc_html__('Text for the acknowledgment checkbox.', 'so-ssl') . '</p>';
-   }
-
-   /**
-    * Privacy expiry days field callback
-    */
-   public static function privacy_expiry_days_callback() {
-   	$expiry_days = get_option('so_ssl_privacy_expiry_days', 30);
-
-   	echo '<input type="number" id="so_ssl_privacy_expiry_days" name="so_ssl_privacy_expiry_days" value="' . esc_attr($expiry_days) . '" min="1" max="365" />';
-   	echo '<p class="description">' . esc_html__('Number of days before users need to re-acknowledge the privacy notice. Set to 365 for annual acknowledgment.', 'so-ssl') . '</p>';
-   }
-
-   /**
-    * Privacy required roles field callback
-    */
-   public static function privacy_required_roles_callback() {
-   	$required_roles = get_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
-   	$roles = wp_roles()->get_names();
-
-   	echo '<select multiple id="so_ssl_privacy_required_roles" name="so_ssl_privacy_required_roles[]" class="regular-text" style="height: 120px;">';
-   	foreach ($roles as $role_value => $role_name) {
-   		echo '<option value="' . esc_attr($role_value) . '" ' . selected(in_array($role_value, $required_roles), true, false) . '>' . esc_html($role_name) . '</option>';
-   	}
-   	echo '</select>';
-   	echo '<p class="description">' . esc_html__('Select which user roles will be required to acknowledge the privacy notice. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
-
-   	// Add option to exempt administrators
-   	$exempt_admins = get_option('so_ssl_privacy_exempt_admins', true);
-   	echo '<div style="margin-top: 10px;">';
-   	echo '<label for="so_ssl_privacy_exempt_admins">';
-   	echo '<input type="checkbox" id="so_ssl_privacy_exempt_admins" name="so_ssl_privacy_exempt_admins" value="1" ' . checked(1, $exempt_admins, false) . '/>';
-   	echo esc_html__('Always exempt administrators', 'so-ssl');
-   	echo '</label>';
-   	echo '<p class="description">' . esc_html__('When checked, administrators will never be required to acknowledge the privacy notice, regardless of role selection above.', 'so-ssl') . '</p>';
-   	echo '</div>';
-
-   	// Add option to exempt original admin (user ID 1)
-   	$exempt_original_admin = get_option('so_ssl_privacy_exempt_original_admin', true);
-   	echo '<div style="margin-top: 10px;">';
-   	echo '<label for="so_ssl_privacy_exempt_original_admin">';
-   	echo '<input type="checkbox" id="so_ssl_privacy_exempt_original_admin" name="so_ssl_privacy_exempt_original_admin" value="1" ' . checked(1, $exempt_original_admin, false) . '/>';
-   	echo esc_html__('Always exempt original admin (user ID 1)', 'so-ssl');
-   	echo '</label>';
-   	echo '<p class="description">' . esc_html__('When checked, the original admin user (ID 1) will never be required to acknowledge the privacy notice.', 'so-ssl') . '</p>';
-   	echo '</div>';
-   }
-
-   /**
-    * Add JavaScript to admin footer
-    */
-   public static function add_admin_footer_js() {
-   	?>
-   	<script>
-   	jQuery(document).ready(function($) {
-   		// Function to update preview based on form values
-   		function updatePrivacyPreview() {
-   			var pageTitle = $('#so_ssl_privacy_page_title').val();
-   			var noticeText = $('#so_ssl_privacy_notice_text').val();
-   			var checkboxText = $('#so_ssl_privacy_checkbox_text').val();
-
-   			// Update the preview elements
-   			$('.so-ssl-preview-container h2').text(pageTitle);
-   			$('.so-ssl-preview-container div:first').html(noticeText);
-   			$('.so-ssl-preview-container label').contents().filter(function() {
-   				return this.nodeType === 3; // Text nodes only
-   			}).replaceWith(checkboxText);
-   		}
-
-   		// Add event listeners to form fields
-   		$('#so_ssl_privacy_page_title, #so_ssl_privacy_notice_text, #so_ssl_privacy_checkbox_text').on('input', function() {
-   			updatePrivacyPreview();
-   		});
-
-   		// Toggle preview visibility based on whether privacy compliance is enabled
-   		$('#so_ssl_enable_privacy_compliance').on('change', function() {
-   			if ($(this).is(':checked')) {
-   				$('#privacy-preview').show();
-   			} else {
-   				$('#privacy-preview').hide();
-   			}
-   		});
-
-   		// Initialize
-   		if (!$('#so_ssl_enable_privacy_compliance').is(':checked')) {
-   			$('#privacy-preview').hide();
-   		}
-   	});
-   	</script>
-   	<?php
-   }
-
-   /**
-    * Register the privacy acknowledgment template
-    */
-   public static function register_privacy_template() {
-   	// Register query var
-   	add_filter('query_vars', array(__CLASS__, 'add_query_vars'));
-   }
-
-   /**
-    * Add custom query vars
-    *
-    * @param array $vars The array of available query variables
-    * @return array Modified array of query variables
-    */
-   public static function add_query_vars($vars) {
-   	$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
-   	$vars[] = $page_slug;
-   	return $vars;
-   }
 }
 
 // Initialize the class
 So_SSL_Privacy_Compliance::init();
-So_SSL_Privacy_Compliance::register_privacy_template();
-
-// Add the JavaScript to admin footer
-add_action('admin_footer', array('So_SSL_Privacy_Compliance', 'add_admin_footer_js'));
