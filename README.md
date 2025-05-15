@@ -6,7 +6,7 @@ A WordPress plugin to activate and enforce SSL on your site with advanced securi
 
 So SSL is a comprehensive security and privacy plugin for WordPress that allows you to easily enforce SSL/HTTPS on your website, implement advanced security headers, enable two-factor authentication, and ensure privacy compliance with GDPR and US regulations.
 
-**Version: 1.4.5**
+**Version: 1.4.6**
 
 ## Features
 
@@ -29,6 +29,14 @@ So SSL is a comprehensive security and privacy plugin for WordPress that allows 
 * Role-based privacy requirements configuration
 * Expiry settings for periodic privacy policy re-acknowledgment
 * Full preview of privacy page in admin interface
+* Modal-based acknowledgment system for better user experience
+
+### Administrator Agreement
+* Require administrators to accept terms before using plugin features
+* Customizable agreement text and checkbox labels
+* Role-based requirements with exemption options
+* Periodic re-acknowledgment with configurable expiry
+* Emergency override option for lockout prevention
 
 ### Two-Factor Authentication
 * Email verification code option
@@ -72,7 +80,11 @@ While the plugin will activate, forcing SSL without a valid SSL certificate will
 
 ### How does the privacy compliance feature work?
 
-When enabled, users will be redirected to a customizable privacy acknowledgment page after login. They must check the acknowledgment box to access the site. The acknowledgment is stored in user metadata with a timestamp, and you can set an expiry period after which users must re-acknowledge the notice.
+When enabled, users will see a modal overlay with your privacy notice after login. They must check the acknowledgment box to access the site. The acknowledgment is stored in user metadata with a timestamp, and you can set an expiry period after which users must re-acknowledge the notice.
+
+### What is the Administrator Agreement feature?
+
+The Administrator Agreement ensures that administrators acknowledge the security implications and responsibilities of using the plugin. It's displayed as a modal overlay when administrators first access the plugin settings and can be configured to require periodic re-acknowledgment.
 
 ### Is Two-Factor Authentication secure?
 
@@ -83,6 +95,14 @@ Yes, So SSL implements industry-standard TOTP (Time-based One-Time Password) for
 Yes, all security headers can be customized with various options. The Content Security Policy (CSP) settings are particularly flexible, allowing you to control exactly which sources are allowed for different content types.
 
 ## Changelog
+
+### 1.4.6
+* Enhanced privacy compliance modal system for better cross-environment compatibility
+* Improved Administrator Agreement feature with modal-based acknowledgment
+* Added modal controller for managing multiple overlay priorities
+* Fixed redirect loop issues in privacy compliance on production domains
+* Added AJAX fallback methods for better reliability on various hosting environments
+* Improved error handling and debugging capabilities for modal displays
 
 ### 1.4.5
 * Added privacy compliance feature for GDPR and US privacy regulations
