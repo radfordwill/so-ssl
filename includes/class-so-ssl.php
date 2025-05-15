@@ -88,10 +88,6 @@ class So_SSL {
 
 			// Load 2FA functionality
 			require_once SO_SSL_PATH . 'includes/class-so-ssl-two-factor.php';
-
-			// Load 2FA functionality
-			require_once SO_SSL_PATH . 'assets/qrcodejs/1.0.0/qrcode.min.js';
-
 		}
 	}
 
