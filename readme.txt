@@ -1,9 +1,9 @@
 === So SSL ===
 Contributors: radfordwill
 Tags: ssl, security, privacy policy, compliance, 2fa
-Requires at least: 5.0
+Requires at least: 6.0
 Tested up to: 6.8
-Stable tag: 1.4.5
+Stable tag: 1.4.6
 Requires PHP: 7.0
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -38,6 +38,15 @@ So SSL is a comprehensive security and privacy plugin for WordPress that allows 
 * Role-based privacy requirements configuration
 * Expiry settings for periodic privacy policy re-acknowledgment
 * Full preview of privacy page in admin interface
+* Modal-based acknowledgment system for better user experience
+
+**Administrator Agreement**
+
+* Require administrators to accept terms before using plugin features
+* Customizable agreement text and checkbox labels
+* Role-based requirements with exemption options
+* Periodic re-acknowledgment with configurable expiry
+* Emergency override option for lockout prevention
 
 **Two-Factor Authentication**
 
@@ -80,7 +89,11 @@ While the plugin will activate, forcing SSL without a valid SSL certificate will
 
 = How does the privacy compliance feature work? =
 
-When enabled, users will be redirected to a customizable privacy acknowledgment page after login. They must check the acknowledgment box to access the site. The acknowledgment is stored in user metadata with a timestamp, and you can set an expiry period after which users must re-acknowledge the notice.
+When enabled, users will see a modal overlay with your privacy notice after login. They must check the acknowledgment box to access the site. The acknowledgment is stored in user metadata with a timestamp, and you can set an expiry period after which users must re-acknowledge the notice.
+
+= What is the Administrator Agreement feature? =
+
+The Administrator Agreement ensures that administrators acknowledge the security implications and responsibilities of using the plugin. It's displayed as a modal overlay when administrators first access the plugin settings and can be configured to require periodic re-acknowledgment.
 
 = Is Two-Factor Authentication secure? =
 
@@ -99,8 +112,18 @@ Yes, all security headers can be customized with various options. The Content Se
 5. Login Protection configuration
 6. Privacy Compliance settings with preview
 7. User Sessions Management
+8. Administrator Agreement modal
+9. Privacy Compliance modal
 
 == Changelog ==
+
+= 1.4.6 =
+* Enhanced privacy compliance modal system for better cross-environment compatibility
+* Improved Administrator Agreement feature with modal-based acknowledgment
+* Added modal controller for managing multiple overlay priorities
+* Fixed redirect loop issues in privacy compliance on production domains
+* Added AJAX fallback methods for better reliability on various hosting environments
+* Improved error handling and debugging capabilities for modal displays
 
 = 1.4.5 =
 * Added privacy compliance feature for GDPR and US privacy regulations
@@ -154,6 +177,9 @@ Yes, all security headers can be customized with various options. The Content Se
 * Basic SSL forcing functionality
 
 == Upgrade Notice ==
+
+= 1.4.6 =
+This update improves privacy compliance and administrator agreement features with better modal handling, fixes redirect loop issues on production domains, and adds fallback methods for improved reliability across different hosting environments.
 
 = 1.4.5 =
 This update adds privacy compliance features for GDPR and US privacy regulations, with a customizable acknowledgment page for users.
