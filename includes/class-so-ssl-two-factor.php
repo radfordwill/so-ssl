@@ -165,7 +165,7 @@ class So_SSL_Two_Factor {
 									<?php
 									/* translators: %s: Link to update email */
 									printf(esc_html__('To change your email address, visit your %s', 'so-ssl'),
-										'<a href="' . admin_url('profile.php') . '">' . esc_html__('profile settings', 'so-ssl') . '</a>'
+										'<a href="' . esc_url(admin_url('profile.php')) . '">' . esc_html__('profile settings', 'so-ssl') . '</a>'
 									);
 									?>
                                 </p>

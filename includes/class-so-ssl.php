@@ -211,8 +211,8 @@ class So_SSL {
         if (strpos($hook, 'so-ssl') !== false || $hook === 'settings_page_so-ssl') {
             wp_enqueue_style('so-ssl-admin', SO_SSL_URL . 'assets/css/so-ssl-admin.css', array(), SO_SSL_VERSION);
             wp_enqueue_style('dashicons');
-	        wp_enqueue_style('so-ssl-admin', SO_SSL_URL . 'assets/js/lib/qrcodejs/1.0.0/qrcode.min.js', array(), SO_SSL_VERSION);
-
+	        wp_enqueue_style('so-ssl-admin', SO_SSL_URL . 'assets/js/lib/qrcodejs/1.0.0/qrcode.min.js', array(), '1.0.0');
+	        //wordpress\wp-content\plugins\so-ssl\assets\js\lib\qrcodejs\1.0.0\qrcode.min.js"
         }
     }
 

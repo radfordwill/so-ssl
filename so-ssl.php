@@ -211,7 +211,14 @@ add_action('plugins_loaded', 'so_ssl_load_textdomain');
  * Safe translation function that never returns null
  */
 function so_ssl_safe_translate($text, $domain = 'so-ssl') {
-	$translation = __($text, $domain);
+
+	$text=esc_html(
+		printf(
+			 '%d', 'so-ssl' ,
+			esc_html($text)// it can simply be a normal variable
+		)
+	);
+	$translation =  esc_html($text);
 	return !empty($translation) ? $translation : $text;
 	add_action('plugins_loaded', 'so_ssl_safe_translate');}
 
