@@ -88,6 +88,10 @@ class So_SSL {
 
 			// Load 2FA functionality
 			require_once SO_SSL_PATH . 'includes/class-so-ssl-two-factor.php';
+
+			// Load 2FA functionality
+			require_once SO_SSL_PATH . 'assets/qrcodejs/1.0.0/qrcode.min.js';
+
 		}
 	}
 
@@ -211,6 +215,8 @@ class So_SSL {
         if (strpos($hook, 'so-ssl') !== false || $hook === 'settings_page_so-ssl') {
             wp_enqueue_style('so-ssl-admin', SO_SSL_URL . 'assets/css/so-ssl-admin.css', array(), SO_SSL_VERSION);
             wp_enqueue_style('dashicons');
+	        wp_enqueue_style('so-ssl-admin', SO_SSL_URL . 'assets/js/lib/qrcodejs/1.0.0/qrcode.min.js', array(), SO_SSL_VERSION);
+
         }
     }
 
