@@ -181,7 +181,7 @@ function activate_so_ssl() {
  * The code that runs during plugin deactivation.
  */
 function deactivate_so_ssl() {
-
+	// Deactivation code here
 }
 
 /**
@@ -211,16 +211,33 @@ add_action('plugins_loaded', 'so_ssl_load_textdomain');
  * Safe translation function that never returns null
  */
 function so_ssl_safe_translate($text, $domain = 'so-ssl') {
+	// Get translation using the original text (not escaped)
+	// IMPORTANT: We cannot pass $text directly to __, it must be a literal string
+	// Instead, we'll use the text as-is and handle escaping after translation
+	$translation = apply_filters('so_ssl_translate', $text, $domain);
 
-	$text=esc_html(
-		printf(
-			 '%d', 'so-ssl' ,
-			esc_html($text)// it can simply be a normal variable
-		)
-	);
-	$translation =  esc_html($text);
-	return !empty($translation) ? $translation : $text;
-	add_action('plugins_loaded', 'so_ssl_safe_translate');}
+	// Properly escape the final output
+	return esc_html(!empty($translation) ? $translation : $text);
+}
+
+// Add custom filter to handle the translation
+add_filter('so_ssl_translate', function($text, $domain) {
+	// Convert common strings to their translations
+	switch ($text) {
+		case 'Submit':
+			return __('Submit', 'so-ssl');
+		case 'Cancel':
+			return __('Cancel', 'so-ssl');
+		// Add more common strings as needed
+		default:
+			// For strings we haven't explicitly defined, return as-is
+			return $text;
+	}
+}, 10, 2);
+
+add_action('plugins_loaded', function() {
+	// Any initialization code for the translation functionality
+});
 
 register_activation_hook(__FILE__, 'activate_so_ssl');
 
