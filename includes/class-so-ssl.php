@@ -91,6 +91,202 @@ class So_SSL {
 		}
 	}
 
+	/**
+	 * Enable privacy compliance field callback
+	 */
+	public static function enable_privacy_compliance_callback() {
+		$enable_privacy_compliance = get_option('so_ssl_enable_privacy_compliance', 0);
+
+		echo '<label for="so_ssl_enable_privacy_compliance">';
+		echo '<input type="checkbox" id="so_ssl_enable_privacy_compliance" name="so_ssl_enable_privacy_compliance" value="1" ' . checked(1, $enable_privacy_compliance, false) . '/>';
+		echo esc_html__('Enable privacy compliance acknowledgment page', 'so-ssl');
+		echo '</label>';
+		echo '<p class="description">' . esc_html__('Requires users to acknowledge a privacy notice after login.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Privacy page title field callback
+	 */
+	public static function privacy_page_title_callback() {
+		$page_title = get_option('so_ssl_privacy_page_title', 'Privacy Acknowledgment Required');
+
+		echo '<input type="text" id="so_ssl_privacy_page_title" name="so_ssl_privacy_page_title" value="' . esc_attr($page_title) . '" class="regular-text" />';
+		echo '<p class="description">' . esc_html__('Title of the privacy acknowledgment page.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Privacy page slug field callback
+	 */
+	public static function privacy_page_slug_callback() {
+		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
+
+		echo '<input type="text" id="so_ssl_privacy_page_slug" name="so_ssl_privacy_page_slug" value="' . esc_attr($page_slug) . '" class="regular-text" />';
+		echo '<p class="description">' . esc_html__('URL slug for the privacy acknowledgment page.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Privacy notice text field callback
+	 *
+	 * @since    1.4.4
+	 * @access   private
+	 *
+	 */
+	public static function privacy_notice_text_callback() {
+		// Get saved content
+		$notice_text = get_option('so_ssl_privacy_notice_text', 'This site tracks certain information for security purposes including IP addresses, login attempts, and session data. By using this site, you acknowledge and consent to this data collection in accordance with our Privacy Policy and applicable data protection laws including GDPR and US privacy regulations.');
+
+		// Force load WordPress editor scripts directly
+		if (function_exists('wp_enqueue_editor')) {
+			wp_enqueue_editor();
+			wp_enqueue_media();
+		}
+
+		// Basic editor settings - simplified for troubleshooting
+		$editor_settings = array(
+			'textarea_name' => 'so_ssl_privacy_notice_text', // Field name
+			'textarea_rows' => 10,
+			'teeny'         => true, // Use minimal editor toolbar
+			'wpautop'       => true, // Add paragraphs automatically
+		);
+
+		// Add a comment that will show in HTML source to confirm this function is called
+		echo "<!-- TinyMCE editor should appear below this line -->";
+
+		// Output the editor
+		wp_editor(
+			wp_kses_post($notice_text),  // Sanitize content
+			'so_ssl_privacy_notice_text', // Editor ID - must match field name for simplicity
+			$editor_settings
+		);
+
+		echo '<p class="description">' . esc_html__('Text explaining what data is collected and why. HTML is allowed.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Privacy checkbox text field callback
+	 */
+	public static function privacy_checkbox_text_callback() {
+		$checkbox_text = get_option('so_ssl_privacy_checkbox_text', 'I acknowledge and consent to the privacy notice above');
+
+		echo '<input type="text" id="so_ssl_privacy_checkbox_text" name="so_ssl_privacy_checkbox_text" value="' . esc_attr($checkbox_text) . '" class="regular-text" />';
+		echo '<p class="description">' . esc_html__('Text for the acknowledgment checkbox.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Privacy expiry days field callback
+	 */
+	public static function privacy_expiry_days_callback() {
+		$expiry_days = get_option('so_ssl_privacy_expiry_days', 30);
+
+		echo '<input type="number" id="so_ssl_privacy_expiry_days" name="so_ssl_privacy_expiry_days" value="' . esc_attr($expiry_days) . '" min="1" max="365" />';
+		echo '<p class="description">' . esc_html__('Number of days before users need to re-acknowledge the privacy notice. Set to 365 for annual acknowledgment.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Privacy required roles field callback
+	 */
+	public static function privacy_required_roles_callback() {
+		$required_roles = get_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
+		$roles = wp_roles()->get_names();
+
+		echo '<select multiple id="so_ssl_privacy_required_roles" name="so_ssl_privacy_required_roles[]" class="regular-text" style="height: 120px;">';
+		foreach ($roles as $role_value => $role_name) {
+			echo '<option value="' . esc_attr($role_value) . '" ' . selected(in_array($role_value, $required_roles), true, false) . '>' . esc_html($role_name) . '</option>';
+		}
+		echo '</select>';
+		echo '<p class="description">' . esc_html__('Select which user roles will be required to acknowledge the privacy notice. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
+
+		// Add option to exempt administrators
+		$exempt_admins = get_option('so_ssl_privacy_exempt_admins', true);
+		echo '<div style="margin-top: 10px;">';
+		echo '<label for="so_ssl_privacy_exempt_admins">';
+		echo '<input type="checkbox" id="so_ssl_privacy_exempt_admins" name="so_ssl_privacy_exempt_admins" value="1" ' . checked(1, $exempt_admins, false) . '/>';
+		echo esc_html__('Always exempt administrators', 'so-ssl');
+		echo '</label>';
+		echo '<p class="description">' . esc_html__('When checked, administrators will never be required to acknowledge the privacy notice, regardless of role selection above.', 'so-ssl') . '</p>';
+		echo '</div>';
+
+		// Add option to exempt original admin (user ID 1)
+		$exempt_original_admin = get_option('so_ssl_privacy_exempt_original_admin', true);
+		echo '<div style="margin-top: 10px;">';
+		echo '<label for="so_ssl_privacy_exempt_original_admin">';
+		echo '<input type="checkbox" id="so_ssl_privacy_exempt_original_admin" name="so_ssl_privacy_exempt_original_admin" value="1" ' . checked(1, $exempt_original_admin, false) . '/>';
+		echo esc_html__('Always exempt original admin (user ID 1)', 'so-ssl');
+		echo '</label>';
+		echo '<p class="description">' . esc_html__('When checked, the original admin user (ID 1) will never be required to acknowledge the privacy notice.', 'so-ssl') . '</p>';
+		echo '</div>';
+	}
+
+	/**
+	 * Admin agreement section callback
+	 */
+	public static function admin_agreement_section_callback() {
+		echo '<p>' . esc_html__('Configure the agreement that administrators must accept before using the plugin.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Enable admin agreement field callback
+	 */
+	public static function enable_admin_agreement_callback() {
+		$enable_admin_agreement = get_option('so_ssl_enable_admin_agreement', 1);
+
+		echo '<label for="so_ssl_enable_admin_agreement">';
+		echo '<input type="checkbox" id="so_ssl_enable_admin_agreement" name="so_ssl_enable_admin_agreement" value="1" ' . checked(1, $enable_admin_agreement, false) . '/>';
+		echo esc_html__('Require administrators to accept an agreement before using the plugin', 'so-ssl');
+		echo '</label>';
+		echo '<p class="description">' . esc_html__('When enabled, administrators must accept the agreement before accessing plugin settings.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Admin agreement title field callback
+	 */
+	public static function admin_agreement_title_callback() {
+		$page_title = get_option('so_ssl_admin_agreement_title', 'Administrator Agreement Required');
+
+		echo '<input type="text" id="so_ssl_admin_agreement_title" name="so_ssl_admin_agreement_title" value="' . esc_attr($page_title) . '" class="regular-text" />';
+		echo '<p class="description">' . esc_html__('Title of the administrator agreement page.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Admin agreement text field callback
+	 */
+	public static function admin_agreement_text_callback() {
+		$agreement_text = get_option('so_ssl_admin_agreement_text', 'By using this plugin, you agree to adhere to security best practices and ensure all data collected will be handled in accordance with applicable privacy laws. You acknowledge that this plugin makes changes to your website\'s security configuration that you are responsible for monitoring and maintaining.');
+
+		$editor_id = 'so_ssl_admin_agreement_text_editor';
+		$editor_settings = array(
+			'textarea_name' => 'so_ssl_admin_agreement_text',
+			'textarea_rows' => 10,
+			'media_buttons' => true,
+			'tinymce'       => true,
+			'quicktags'     => true,
+		);
+
+		wp_editor($agreement_text, $editor_id, $editor_settings);
+
+		echo '<p class="description">' . esc_html__('Text of the agreement that administrators must accept. HTML is allowed.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Admin agreement checkbox text field callback
+	 */
+	public static function admin_agreement_checkbox_text_callback() {
+		$checkbox_text = get_option('so_ssl_admin_agreement_checkbox_text', 'I understand and agree to these terms');
+
+		echo '<input type="text" id="so_ssl_admin_agreement_checkbox_text" name="so_ssl_admin_agreement_checkbox_text" value="' . esc_attr($checkbox_text) . '" class="regular-text" />';
+		echo '<p class="description">' . esc_html__('Text for the agreement checkbox.', 'so-ssl') . '</p>';
+	}
+
+	/**
+	 * Admin agreement expiry days field callback
+	 */
+	public static function admin_agreement_expiry_days_callback() {
+		$expiry_days = get_option('so_ssl_admin_agreement_expiry_days', 365);
+
+		echo '<input type="number" id="so_ssl_admin_agreement_expiry_days" name="so_ssl_admin_agreement_expiry_days" value="' . esc_attr($expiry_days) . '" min="1" max="3650" />';
+		echo '<p class="description">' . esc_html__('Number of days before administrators need to re-accept the agreement. Default is 365 days (yearly).', 'so-ssl') . '</p>';
+	}
+
     /**
      * Run the loader to execute all hooks.
      *
@@ -1033,7 +1229,7 @@ class So_SSL {
 	    // Privacy compliance settings
 	    $this->register_privacy_compliance_settings();
 
-	    // Privacy compliance settings
+	    // Admin Agrrement settings
 	    $this->register_admin_agreement_settings();
 
 
@@ -1135,117 +1331,6 @@ class So_SSL {
             array($this, 'force_ssl_callback'),
             'so-ssl-ssl',
             'so_ssl_section'
-        );
-    }
-
-    /**
-     * Register Two-Factor Authentication settings.
-     *
-     * @since    1.2.0
-     * @access   private
-     */
-    private function register_two_factor_settings() {
-        // Two-Factor Authentication settings
-        register_setting(
-            'so_ssl_options',
-            'so_ssl_enable_2fa',
-            array(
-                'type' => 'boolean',
-                'sanitize_callback' => 'intval',
-                'default' => 0,
-            )
-        );
-
-        register_setting(
-            'so_ssl_options',
-            'so_ssl_2fa_user_roles',
-            array(
-                'type' => 'array',
-                'sanitize_callback' => function($input) {
-                    if (!is_array($input)) {
-                        return array();
-                    }
-                    return array_map('sanitize_text_field', $input);
-                },
-                'default' => array('administrator'),
-            )
-        );
-
-        register_setting(
-            'so_ssl_options',
-            'so_ssl_2fa_method',
-            array(
-                'type' => 'string',
-                'sanitize_callback' => 'sanitize_text_field',
-                'default' => 'email',
-            )
-        );
-
-        // Two-Factor Authentication Settings Section
-        add_settings_section(
-            'so_ssl_2fa_section',
-            __('Two-Factor Authentication Settings', 'so-ssl'),
-            array($this, 'two_factor_section_callback'),
-            'so-ssl-2fa'
-        );
-
-        add_settings_field(
-            'so_ssl_enable_2fa',
-            __('Enable Two-Factor Authentication', 'so-ssl'),
-            array($this, 'enable_two_factor_callback'),
-            'so-ssl-2fa',
-            'so_ssl_2fa_section'
-        );
-
-        add_settings_field(
-            'so_ssl_2fa_user_roles',
-            __('User Roles', 'so-ssl'),
-            array($this, 'two_factor_user_roles_callback'),
-            'so-ssl-2fa',
-            'so_ssl_2fa_section'
-        );
-
-        add_settings_field(
-            'so_ssl_2fa_method',
-            __('Authentication Method', 'so-ssl'),
-            array($this, 'two_factor_method_callback'),
-            'so-ssl-2fa',
-            'so_ssl_2fa_section'
-        );
-    }
-
-    /**
-     * Register Login Protection settings.
-     *
-     * @since    1.3.0
-     * @access   private
-     */
-    private function register_login_protection_settings() {
-        // Password security setting
-        register_setting(
-            'so_ssl_options',
-            'so_ssl_disable_weak_passwords',
-            array(
-                'type' => 'boolean',
-                'sanitize_callback' => 'intval',
-                'default' => 0,
-            )
-        );
-
-        // Password Security Settings Section
-        add_settings_section(
-            'so_ssl_password_security_section',
-            __('Password Security', 'so-ssl'),
-            array($this, 'password_security_section_callback'),
-            'so-ssl-login-protection'
-        );
-
-        add_settings_field(
-            'so_ssl_disable_weak_passwords',
-            __('Enforce Strong Passwords', 'so-ssl'),
-            array($this, 'disable_weak_passwords_callback'),
-            'so-ssl-login-protection',
-            'so_ssl_password_security_section'
         );
     }
 
@@ -1501,6 +1586,486 @@ class So_SSL {
         );
     }
 
+    /**
+     * Register Two-Factor Authentication settings.
+     *
+     * @since    1.2.0
+     * @access   private
+     */
+    private function register_two_factor_settings() {
+        // Two-Factor Authentication settings
+        register_setting(
+            'so_ssl_options',
+            'so_ssl_enable_2fa',
+            array(
+                'type' => 'boolean',
+                'sanitize_callback' => 'intval',
+                'default' => 0,
+            )
+        );
+
+        register_setting(
+            'so_ssl_options',
+            'so_ssl_2fa_user_roles',
+            array(
+                'type' => 'array',
+                'sanitize_callback' => function($input) {
+                    if (!is_array($input)) {
+                        return array();
+                    }
+                    return array_map('sanitize_text_field', $input);
+                },
+                'default' => array('administrator'),
+            )
+        );
+
+        register_setting(
+            'so_ssl_options',
+            'so_ssl_2fa_method',
+            array(
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+                'default' => 'email',
+            )
+        );
+
+        // Two-Factor Authentication Settings Section
+        add_settings_section(
+            'so_ssl_2fa_section',
+            __('Two-Factor Authentication Settings', 'so-ssl'),
+            array($this, 'two_factor_section_callback'),
+            'so-ssl-2fa'
+        );
+
+        add_settings_field(
+            'so_ssl_enable_2fa',
+            __('Enable Two-Factor Authentication', 'so-ssl'),
+            array($this, 'enable_two_factor_callback'),
+            'so-ssl-2fa',
+            'so_ssl_2fa_section'
+        );
+
+        add_settings_field(
+            'so_ssl_2fa_user_roles',
+            __('User Roles', 'so-ssl'),
+            array($this, 'two_factor_user_roles_callback'),
+            'so-ssl-2fa',
+            'so_ssl_2fa_section'
+        );
+
+        add_settings_field(
+            'so_ssl_2fa_method',
+            __('Authentication Method', 'so-ssl'),
+            array($this, 'two_factor_method_callback'),
+            'so-ssl-2fa',
+            'so_ssl_2fa_section'
+        );
+    }
+
+/**
+ * Register Referrer Policy settings.
+ *
+ * @since    1.0.2
+ * @access   private
+ */
+private function register_referrer_policy_settings() {
+    // Referrer Policy settings
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_enable_referrer_policy',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 0,
+        )
+    );
+
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_referrer_policy_option',
+        array(
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => 'strict-origin-when-cross-origin',
+        )
+    );
+
+    // Referrer Policy Settings Section
+    add_settings_section(
+        'so_ssl_referrer_policy_section',
+        __('Referrer Policy', 'so-ssl'),
+        array($this, 'referrer_policy_section_callback'),
+        'so-ssl-referrer'
+    );
+
+    add_settings_field(
+        'so_ssl_enable_referrer_policy',
+        __('Enable Referrer Policy', 'so-ssl'),
+        array($this, 'enable_referrer_policy_callback'),
+        'so-ssl-referrer',
+        'so_ssl_referrer_policy_section'
+    );
+
+    add_settings_field(
+        'so_ssl_referrer_policy_option',
+        __('Referrer Policy Value', 'so-ssl'),
+        array($this, 'referrer_policy_option_callback'),
+        'so-ssl-referrer',
+        'so_ssl_referrer_policy_section'
+    );
+}
+
+/**
+     * Register Content Security Policy settings.
+     *
+     * @since    1.0.2
+     * @access   private
+     */
+    private function register_content_security_policy_settings() {
+        // Content Security Policy settings
+        register_setting(
+            'so_ssl_options',
+            'so_ssl_enable_csp',
+            array(
+                'type' => 'boolean',
+                'sanitize_callback' => 'intval',
+                'default' => 0,
+            )
+        );
+
+        register_setting(
+            'so_ssl_options',
+            'so_ssl_csp_mode',
+            array(
+                'type' => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+                'default' => 'report-only',
+            )
+        );
+
+        // Register CSP directives
+        $csp_directives = array(
+            'default-src' => "'self'",
+            'script-src' => "'self'",
+            'style-src' => "'self'",
+            'img-src' => "'self'",
+            'connect-src' => "'self'",
+            'font-src' => "'self'",
+            'object-src' => "'none'",
+            'media-src' => "'self'",
+            'frame-src' => "'self'",
+            'base-uri' => "'self'",
+            'form-action' => "'self'",
+            'upgrade-insecure-requests' => ""
+        );
+
+        foreach ($csp_directives as $directive => $default_value) {
+            // Register the main directive value
+            register_setting(
+                'so_ssl_options',
+                'so_ssl_csp_' . str_replace('-', '_', $directive),
+                array(
+                    'type' => 'string',
+                    'sanitize_callback' => 'sanitize_textarea_field',
+                    'default' => $default_value,
+                )
+            );
+
+            // Register the option type (dropdown or custom)
+            if ($directive !== 'upgrade-insecure-requests') {
+                register_setting(
+                    'so_ssl_options',
+                    'so_ssl_csp_' . str_replace('-', '_', $directive) . '_type',
+                    array(
+                        'type' => 'string',
+                        'sanitize_callback' => 'sanitize_text_field',
+                        'default' => 'predefined',
+                    )
+                );
+            }
+        }
+
+        // Content Security Policy Settings Section
+        add_settings_section(
+            'so_ssl_csp_full_section',
+            __('Content Security Policy (CSP)', 'so-ssl'),
+            array($this, 'csp_full_section_callback'),
+            'so-ssl-csp'
+        );
+
+        add_settings_field(
+            'so_ssl_enable_csp',
+            __('Enable Content Security Policy', 'so-ssl'),
+            array($this, 'enable_csp_callback'),
+            'so-ssl-csp',
+            'so_ssl_csp_full_section'
+        );
+
+        add_settings_field(
+            'so_ssl_csp_mode',
+            __('CSP Mode', 'so-ssl'),
+            array($this, 'csp_mode_callback'),
+            'so-ssl-csp',
+            'so_ssl_csp_full_section'
+        );
+
+        // Add fields for each CSP directive
+        foreach ($csp_directives as $directive => $default_value) {
+            $field_id = 'so_ssl_csp_' . str_replace('-', '_', $directive);
+
+            add_settings_field(
+                $field_id,
+                $directive,
+                array($this, 'csp_directive_callback'),
+                'so-ssl-csp',
+                'so_ssl_csp_full_section',
+                array(
+                    'label_for' => $field_id,
+                    'directive' => $directive,
+                    'default_value' => $default_value
+                )
+            );
+        }
+    }
+
+                /**
+                   * Register Permissions Policy settings.
+                   *
+                   * @since    1.0.2
+                   * @access   private
+                   */
+                  private function register_permissions_policy_settings() {
+                      // Permissions Policy settings
+                      register_setting(
+                          'so_ssl_options',
+                          'so_ssl_enable_permissions_policy',
+                          array(
+                              'type' => 'boolean',
+                              'sanitize_callback' => 'intval',
+                              'default' => 0,
+                          )
+                      );
+
+                      // Define available permissions
+                      $permissions = array(
+                          'accelerometer' => array('default' => 'self', 'description' => __('Controls access to accelerometer sensors', 'so-ssl')),
+                          'ambient-light-sensor' => array('default' => 'self', 'description' => __('Controls access to ambient light sensors', 'so-ssl')),
+                          'autoplay' => array('default' => 'self', 'description' => __('Controls the ability to autoplay media', 'so-ssl')),
+                          'battery' => array('default' => 'self', 'description' => __('Controls access to battery information', 'so-ssl')),
+                          'camera' => array('default' => 'self', 'description' => __('Controls access to video cameras', 'so-ssl')),
+                          'display-capture' => array('default' => 'self', 'description' => __('Controls the ability to capture screen content', 'so-ssl')),
+                          'document-domain' => array('default' => 'self', 'description' => __('Controls the ability to set document.domain', 'so-ssl')),
+                          'encrypted-media' => array('default' => 'self', 'description' => __('Controls access to EME API', 'so-ssl')),
+                          'execution-while-not-rendered' => array('default' => 'self', 'description' => __('Controls execution when not rendered', 'so-ssl')),
+                          'execution-while-out-of-viewport' => array('default' => 'self', 'description' => __('Controls execution when outside viewport', 'so-ssl')),
+                          'fullscreen' => array('default' => 'self', 'description' => __('Controls the ability to use fullscreen mode', 'so-ssl')),
+                          'geolocation' => array('default' => 'self', 'description' => __('Controls access to the geolocation API', 'so-ssl')),
+                          'gyroscope' => array('default' => 'self', 'description' => __('Controls access to gyroscope sensors', 'so-ssl')),
+                          'microphone' => array('default' => 'self', 'description' => __('Controls access to audio capture devices', 'so-ssl')),
+                          'midi' => array('default' => 'self', 'description' => __('Controls access to MIDI devices', 'so-ssl')),
+                          'navigation-override' => array('default' => 'self', 'description' => __('Controls the ability to override navigation', 'so-ssl')),
+                          'payment' => array('default' => 'self', 'description' => __('Controls access to the Payment Request API', 'so-ssl')),
+                          'picture-in-picture' => array('default' => '*', 'description' => __('Controls the ability to use Picture-in-Picture', 'so-ssl')),
+                          'publickey-credentials-get' => array('default' => 'self', 'description' => __('Controls access to WebAuthn API', 'so-ssl')),
+                          'screen-wake-lock' => array('default' => 'self', 'description' => __('Controls access to Wake Lock API', 'so-ssl')),
+                          'sync-xhr' => array('default' => 'self', 'description' => __('Controls the ability to use synchronous XHR', 'so-ssl')),
+                          'usb' => array('default' => 'self', 'description' => __('Controls access to USB devices', 'so-ssl')),
+                          'web-share' => array('default' => 'self', 'description' => __('Controls access to the Web Share API', 'so-ssl')),
+                          'xr-spatial-tracking' => array('default' => 'self', 'description' => __('Controls access to WebXR features', 'so-ssl'))
+                      );
+
+                      // Register setting for each permission
+                      foreach ($permissions as $permission => $info) {
+                          $option_name = 'so_ssl_permissions_policy_' . str_replace('-', '_', $permission);
+
+                          // Register the value setting
+                          register_setting(
+                              'so_ssl_options',
+                              $option_name,
+                              array(
+                                  'type' => 'string',
+                                  'sanitize_callback' => 'sanitize_text_field',
+                                  'default' => $info['default'],
+                              )
+                          );
+
+                          // Register the type setting (dropdown or custom)
+                          register_setting(
+                              'so_ssl_options',
+                              $option_name . '_type',
+                              array(
+                                  'type' => 'string',
+                                  'sanitize_callback' => 'sanitize_text_field',
+                                  'default' => 'predefined',
+                              )
+                          );
+                      }
+
+                      // Permissions Policy Settings Section
+                      add_settings_section(
+                          'so_ssl_permissions_policy_section',
+                          __('Permissions Policy', 'so-ssl'),
+                          array($this, 'permissions_policy_section_callback'),
+                          'so-ssl-permissions'
+                      );
+
+                      add_settings_field(
+                          'so_ssl_enable_permissions_policy',
+                          __('Enable Permissions Policy', 'so-ssl'),
+                          array($this, 'enable_permissions_policy_callback'),
+                          'so-ssl-permissions',
+                          'so_ssl_permissions_policy_section'
+                      );
+
+                      // Add settings fields for each permission
+                      foreach ($permissions as $permission => $info) {
+                          $option_name = 'so_ssl_permissions_policy_' . str_replace('-', '_', $permission);
+
+                          add_settings_field(
+                              $option_name,
+                              $permission,
+                              array($this, 'permissions_policy_option_callback'),
+                              'so-ssl-permissions',
+                              'so_ssl_permissions_policy_section',
+                              array(
+                                  'label_for' => $option_name,
+                                  'permission' => $permission,
+                                  'description' => $info['description'],
+                                  'default' => $info['default']
+                              )
+                          );
+                      }
+                  }
+
+    /**
+     * Register Cross-Origin Policy settings.
+     *
+     * @since    1.0.2
+     * @access   private
+     */
+    private function register_cross_origin_policy_settings() {
+        // Cross-Origin Policy settings
+        $cross_origin_headers = array(
+            'cross-origin-embedder-policy' => array(
+                'default' => 'require-corp',
+                'options' => array(
+                    'require-corp' => __('require-corp - Embedded resources must opt in', 'so-ssl'),
+                    'unsafe-none' => __('unsafe-none - Allows loading any resource (default browser behavior)', 'so-ssl')
+                ),
+                'description' => __('Controls whether resources can be embedded cross-origin', 'so-ssl')
+            ),
+            'cross-origin-opener-policy' => array(
+                'default' => 'same-origin',
+                'options' => array(
+                    'unsafe-none' => __('unsafe-none - Allows sharing browsing context (default browser behavior)', 'so-ssl'),
+                    'same-origin' => __('same-origin - Isolates browsing context to same origin', 'so-ssl'),
+                    'same-origin-allow-popups' => __('same-origin-allow-popups - Isolates browsing context but allows popups', 'so-ssl')
+                ),
+                'description' => __('Controls how windows/tabs opened from your site can interact with it', 'so-ssl')
+            ),
+            'cross-origin-resource-policy' => array(
+                'default' => 'same-origin',
+                'options' => array(
+                    'same-site' => __('same-site - Resources can only be loaded on the same site', 'so-ssl'),
+                    'same-origin' => __('same-origin - Resources can only be loaded from the same origin', 'so-ssl'),
+                    'cross-origin' => __('cross-origin - Resources can be loaded from any origin (less secure)', 'so-ssl')
+                ),
+                'description' => __('Controls how resources can be loaded cross-origin', 'so-ssl')
+            )
+        );
+
+        foreach ($cross_origin_headers as $header => $info) {
+            $option_name_enabled = 'so_ssl_enable_' . str_replace('-', '_', $header);
+            $option_name_value = 'so_ssl_' . str_replace('-', '_', $header) . '_value';
+
+            // Register enable setting
+            register_setting(
+                'so_ssl_options',
+                $option_name_enabled,
+                array(
+                    'type' => 'boolean',
+                    'sanitize_callback' => 'intval',
+                    'default' => 0,
+                )
+            );
+
+            // Register value setting
+            register_setting(
+                'so_ssl_options',
+                $option_name_value,
+                array(
+                    'type' => 'string',
+                    'sanitize_callback' => 'sanitize_text_field',
+                    'default' => $info['default'],
+                )
+            );
+        }
+
+        // Cross-Origin Policy Settings Section
+        add_settings_section(
+            'so_ssl_cross_origin_policy_section',
+            __('Cross-Origin Policies', 'so-ssl'),
+            array($this, 'cross_origin_policy_section_callback'),
+            'so-ssl-cross-origin'
+        );
+
+        // Add settings fields for each cross-origin header
+        foreach ($cross_origin_headers as $header => $info) {
+            $option_name_enabled = 'so_ssl_enable_' . str_replace('-', '_', $header);
+            $option_name_value = 'so_ssl_' . str_replace('-', '_', $header) . '_value';
+
+            add_settings_field(
+                $option_name_enabled,
+                $header,
+                array($this, 'cross_origin_policy_callback'),
+                'so-ssl-cross-origin',
+                'so_ssl_cross_origin_policy_section',
+                array(
+                    'label_for' => $option_name_enabled,
+                    'value_id' => $option_name_value,
+                    'header' => $header,
+                    'options' => $info['options'],
+                    'description' => $info['description']
+                )
+            );
+        }
+    }
+
+    /**
+     * Register Login Protection settings.
+     *
+     * @since    1.3.0
+     * @access   private
+     */
+    private function register_login_protection_settings() {
+        // Password security setting
+        register_setting(
+            'so_ssl_options',
+            'so_ssl_disable_weak_passwords',
+            array(
+                'type' => 'boolean',
+                'sanitize_callback' => 'intval',
+                'default' => 0,
+            )
+        );
+
+        // Password Security Settings Section
+        add_settings_section(
+            'so_ssl_password_security_section',
+            __('Password Security', 'so-ssl'),
+            array($this, 'password_security_section_callback'),
+            'so-ssl-login-protection'
+        );
+
+        add_settings_field(
+            'so_ssl_disable_weak_passwords',
+            __('Enforce Strong Passwords', 'so-ssl'),
+            array($this, 'disable_weak_passwords_callback'),
+            'so-ssl-login-protection',
+            'so_ssl_password_security_section'
+        );
+    }
+
 	/**
 	 * Register Privacy Compliance Settings.
 	 *
@@ -1665,257 +2230,139 @@ class So_SSL {
 	/**
 	 * Register settings for admin agreement
 	 */
-	public static function register_admin_agreement_settings() {
-		// Admin Agreement settings
-		register_setting(
-			'so_ssl_options',
-			'so_ssl_enable_admin_agreement',
-			array(
-				'type' => 'boolean',
-				'sanitize_callback' => 'intval',
-				'default' => 1,
-			)
-		);
+	private function register_admin_agreement_settings() {
+    // Admin Agreement settings
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_enable_admin_agreement',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => 1,
+        )
+    );
 
-		register_setting(
-			'so_ssl_options',
-			'so_ssl_admin_agreement_title',
-			array(
-				'type' => 'string',
-				'sanitize_callback' => 'sanitize_text_field',
-				'default' => 'Administrator Agreement Required',
-			)
-		);
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_admin_agreement_title',
+        array(
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => 'Administrator Agreement Required',
+        )
+    );
 
-		register_setting(
-			'so_ssl_options',
-			'so_ssl_admin_agreement_text',
-			array(
-				'type' => 'string',
-				'sanitize_callback' => 'wp_kses_post',
-				'default' => 'By using this plugin, you agree to adhere to security best practices and ensure all data collected will be handled in accordance with applicable privacy laws. You acknowledge that this plugin makes changes to your website\'s security configuration that you are responsible for monitoring and maintaining.',
-			)
-		);
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_admin_agreement_text',
+        array(
+            'type' => 'string',
+            'sanitize_callback' => 'wp_kses_post',
+            'default' => 'By using this plugin, you agree to adhere to security best practices and ensure all data collected will be handled in accordance with applicable privacy laws. You acknowledge that this plugin makes changes to your website\'s security configuration that you are responsible for monitoring and maintaining.',
+        )
+    );
 
-		register_setting(
-			'so_ssl_options',
-			'so_ssl_admin_agreement_checkbox_text',
-			array(
-				'type' => 'string',
-				'sanitize_callback' => 'sanitize_text_field',
-				'default' => 'I understand and agree to these terms',
-			)
-		);
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_admin_agreement_checkbox_text',
+        array(
+            'type' => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default' => 'I understand and agree to these terms',
+        )
+    );
 
-		register_setting(
-			'so_ssl_options',
-			'so_ssl_admin_agreement_expiry_days',
-			array(
-				'type' => 'integer',
-				'sanitize_callback' => 'intval',
-				'default' => 365,
-			)
-		);
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_admin_agreement_expiry_days',
+        array(
+            'type' => 'integer',
+            'sanitize_callback' => 'intval',
+            'default' => 365,
+        )
+    );
 
-		register_setting(
-			'so_ssl_options',
-			'so_ssl_admin_agreement_required_roles',
-			array(
-				'type' => 'array',
-				'sanitize_callback' => function($input) {
-					if (!is_array($input)) {
-						return array('administrator');
-					}
-					return array_map('sanitize_text_field', $input);
-				},
-				'default' => array('administrator'),
-			)
-		);
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_admin_agreement_required_roles',
+        array(
+            'type' => 'array',
+            'sanitize_callback' => function($input) {
+                if (!is_array($input)) {
+                    return array('administrator');
+                }
+                return array_map('sanitize_text_field', $input);
+            },
+            'default' => array('administrator'),
+        )
+    );
 
-		register_setting(
-			'so_ssl_options',
-			'so_ssl_admin_agreement_exempt_original_admin',
-			array(
-				'type' => 'boolean',
-				'sanitize_callback' => 'intval',
-				'default' => true,
-			)
-		);
+    register_setting(
+        'so_ssl_options',
+        'so_ssl_admin_agreement_exempt_original_admin',
+        array(
+            'type' => 'boolean',
+            'sanitize_callback' => 'intval',
+            'default' => true,
+        )
+    );
 
-		// Admin Agreement Settings Section
-		add_settings_section(
-			'so_ssl_admin_agreement_section',
-			__('Administrator Agreement Form', 'so-ssl'),
-			array(__CLASS__, 'admin_agreement_section_callback'),
-			'so-ssl-admin-agreement'
-		);
+    // Admin Agreement Settings Section
+    add_settings_section(
+        'so_ssl_admin_agreement_section',
+        __('Administrator Agreement Form', 'so-ssl'),
+        array($this, 'admin_agreement_section_callback'),
+        'so-ssl-admin-agreement'
+    );
 
-		add_settings_field(
-			'so_ssl_enable_admin_agreement',
-			__('Enable Admin Agreement', 'so-ssl'),
-			array(__CLASS__, 'enable_admin_agreement_callback'),
-			'so-ssl-admin-agreement',
-			'so_ssl_admin_agreement_section'
-		);
+    add_settings_field(
+        'so_ssl_enable_admin_agreement',
+        __('Enable Admin Agreement', 'so-ssl'),
+        array($this, 'enable_admin_agreement_callback'),
+        'so-ssl-admin-agreement',
+        'so_ssl_admin_agreement_section'
+    );
 
-		add_settings_field(
-			'so_ssl_admin_agreement_title',
-			__('Agreement Page Title', 'so-ssl'),
-			array(__CLASS__, 'admin_agreement_title_callback'),
-			'so-ssl-admin-agreement',
-			'so_ssl_admin_agreement_section'
-		);
+    add_settings_field(
+        'so_ssl_admin_agreement_title',
+        __('Agreement Page Title', 'so-ssl'),
+        array($this, 'admin_agreement_title_callback'),
+        'so-ssl-admin-agreement',
+        'so_ssl_admin_agreement_section'
+    );
 
-		add_settings_field(
-			'so_ssl_admin_agreement_text',
-			__('Agreement Text', 'so-ssl'),
-			array(__CLASS__, 'admin_agreement_text_callback'),
-			'so-ssl-admin-agreement',
-			'so_ssl_admin_agreement_section'
-		);
+    add_settings_field(
+        'so_ssl_admin_agreement_text',
+        __('Agreement Text', 'so-ssl'),
+        array($this, 'admin_agreement_text_callback'),
+        'so-ssl-admin-agreement',
+        'so_ssl_admin_agreement_section'
+    );
 
-		add_settings_field(
-			'so_ssl_admin_agreement_checkbox_text',
-			__('Agreement Checkbox Text', 'so-ssl'),
-			array(__CLASS__, 'admin_agreement_checkbox_text_callback'),
-			'so-ssl-admin-agreement',
-			'so_ssl_admin_agreement_section'
-		);
+    add_settings_field(
+        'so_ssl_admin_agreement_checkbox_text',
+        __('Agreement Checkbox Text', 'so-ssl'),
+        array($this, 'admin_agreement_checkbox_text_callback'),
+        'so-ssl-admin-agreement',
+        'so_ssl_admin_agreement_section'
+    );
 
-		add_settings_field(
-			'so_ssl_admin_agreement_expiry_days',
-			__('Agreement Expiry (Days)', 'so-ssl'),
-			array(__CLASS__, 'admin_agreement_expiry_days_callback'),
-			'so-ssl-admin-agreement',
-			'so_ssl_admin_agreement_section'
-		);
-	}
+    add_settings_field(
+        'so_ssl_admin_agreement_expiry_days',
+        __('Agreement Expiry (Days)', 'so-ssl'),
+        array($this, 'admin_agreement_expiry_days_callback'),
+        'so-ssl-admin-agreement',
+        'so_ssl_admin_agreement_section'
+    );
 
-	/**
-	 * Enable privacy compliance field callback
-	 */
-	public static function enable_privacy_compliance_callback() {
-		$enable_privacy_compliance = get_option('so_ssl_enable_privacy_compliance', 0);
-
-		echo '<label for="so_ssl_enable_privacy_compliance">';
-		echo '<input type="checkbox" id="so_ssl_enable_privacy_compliance" name="so_ssl_enable_privacy_compliance" value="1" ' . checked(1, $enable_privacy_compliance, false) . '/>';
-		echo esc_html__('Enable privacy compliance acknowledgment page', 'so-ssl');
-		echo '</label>';
-		echo '<p class="description">' . esc_html__('Requires users to acknowledge a privacy notice after login.', 'so-ssl') . '</p>';
-	}
-
-	/**
-	 * Privacy page title field callback
-	 */
-	public static function privacy_page_title_callback() {
-		$page_title = get_option('so_ssl_privacy_page_title', 'Privacy Acknowledgment Required');
-
-		echo '<input type="text" id="so_ssl_privacy_page_title" name="so_ssl_privacy_page_title" value="' . esc_attr($page_title) . '" class="regular-text" />';
-		echo '<p class="description">' . esc_html__('Title of the privacy acknowledgment page.', 'so-ssl') . '</p>';
-	}
-
-	/**
-	 * Privacy page slug field callback
-	 */
-	public static function privacy_page_slug_callback() {
-		$page_slug = get_option('so_ssl_privacy_page_slug', 'privacy-acknowledgment');
-
-		echo '<input type="text" id="so_ssl_privacy_page_slug" name="so_ssl_privacy_page_slug" value="' . esc_attr($page_slug) . '" class="regular-text" />';
-		echo '<p class="description">' . esc_html__('URL slug for the privacy acknowledgment page.', 'so-ssl') . '</p>';
-	}
-
-	/**
-	 * Privacy notice text field callback
-	 *
-	 * @since    1.4.4
-	 * @access   private
-	 *
-	 */
-	public static function privacy_notice_text_callback() {
-		// Get saved content
-		$notice_text = get_option('so_ssl_privacy_notice_text', 'This site tracks certain information for security purposes including IP addresses, login attempts, and session data. By using this site, you acknowledge and consent to this data collection in accordance with our Privacy Policy and applicable data protection laws including GDPR and US privacy regulations.');
-
-		// Force load WordPress editor scripts directly
-		if (function_exists('wp_enqueue_editor')) {
-			wp_enqueue_editor();
-			wp_enqueue_media();
-		}
-
-		// Basic editor settings - simplified for troubleshooting
-		$editor_settings = array(
-			'textarea_name' => 'so_ssl_privacy_notice_text', // Field name
-			'textarea_rows' => 10,
-			'teeny'         => true, // Use minimal editor toolbar
-			'wpautop'       => true, // Add paragraphs automatically
-		);
-
-		// Add a comment that will show in HTML source to confirm this function is called
-		echo "<!-- TinyMCE editor should appear below this line -->";
-
-		// Output the editor
-		wp_editor(
-			wp_kses_post($notice_text),  // Sanitize content
-			'so_ssl_privacy_notice_text', // Editor ID - must match field name for simplicity
-			$editor_settings
-		);
-
-		echo '<p class="description">' . esc_html__('Text explaining what data is collected and why. HTML is allowed.', 'so-ssl') . '</p>';
-	}
-
-	/**
-	 * Privacy checkbox text field callback
-	 */
-	public static function privacy_checkbox_text_callback() {
-		$checkbox_text = get_option('so_ssl_privacy_checkbox_text', 'I acknowledge and consent to the privacy notice above');
-
-		echo '<input type="text" id="so_ssl_privacy_checkbox_text" name="so_ssl_privacy_checkbox_text" value="' . esc_attr($checkbox_text) . '" class="regular-text" />';
-		echo '<p class="description">' . esc_html__('Text for the acknowledgment checkbox.', 'so-ssl') . '</p>';
-	}
-
-	/**
-	 * Privacy expiry days field callback
-	 */
-	public static function privacy_expiry_days_callback() {
-		$expiry_days = get_option('so_ssl_privacy_expiry_days', 30);
-
-		echo '<input type="number" id="so_ssl_privacy_expiry_days" name="so_ssl_privacy_expiry_days" value="' . esc_attr($expiry_days) . '" min="1" max="365" />';
-		echo '<p class="description">' . esc_html__('Number of days before users need to re-acknowledge the privacy notice. Set to 365 for annual acknowledgment.', 'so-ssl') . '</p>';
-	}
-
-	/**
-	 * Privacy required roles field callback
-	 */
-	public static function privacy_required_roles_callback() {
-		$required_roles = get_option('so_ssl_privacy_required_roles', array('subscriber', 'contributor', 'author', 'editor'));
-		$roles = wp_roles()->get_names();
-
-		echo '<select multiple id="so_ssl_privacy_required_roles" name="so_ssl_privacy_required_roles[]" class="regular-text" style="height: 120px;">';
-		foreach ($roles as $role_value => $role_name) {
-			echo '<option value="' . esc_attr($role_value) . '" ' . selected(in_array($role_value, $required_roles), true, false) . '>' . esc_html($role_name) . '</option>';
-		}
-		echo '</select>';
-		echo '<p class="description">' . esc_html__('Select which user roles will be required to acknowledge the privacy notice. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
-
-		// Add option to exempt administrators
-		$exempt_admins = get_option('so_ssl_privacy_exempt_admins', true);
-		echo '<div style="margin-top: 10px;">';
-		echo '<label for="so_ssl_privacy_exempt_admins">';
-		echo '<input type="checkbox" id="so_ssl_privacy_exempt_admins" name="so_ssl_privacy_exempt_admins" value="1" ' . checked(1, $exempt_admins, false) . '/>';
-		echo esc_html__('Always exempt administrators', 'so-ssl');
-		echo '</label>';
-		echo '<p class="description">' . esc_html__('When checked, administrators will never be required to acknowledge the privacy notice, regardless of role selection above.', 'so-ssl') . '</p>';
-		echo '</div>';
-
-		// Add option to exempt original admin (user ID 1)
-		$exempt_original_admin = get_option('so_ssl_privacy_exempt_original_admin', true);
-		echo '<div style="margin-top: 10px;">';
-		echo '<label for="so_ssl_privacy_exempt_original_admin">';
-		echo '<input type="checkbox" id="so_ssl_privacy_exempt_original_admin" name="so_ssl_privacy_exempt_original_admin" value="1" ' . checked(1, $exempt_original_admin, false) . '/>';
-		echo esc_html__('Always exempt original admin (user ID 1)', 'so-ssl');
-		echo '</label>';
-		echo '<p class="description">' . esc_html__('When checked, the original admin user (ID 1) will never be required to acknowledge the privacy notice.', 'so-ssl') . '</p>';
-		echo '</div>';
-	}
+    add_settings_field(
+        'so_ssl_admin_agreement_required_roles',
+        __('Required for User Roles', 'so-ssl'),
+        array('So_SSL_Admin_Agreement', 'admin_agreement_required_roles_callback'),
+        'so-ssl-admin-agreement',
+        'so_ssl_admin_agreement_section'
+    );
+}
 
     /**
      * SSL section description.
@@ -2451,76 +2898,6 @@ public function enable_csp_frame_ancestors_callback() {
         <?php
 	}
 
-	/**
-	 * Admin agreement section callback
-	 */
-	public static function admin_agreement_section_callback() {
-		echo '<p>' . esc_html__('Configure the agreement that administrators must accept before using the plugin.', 'so-ssl') . '</p>';
-	}
-
-	/**
-	 * Enable admin agreement field callback
-	 */
-	public static function enable_admin_agreement_callback() {
-		$enable_admin_agreement = get_option('so_ssl_enable_admin_agreement', 1);
-
-		echo '<label for="so_ssl_enable_admin_agreement">';
-		echo '<input type="checkbox" id="so_ssl_enable_admin_agreement" name="so_ssl_enable_admin_agreement" value="1" ' . checked(1, $enable_admin_agreement, false) . '/>';
-		echo esc_html__('Require administrators to accept an agreement before using the plugin', 'so-ssl');
-		echo '</label>';
-		echo '<p class="description">' . esc_html__('When enabled, administrators must accept the agreement before accessing plugin settings.', 'so-ssl') . '</p>';
-	}
-
-	/**
-	 * Admin agreement title field callback
-	 */
-	public static function admin_agreement_title_callback() {
-		$page_title = get_option('so_ssl_admin_agreement_title', 'Administrator Agreement Required');
-
-		echo '<input type="text" id="so_ssl_admin_agreement_title" name="so_ssl_admin_agreement_title" value="' . esc_attr($page_title) . '" class="regular-text" />';
-		echo '<p class="description">' . esc_html__('Title of the administrator agreement page.', 'so-ssl') . '</p>';
-	}
-
-	/**
-	 * Admin agreement text field callback
-	 */
-	public static function admin_agreement_text_callback() {
-		$agreement_text = get_option('so_ssl_admin_agreement_text', 'By using this plugin, you agree to adhere to security best practices and ensure all data collected will be handled in accordance with applicable privacy laws. You acknowledge that this plugin makes changes to your website\'s security configuration that you are responsible for monitoring and maintaining.');
-
-		$editor_id = 'so_ssl_admin_agreement_text_editor';
-		$editor_settings = array(
-			'textarea_name' => 'so_ssl_admin_agreement_text',
-			'textarea_rows' => 10,
-			'media_buttons' => true,
-			'tinymce'       => true,
-			'quicktags'     => true,
-		);
-
-		wp_editor($agreement_text, $editor_id, $editor_settings);
-
-		echo '<p class="description">' . esc_html__('Text of the agreement that administrators must accept. HTML is allowed.', 'so-ssl') . '</p>';
-	}
-
-	/**
-	 * Admin agreement checkbox text field callback
-	 */
-	public static function admin_agreement_checkbox_text_callback() {
-		$checkbox_text = get_option('so_ssl_admin_agreement_checkbox_text', 'I understand and agree to these terms');
-
-		echo '<input type="text" id="so_ssl_admin_agreement_checkbox_text" name="so_ssl_admin_agreement_checkbox_text" value="' . esc_attr($checkbox_text) . '" class="regular-text" />';
-		echo '<p class="description">' . esc_html__('Text for the agreement checkbox.', 'so-ssl') . '</p>';
-	}
-
-	/**
-	 * Admin agreement expiry days field callback
-	 */
-	public static function admin_agreement_expiry_days_callback() {
-		$expiry_days = get_option('so_ssl_admin_agreement_expiry_days', 365);
-
-		echo '<input type="number" id="so_ssl_admin_agreement_expiry_days" name="so_ssl_admin_agreement_expiry_days" value="' . esc_attr($expiry_days) . '" min="1" max="3650" />';
-		echo '<p class="description">' . esc_html__('Number of days before administrators need to re-accept the agreement. Default is 365 days (yearly).', 'so-ssl') . '</p>';
-	}
-
     /**
      * Add JavaScript to show/hide fields based on selected options.
      *
@@ -2787,59 +3164,6 @@ public function enable_csp_frame_ancestors_callback() {
     }
 
 /**
- * Register Referrer Policy settings.
- *
- * @since    1.0.2
- * @access   private
- */
-private function register_referrer_policy_settings() {
-    // Referrer Policy settings
-    register_setting(
-        'so_ssl_options',
-        'so_ssl_enable_referrer_policy',
-        array(
-            'type' => 'boolean',
-            'sanitize_callback' => 'intval',
-            'default' => 0,
-        )
-    );
-
-    register_setting(
-        'so_ssl_options',
-        'so_ssl_referrer_policy_option',
-        array(
-            'type' => 'string',
-            'sanitize_callback' => 'sanitize_text_field',
-            'default' => 'strict-origin-when-cross-origin',
-        )
-    );
-
-    // Referrer Policy Settings Section
-    add_settings_section(
-        'so_ssl_referrer_policy_section',
-        __('Referrer Policy', 'so-ssl'),
-        array($this, 'referrer_policy_section_callback'),
-        'so-ssl-referrer'
-    );
-
-    add_settings_field(
-        'so_ssl_enable_referrer_policy',
-        __('Enable Referrer Policy', 'so-ssl'),
-        array($this, 'enable_referrer_policy_callback'),
-        'so-ssl-referrer',
-        'so_ssl_referrer_policy_section'
-    );
-
-    add_settings_field(
-        'so_ssl_referrer_policy_option',
-        __('Referrer Policy Value', 'so-ssl'),
-        array($this, 'referrer_policy_option_callback'),
-        'so-ssl-referrer',
-        'so_ssl_referrer_policy_section'
-    );
-}
-
-/**
  * Referrer Policy section description.
  *
  * @since    1.0.2
@@ -2902,119 +3226,6 @@ public function add_referrer_policy_header() {
     }
 }
 
-/**
-     * Register Content Security Policy settings.
-     *
-     * @since    1.0.2
-     * @access   private
-     */
-    private function register_content_security_policy_settings() {
-        // Content Security Policy settings
-        register_setting(
-            'so_ssl_options',
-            'so_ssl_enable_csp',
-            array(
-                'type' => 'boolean',
-                'sanitize_callback' => 'intval',
-                'default' => 0,
-            )
-        );
-
-        register_setting(
-            'so_ssl_options',
-            'so_ssl_csp_mode',
-            array(
-                'type' => 'string',
-                'sanitize_callback' => 'sanitize_text_field',
-                'default' => 'report-only',
-            )
-        );
-
-        // Register CSP directives
-        $csp_directives = array(
-            'default-src' => "'self'",
-            'script-src' => "'self'",
-            'style-src' => "'self'",
-            'img-src' => "'self'",
-            'connect-src' => "'self'",
-            'font-src' => "'self'",
-            'object-src' => "'none'",
-            'media-src' => "'self'",
-            'frame-src' => "'self'",
-            'base-uri' => "'self'",
-            'form-action' => "'self'",
-            'upgrade-insecure-requests' => ""
-        );
-
-        foreach ($csp_directives as $directive => $default_value) {
-            // Register the main directive value
-            register_setting(
-                'so_ssl_options',
-                'so_ssl_csp_' . str_replace('-', '_', $directive),
-                array(
-                    'type' => 'string',
-                    'sanitize_callback' => 'sanitize_textarea_field',
-                    'default' => $default_value,
-                )
-            );
-
-            // Register the option type (dropdown or custom)
-            if ($directive !== 'upgrade-insecure-requests') {
-                register_setting(
-                    'so_ssl_options',
-                    'so_ssl_csp_' . str_replace('-', '_', $directive) . '_type',
-                    array(
-                        'type' => 'string',
-                        'sanitize_callback' => 'sanitize_text_field',
-                        'default' => 'predefined',
-                    )
-                );
-            }
-        }
-
-        // Content Security Policy Settings Section
-        add_settings_section(
-            'so_ssl_csp_full_section',
-            __('Content Security Policy (CSP)', 'so-ssl'),
-            array($this, 'csp_full_section_callback'),
-            'so-ssl-csp'
-        );
-
-        add_settings_field(
-            'so_ssl_enable_csp',
-            __('Enable Content Security Policy', 'so-ssl'),
-            array($this, 'enable_csp_callback'),
-            'so-ssl-csp',
-            'so_ssl_csp_full_section'
-        );
-
-        add_settings_field(
-            'so_ssl_csp_mode',
-            __('CSP Mode', 'so-ssl'),
-            array($this, 'csp_mode_callback'),
-            'so-ssl-csp',
-            'so_ssl_csp_full_section'
-        );
-
-        // Add fields for each CSP directive
-        foreach ($csp_directives as $directive => $default_value) {
-            $field_id = 'so_ssl_csp_' . str_replace('-', '_', $directive);
-
-            add_settings_field(
-                $field_id,
-                $directive,
-                array($this, 'csp_directive_callback'),
-                'so-ssl-csp',
-                'so_ssl_csp_full_section',
-                array(
-                    'label_for' => $field_id,
-                    'directive' => $directive,
-                    'default_value' => $default_value
-                )
-            );
-        }
-    }
-
     /**
          * Content Security Policy section description.
          *
@@ -3040,7 +3251,6 @@ public function add_referrer_policy_header() {
             echo '</label>';
             echo '<p class="description">' . esc_html__('Adds the Content-Security-Policy header to restrict what resources can be loaded.', 'so-ssl') . '</p>';
         }
-
 
         /**
          * CSP Mode field callback.
@@ -3077,8 +3287,9 @@ public function add_referrer_policy_header() {
         /**
          * CSP Directive field callback.
          *
-         * @since    1.0.2
          * @param    array    $args    The arguments passed to the callback.
+         *
+         *@since    1.0.2
          */
         public function csp_directive_callback($args) {
             $directive = $args['directive'];
@@ -3147,6 +3358,7 @@ public function add_referrer_policy_header() {
              * Get predefined options for CSP directives
              *
              * @param string $directive The CSP directive
+             *
              * @return array Array of options
              */
             private function get_csp_predefined_options($directive) {
@@ -3274,115 +3486,6 @@ public function add_referrer_policy_header() {
                     }
                 }
 
-                /**
-                   * Register Permissions Policy settings.
-                   *
-                   * @since    1.0.2
-                   * @access   private
-                   */
-                  private function register_permissions_policy_settings() {
-                      // Permissions Policy settings
-                      register_setting(
-                          'so_ssl_options',
-                          'so_ssl_enable_permissions_policy',
-                          array(
-                              'type' => 'boolean',
-                              'sanitize_callback' => 'intval',
-                              'default' => 0,
-                          )
-                      );
-
-                      // Define available permissions
-                      $permissions = array(
-                          'accelerometer' => array('default' => 'self', 'description' => __('Controls access to accelerometer sensors', 'so-ssl')),
-                          'ambient-light-sensor' => array('default' => 'self', 'description' => __('Controls access to ambient light sensors', 'so-ssl')),
-                          'autoplay' => array('default' => 'self', 'description' => __('Controls the ability to autoplay media', 'so-ssl')),
-                          'battery' => array('default' => 'self', 'description' => __('Controls access to battery information', 'so-ssl')),
-                          'camera' => array('default' => 'self', 'description' => __('Controls access to video cameras', 'so-ssl')),
-                          'display-capture' => array('default' => 'self', 'description' => __('Controls the ability to capture screen content', 'so-ssl')),
-                          'document-domain' => array('default' => 'self', 'description' => __('Controls the ability to set document.domain', 'so-ssl')),
-                          'encrypted-media' => array('default' => 'self', 'description' => __('Controls access to EME API', 'so-ssl')),
-                          'execution-while-not-rendered' => array('default' => 'self', 'description' => __('Controls execution when not rendered', 'so-ssl')),
-                          'execution-while-out-of-viewport' => array('default' => 'self', 'description' => __('Controls execution when outside viewport', 'so-ssl')),
-                          'fullscreen' => array('default' => 'self', 'description' => __('Controls the ability to use fullscreen mode', 'so-ssl')),
-                          'geolocation' => array('default' => 'self', 'description' => __('Controls access to the geolocation API', 'so-ssl')),
-                          'gyroscope' => array('default' => 'self', 'description' => __('Controls access to gyroscope sensors', 'so-ssl')),
-                          'microphone' => array('default' => 'self', 'description' => __('Controls access to audio capture devices', 'so-ssl')),
-                          'midi' => array('default' => 'self', 'description' => __('Controls access to MIDI devices', 'so-ssl')),
-                          'navigation-override' => array('default' => 'self', 'description' => __('Controls the ability to override navigation', 'so-ssl')),
-                          'payment' => array('default' => 'self', 'description' => __('Controls access to the Payment Request API', 'so-ssl')),
-                          'picture-in-picture' => array('default' => '*', 'description' => __('Controls the ability to use Picture-in-Picture', 'so-ssl')),
-                          'publickey-credentials-get' => array('default' => 'self', 'description' => __('Controls access to WebAuthn API', 'so-ssl')),
-                          'screen-wake-lock' => array('default' => 'self', 'description' => __('Controls access to Wake Lock API', 'so-ssl')),
-                          'sync-xhr' => array('default' => 'self', 'description' => __('Controls the ability to use synchronous XHR', 'so-ssl')),
-                          'usb' => array('default' => 'self', 'description' => __('Controls access to USB devices', 'so-ssl')),
-                          'web-share' => array('default' => 'self', 'description' => __('Controls access to the Web Share API', 'so-ssl')),
-                          'xr-spatial-tracking' => array('default' => 'self', 'description' => __('Controls access to WebXR features', 'so-ssl'))
-                      );
-
-                      // Register setting for each permission
-                      foreach ($permissions as $permission => $info) {
-                          $option_name = 'so_ssl_permissions_policy_' . str_replace('-', '_', $permission);
-
-                          // Register the value setting
-                          register_setting(
-                              'so_ssl_options',
-                              $option_name,
-                              array(
-                                  'type' => 'string',
-                                  'sanitize_callback' => 'sanitize_text_field',
-                                  'default' => $info['default'],
-                              )
-                          );
-
-                          // Register the type setting (dropdown or custom)
-                          register_setting(
-                              'so_ssl_options',
-                              $option_name . '_type',
-                              array(
-                                  'type' => 'string',
-                                  'sanitize_callback' => 'sanitize_text_field',
-                                  'default' => 'predefined',
-                              )
-                          );
-                      }
-
-                      // Permissions Policy Settings Section
-                      add_settings_section(
-                          'so_ssl_permissions_policy_section',
-                          __('Permissions Policy', 'so-ssl'),
-                          array($this, 'permissions_policy_section_callback'),
-                          'so-ssl-permissions'
-                      );
-
-                      add_settings_field(
-                          'so_ssl_enable_permissions_policy',
-                          __('Enable Permissions Policy', 'so-ssl'),
-                          array($this, 'enable_permissions_policy_callback'),
-                          'so-ssl-permissions',
-                          'so_ssl_permissions_policy_section'
-                      );
-
-                      // Add settings fields for each permission
-                      foreach ($permissions as $permission => $info) {
-                          $option_name = 'so_ssl_permissions_policy_' . str_replace('-', '_', $permission);
-
-                          add_settings_field(
-                              $option_name,
-                              $permission,
-                              array($this, 'permissions_policy_option_callback'),
-                              'so-ssl-permissions',
-                              'so_ssl_permissions_policy_section',
-                              array(
-                                  'label_for' => $option_name,
-                                  'permission' => $permission,
-                                  'description' => $info['description'],
-                                  'default' => $info['default']
-                              )
-                          );
-                      }
-                  }
-
                   /**
                    * Permissions Policy section description.
                    *
@@ -3407,11 +3510,13 @@ public function add_referrer_policy_header() {
                       echo '</label>';
                       echo '<p class="description">' . esc_html__('Adds the Permissions-Policy header to control browser feature permissions.', 'so-ssl') . '</p>';
                   }
+
     /**
      * Permissions Policy option field callback.
      *
-     * @since    1.0.2
      * @param    array    $args    The arguments passed to the callback.
+     *
+     *@since    1.0.2
      */
     public function permissions_policy_option_callback($args) {
         $permission = $args['permission'];
@@ -3475,100 +3580,6 @@ public function add_referrer_policy_header() {
     }
 
     /**
-     * Register Cross-Origin Policy settings.
-     *
-     * @since    1.0.2
-     * @access   private
-     */
-    private function register_cross_origin_policy_settings() {
-        // Cross-Origin Policy settings
-        $cross_origin_headers = array(
-            'cross-origin-embedder-policy' => array(
-                'default' => 'require-corp',
-                'options' => array(
-                    'require-corp' => __('require-corp - Embedded resources must opt in', 'so-ssl'),
-                    'unsafe-none' => __('unsafe-none - Allows loading any resource (default browser behavior)', 'so-ssl')
-                ),
-                'description' => __('Controls whether resources can be embedded cross-origin', 'so-ssl')
-            ),
-            'cross-origin-opener-policy' => array(
-                'default' => 'same-origin',
-                'options' => array(
-                    'unsafe-none' => __('unsafe-none - Allows sharing browsing context (default browser behavior)', 'so-ssl'),
-                    'same-origin' => __('same-origin - Isolates browsing context to same origin', 'so-ssl'),
-                    'same-origin-allow-popups' => __('same-origin-allow-popups - Isolates browsing context but allows popups', 'so-ssl')
-                ),
-                'description' => __('Controls how windows/tabs opened from your site can interact with it', 'so-ssl')
-            ),
-            'cross-origin-resource-policy' => array(
-                'default' => 'same-origin',
-                'options' => array(
-                    'same-site' => __('same-site - Resources can only be loaded on the same site', 'so-ssl'),
-                    'same-origin' => __('same-origin - Resources can only be loaded from the same origin', 'so-ssl'),
-                    'cross-origin' => __('cross-origin - Resources can be loaded from any origin (less secure)', 'so-ssl')
-                ),
-                'description' => __('Controls how resources can be loaded cross-origin', 'so-ssl')
-            )
-        );
-
-        foreach ($cross_origin_headers as $header => $info) {
-            $option_name_enabled = 'so_ssl_enable_' . str_replace('-', '_', $header);
-            $option_name_value = 'so_ssl_' . str_replace('-', '_', $header) . '_value';
-
-            // Register enable setting
-            register_setting(
-                'so_ssl_options',
-                $option_name_enabled,
-                array(
-                    'type' => 'boolean',
-                    'sanitize_callback' => 'intval',
-                    'default' => 0,
-                )
-            );
-
-            // Register value setting
-            register_setting(
-                'so_ssl_options',
-                $option_name_value,
-                array(
-                    'type' => 'string',
-                    'sanitize_callback' => 'sanitize_text_field',
-                    'default' => $info['default'],
-                )
-            );
-        }
-
-        // Cross-Origin Policy Settings Section
-        add_settings_section(
-            'so_ssl_cross_origin_policy_section',
-            __('Cross-Origin Policies', 'so-ssl'),
-            array($this, 'cross_origin_policy_section_callback'),
-            'so-ssl-cross-origin'
-        );
-
-        // Add settings fields for each cross-origin header
-        foreach ($cross_origin_headers as $header => $info) {
-            $option_name_enabled = 'so_ssl_enable_' . str_replace('-', '_', $header);
-            $option_name_value = 'so_ssl_' . str_replace('-', '_', $header) . '_value';
-
-            add_settings_field(
-                $option_name_enabled,
-                $header,
-                array($this, 'cross_origin_policy_callback'),
-                'so-ssl-cross-origin',
-                'so_ssl_cross_origin_policy_section',
-                array(
-                    'label_for' => $option_name_enabled,
-                    'value_id' => $option_name_value,
-                    'header' => $header,
-                    'options' => $info['options'],
-                    'description' => $info['description']
-                )
-            );
-        }
-    }
-
-    /**
      * Cross-Origin Policy section description.
      *
      * @since    1.0.2
@@ -3581,8 +3592,9 @@ public function add_referrer_policy_header() {
     /**
      * Cross-Origin Policy field callback.
      *
-     * @since    1.0.2
      * @param    array    $args    The arguments passed to the callback.
+     *
+     *@since    1.0.2
      */
     public function cross_origin_policy_callback($args) {
         $header = $args['header'];
@@ -3716,10 +3728,11 @@ public function add_referrer_policy_header() {
     /**
      * Check password strength on login
      *
-     * @since    1.3.0
      * @param WP_User $user The user object
      * @param string $password The password
+     *
      * @return WP_User|WP_Error The user object or error
+     *@since    1.3.0
      */
     public function check_password_strength($user, $password) {
         // If already errored, return the error
@@ -3755,70 +3768,13 @@ public function add_referrer_policy_header() {
     }
 
     /**
-     * Enforce strong password on user profile update
-     *
-     * @since    1.3.0
-     * @param WP_Error $errors The error object
-     * @param bool $update Whether this is an update
-     * @param WP_User $user The user object
-     */
-    public function enforce_strong_password($errors, $update, $user) {
-        // Profile updates are already verified by WordPress with the nonce 'update-user_'.$user_id
-        // We can check for this nonce but it's redundant since WordPress already does
-        if (isset($_POST['pass1']) && !empty($_POST['pass1'])) {
-            // Verify nonce - redundant but required for static analysis
-            if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'update-user_' . $user->ID)) {
-                // WordPress already handles this, so we don't need to add an error
-                return;
-            }
-
-            // Sanitize password - though password input is already sanitized by WordPress
-            $password = isset($_POST['pass1']) ? sanitize_text_field(wp_unslash($_POST['pass1'])) : '';
-
-            $strength = $this->get_password_strength($password, $user->user_login);
-
-            // If the password is not strong (less than 4), add an error
-            if ($strength < 4) {
-                $errors->add('weak_password', esc_html__('<strong>ERROR</strong>: Please choose a stronger password. The password must include uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
-            }
-        }
-    }
-
-    /**
-     * Validate password strength on password reset
-     *
-     * @since    1.3.0
-     * @param WP_Error $errors The error object
-     * @param WP_User $user The user object
-     */
-    public function validate_password_reset($errors, $user) {
-        // Password reset form already verifies a nonce
-        // Check for the appropriate nonce
-        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'reset-password')) {
-            // WordPress already handles this
-            return;
-        }
-
-        if (isset($_POST['pass1']) && !empty($_POST['pass1'])) {
-            // Sanitize password
-            $password = isset($_POST['pass1']) ? sanitize_text_field(wp_unslash($_POST['pass1'])) : '';
-
-            $strength = $this->get_password_strength($password, $user->user_login);
-
-            // If the password is not strong (less than 4), add an error
-            if ($strength < 4) {
-                $errors->add('weak_password', esc_html__('<strong>ERROR</strong>: Please choose a stronger password. The password must include uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
-            }
-        }
-    }
-
-    /**
      * Get password strength
      *
-     * @since    1.3.0
      * @param string $password The password
      * @param string $username The username
+     *
      * @return int The password strength (0-4)
+     *@since    1.3.0
      */
     public function get_password_strength($password, $username) {
         // Check password length
@@ -3855,6 +3811,66 @@ public function add_referrer_policy_header() {
         }
 
         return $strength;
+    }
+
+    /**
+     * Enforce strong password on user profile update
+     *
+     * @param WP_Error $errors The error object
+     * @param bool $update Whether this is an update
+     * @param WP_User $user The user object
+     *
+     *@since    1.3.0
+     */
+    public function enforce_strong_password($errors, $update, $user) {
+        // Profile updates are already verified by WordPress with the nonce 'update-user_'.$user_id
+        // We can check for this nonce but it's redundant since WordPress already does
+        if (isset($_POST['pass1']) && !empty($_POST['pass1'])) {
+            // Verify nonce - redundant but required for static analysis
+            if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'update-user_' . $user->ID)) {
+                // WordPress already handles this, so we don't need to add an error
+                return;
+            }
+
+            // Sanitize password - though password input is already sanitized by WordPress
+            $password = isset($_POST['pass1']) ? sanitize_text_field(wp_unslash($_POST['pass1'])) : '';
+
+            $strength = $this->get_password_strength($password, $user->user_login);
+
+            // If the password is not strong (less than 4), add an error
+            if ($strength < 4) {
+                $errors->add('weak_password', esc_html__('<strong>ERROR</strong>: Please choose a stronger password. The password must include uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
+            }
+        }
+    }
+
+    /**
+     * Validate password strength on password reset
+     *
+     * @param WP_Error $errors The error object
+     * @param WP_User $user The user object
+     *
+     *@since    1.3.0
+     */
+    public function validate_password_reset($errors, $user) {
+        // Password reset form already verifies a nonce
+        // Check for the appropriate nonce
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'reset-password')) {
+            // WordPress already handles this
+            return;
+        }
+
+        if (isset($_POST['pass1']) && !empty($_POST['pass1'])) {
+            // Sanitize password
+            $password = isset($_POST['pass1']) ? sanitize_text_field(wp_unslash($_POST['pass1'])) : '';
+
+            $strength = $this->get_password_strength($password, $user->user_login);
+
+            // If the password is not strong (less than 4), add an error
+            if ($strength < 4) {
+                $errors->add('weak_password', esc_html__('<strong>ERROR</strong>: Please choose a stronger password. The password must include uppercase letters, lowercase letters, numbers, and special characters.', 'so-ssl'));
+            }
+        }
     }
 
 	/**

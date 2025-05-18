@@ -46,7 +46,7 @@
     color: #2271b1;
     border-radius: 4px;
     font-size: 14px !important; /* Original: 12px */
-    padding: 4px 10px;          /* Original: 4px 8px */
+    padding: 4px 10px; /* Original: 4px 8px */
     font-weight: 500;
     margin-left: 10px;
 }
@@ -54,15 +54,15 @@
 /* Optional: Increase the header font size to match the larger logo */
 .so-ssl-header h1 {
     font-size: 28px !important; /* Original: 24px */
-    line-height: 1.3;           /* Added: improves text spacing */
+    line-height: 1.3; /* Added: improves text spacing */
 }
 
 /* Increase the size of the logo SVG */
 .so-ssl-header h1 .so-ssl-icon {
-    width: 48px !important;  /* Original: 32px */
+    width: 48px !important; /* Original: 32px */
     height: 48px !important; /* Original: 32px */
-    margin-right: 12px;      /* Added: gives more breathing room */
-    vertical-align: middle;  /* Added: better alignment with text */
+    margin-right: 12px; /* Added: gives more breathing room */
+    vertical-align: middle; /* Added: better alignment with text */
 }
 
 /* Tab Navigation */
@@ -600,9 +600,15 @@ input:focus + .so-ssl-slider {
 }
 
 @keyframes so-ssl-pulse {
-    0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(66, 133, 244, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(66, 133, 244, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);
+    }
 }
 
 .so-ssl-save-reminder {
@@ -615,8 +621,12 @@ input:focus + .so-ssl-slider {
 }
 
 @keyframes so-ssl-fade {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
+    0%, 100% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
 }
 
 /* Admin agreement notice styling */
@@ -625,7 +635,7 @@ input:focus + .so-ssl-slider {
     border-left: 4px solid #dc3232;
     margin: 20px 0;
     background: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .so-ssl-admin-agreement-notice h2 {
