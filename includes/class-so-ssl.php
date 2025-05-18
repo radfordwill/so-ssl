@@ -652,8 +652,33 @@ class So_SSL {
                     </h3>
                     <p><?php esc_html_e('Implement GDPR and US privacy law compliance with customizable privacy acknowledgment for users.', 'so-ssl'); ?></p>
                 </div>
+
+                <div class="so-ssl-feature-card">
+                    <h3>
+                        <span class="dashicons dashicons-privacy"></span>
+			            <?php esc_html_e('Privacy Compliance', 'so-ssl'); ?>
+                    </h3>
+                    <p><?php esc_html_e('Implement GDPR and US privacy law compliance with customizable privacy acknowledgment for users.', 'so-ssl'); ?></p>
+                </div>
+
+                <div class="so-ssl-feature-card">
+                    <h3>
+                        <span class="dashicons dashicons-admin-network"></span>
+			            <?php esc_html_e('Admin Agreement', 'so-ssl'); ?>
+                    </h3>
+                    <p><?php esc_html_e('Require administrators to accept terms before accessing plugin features with emergency override to prevent accidental lockouts.', 'so-ssl'); ?></p>
+                </div>
+
             </div>
+            <div class="so-ssl-features">
+    <!-- First Accordion -->
+    <div class="so-ssl-feature-card so-ssl-accordion">
+        <div class="so-ssl-accordion-header">
             <div class="so-ssl-section-title"><?php esc_html_e('Privacy Compliance', 'so-ssl'); ?></div>
+            <span class="so-ssl-accordion-icon dashicons dashicons-arrow-down-alt2"></span>
+        </div>
+
+        <div class="so-ssl-accordion-content">
             <div class="so-ssl-compliance-highlights">
                 <div class="so-ssl-compliance-detail">
                     <h4><span class="dashicons dashicons-welcome-view-site"></span> <?php esc_html_e('Customizable Privacy Page', 'so-ssl'); ?></h4>
@@ -668,10 +693,191 @@ class So_SSL {
                     <p><?php esc_html_e('Set acknowledgment expiry periods to ensure users regularly review updated privacy information.', 'so-ssl'); ?></p>
                 </div>
                 <a href="<?php echo esc_url(admin_url('options-general.php?page=so-ssl#privacy-compliance')); ?>" class="button button-primary" target="_blank">
-			        <?php esc_html_e('Configure Privacy Compliance', 'so-ssl'); ?>
+                    <?php esc_html_e('Configure Privacy Compliance', 'so-ssl'); ?>
                 </a>
             </div>
         </div>
+    </div>
+
+    <!-- Second Accordion with Dummy Content -->
+    <div class="so-ssl-feature-card so-ssl-accordion">
+        <div class="so-ssl-accordion-header">
+            <div class="so-ssl-section-title"><?php esc_html_e('SSL Security', 'so-ssl'); ?></div>
+            <span class="so-ssl-accordion-icon dashicons dashicons-arrow-down-alt2"></span>
+        </div>
+
+        <div class="so-ssl-accordion-content">
+            <div class="so-ssl-compliance-highlights">
+                <div class="so-ssl-compliance-detail">
+                    <h4><span class="dashicons dashicons-shield"></span> <?php esc_html_e('Automatic Certificate Management', 'so-ssl'); ?></h4>
+                    <p><?php esc_html_e('Seamlessly install and renew SSL certificates with automated tools and verification.', 'so-ssl'); ?></p>
+                </div>
+                <div class="so-ssl-compliance-detail">
+                    <h4><span class="dashicons dashicons-dashboard"></span> <?php esc_html_e('Security Monitoring', 'so-ssl'); ?></h4>
+                    <p><?php esc_html_e('Real-time monitoring of SSL certificate status with automated alerts for expiration.', 'so-ssl'); ?></p>
+                </div>
+                <div class="so-ssl-compliance-detail">
+                    <h4><span class="dashicons dashicons-admin-site"></span> <?php esc_html_e('Mixed Content Detection', 'so-ssl'); ?></h4>
+                    <p><?php esc_html_e('Automatically identify and fix mixed content warnings that affect your site security.', 'so-ssl'); ?></p>
+                </div>
+                <a href="<?php echo esc_url(admin_url('options-general.php?page=so-ssl#ssl-security')); ?>" class="button button-primary" target="_blank">
+                    <?php esc_html_e('Manage SSL Settings', 'so-ssl'); ?>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Third Accordion with Dummy Content -->
+    <div class="so-ssl-feature-card so-ssl-accordion">
+        <div class="so-ssl-accordion-header">
+            <div class="so-ssl-section-title"><?php esc_html_e('Admin Agreement', 'so-ssl'); ?></div>
+            <span class="so-ssl-accordion-icon dashicons dashicons-arrow-down-alt2"></span>
+        </div>
+
+        <div class="so-ssl-accordion-content">
+            <div class="so-ssl-compliance-highlights">
+                <div class="so-ssl-compliance-detail">
+                    <h4><span class="dashicons dashicons-admin-users"></span> <?php esc_html_e('Administrator Terms', 'so-ssl'); ?></h4>
+                    <p><?php esc_html_e('Require administrators to accept terms before accessing plugin features with customizable text.', 'so-ssl'); ?></p>
+                </div>
+                <div class="so-ssl-compliance-detail">
+                    <h4><span class="dashicons dashicons-unlock"></span> <?php esc_html_e('Role Exemptions', 'so-ssl'); ?></h4>
+                    <p><?php esc_html_e('Implement role-based requirements with specific exemption options for certain administrators.', 'so-ssl'); ?></p>
+                </div>
+                <div class="so-ssl-compliance-detail">
+                    <h4><span class="dashicons dashicons-backup"></span> <?php esc_html_e('Emergency Override', 'so-ssl'); ?></h4>
+                    <p><?php esc_html_e('Emergency override options to prevent accidental lockouts with periodic re-acknowledgment.', 'so-ssl'); ?></p>
+                </div>
+                <a href="<?php echo esc_url(admin_url('options-general.php?page=so-ssl#admin-agreement')); ?>" class="button button-primary" target="_blank">
+                    <?php esc_html_e('Configure Admin Agreement', 'so-ssl'); ?>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+/* Grid layout for features */
+.so-ssl-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    margin: 30px 0;
+}
+
+/* Feature card styling (which contains the accordion) */
+.so-ssl-feature-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.so-ssl-feature-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Accordion styling */
+.so-ssl-accordion-header {
+    padding: 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid transparent;
+    background-color: #f8f9fa;
+    transition: background-color 0.2s;
+}
+
+.so-ssl-accordion-header:hover {
+    background-color: #f1f3f5;
+}
+
+.so-ssl-accordion-header.active {
+    border-bottom: 1px solid #ddd;
+    background-color: #e9ecef;
+}
+
+.so-ssl-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+.so-ssl-accordion-icon {
+    color: #0073aa;
+    transition: transform 0.2s;
+}
+
+.so-ssl-accordion-header.active .so-ssl-accordion-icon {
+    transform: rotate(180deg);
+}
+
+.so-ssl-accordion-content {
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s;
+}
+
+.so-ssl-accordion-content.active {
+    padding: 15px;
+    max-height: 1000px; /* Arbitrary large value */
+}
+
+/* Compliance highlights styling */
+.so-ssl-compliance-highlights {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.so-ssl-compliance-detail {
+    background-color: #f9f9f9;
+    padding: 12px;
+    border-radius: 4px;
+    border-left: 3px solid #0073aa;
+}
+
+.so-ssl-compliance-detail h4 {
+    display: flex;
+    align-items: center;
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #23282d;
+}
+
+.so-ssl-compliance-detail h4 .dashicons {
+    margin-right: 10px;
+    color: #0073aa;
+}
+
+.so-ssl-compliance-detail p {
+    margin: 0 0 0 28px;
+    color: #555;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.so-ssl-accordion-content .button {
+    display: block;
+    margin-top: 15px;
+    width: 100%;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .so-ssl-features {
+        grid-template-columns: 1fr;
+    }
+}
+
+</style>
 
         <!-- Inline script to ensure tabs work correctly -->
         <script type="text/javascript">
@@ -765,6 +971,24 @@ class So_SSL {
                         $(this).append('<input type="hidden" name="so_ssl_active_tab" value="' + currentTab + '">');
                     }
                 });
+
+        jQuery(document).ready(function($) {
+    $('.so-ssl-accordion-header').on('click', function() {
+        // Toggle the active class on the header
+        $(this).toggleClass('active');
+
+        // Toggle the content panel
+        var content = $(this).next('.so-ssl-accordion-content');
+        content.toggleClass('active');
+
+        // Update the icon
+        if ($(this).hasClass('active')) {
+            $(this).find('.so-ssl-accordion-icon').removeClass('dashicons-arrow-down-alt2').addClass('dashicons-arrow-up-alt2');
+        } else {
+            $(this).find('.so-ssl-accordion-icon').removeClass('dashicons-arrow-up-alt2').addClass('dashicons-arrow-down-alt2');
+        }
+    });
+});
             });
         </script>
         <?php
@@ -1436,14 +1660,6 @@ class So_SSL {
 			'so-ssl-privacy',
 			'so_ssl_privacy_compliance_section'
 		);
-
-		add_settings_field(
-			'',
-			__('Troubleshooting', 'so-ssl'),
-			array($this, 'privacy_troubleshoot_callback'),
-			'so-ssl-privacy',
-			'so_ssl_privacy_compliance_section'
-		);
 	}
 
 	/**
@@ -1699,74 +1915,6 @@ class So_SSL {
 		echo '</label>';
 		echo '<p class="description">' . esc_html__('When checked, the original admin user (ID 1) will never be required to acknowledge the privacy notice.', 'so-ssl') . '</p>';
 		echo '</div>';
-	}
-
-	/**
-	 * Privacy troubleshooting callback
-	 */
-	public static function privacy_troubleshoot_callback() {
-		// Call the function directly that outputs the properly escaped HTML
-		self::output_flush_rules_button();
-	}
-
-	/**
-	 * Output the troubleshooting section with flush rewrite rules button
-	 * This outputs directly rather than returning a string
-	 */
-	public static function output_flush_rules_button() {
-		// Only show to admins
-		if (!current_user_can('manage_options')) {
-			return;
-		}
-
-		// Process the flush if requested
-		if (isset($_POST['so_ssl_flush_rules_nonce']) &&
-		    wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_flush_rules_nonce'])), 'so_ssl_flush_rules')) {
-			flush_rewrite_rules();
-			echo '<div class="notice notice-success"><p>' . esc_html__('Rewrite rules have been flushed successfully.', 'so-ssl') . '</p></div>';
-		}
-
-		// Display the button
-		?>
-        <div class="so-ssl-admin-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #72aee6;">
-            <h3><?php esc_html_e('Troubleshooting', 'so-ssl'); ?></h3>
-            <p><?php esc_html_e('If the privacy page is returning a 404 error, try flushing the rewrite rules:', 'so-ssl'); ?></p>
-            <form method="post">
-				<?php wp_nonce_field('so_ssl_flush_rules', 'so_ssl_flush_rules_nonce'); ?>
-                <input type="submit" class="button button-secondary" value="<?php esc_attr_e('Flush Rewrite Rules', 'so-ssl'); ?>">
-            </form>
-        </div>
-		<?php
-	}
-
-
-	/**
-	 * Show troubleshooting section with flush rewrite rules button
-	 */
-	public static function add_flush_rules_button() {
-		// Only show to admins
-		if (!current_user_can('manage_options')) {
-			return;
-		}
-
-		// Process the flush if requested
-		if (isset($_POST['so_ssl_flush_rules_nonce']) &&
-		    wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['so_ssl_flush_rules_nonce'])), 'so_ssl_flush_rules')) {
-			flush_rewrite_rules();
-			echo '<div class="notice notice-success"><p>' . esc_html__('Rewrite rules have been flushed successfully.', 'so-ssl') . '</p></div>';
-		}
-
-		// Display the button
-		?>
-        <div class="so-ssl-admin-section" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #72aee6;">
-            <h3><?php esc_html_e('Troubleshooting', 'so-ssl'); ?></h3>
-            <p><?php esc_html_e('If the privacy page is returning a 404 error, try flushing the rewrite rules:', 'so-ssl'); ?></p>
-            <form method="post">
-				<?php wp_nonce_field('so_ssl_flush_rules', 'so_ssl_flush_rules_nonce'); ?>
-                <input type="submit" class="button button-secondary" value="<?php esc_html_e('Flush Rewrite Rules', 'so-ssl'); ?>">
-            </form>
-        </div>
-		<?php
 	}
 
     /**
@@ -2151,7 +2299,7 @@ public function enable_csp_frame_ancestors_callback() {
         </div>
 
         <div>
-            <a href="<?php echo esc_url(add_query_arg(esc_attr($page_slug), '1', site_url())); ?>" target="_blank" class="button button-primary" style="font-size: 14px; height: auto; padding: 8px 16px;">
+            <a href="<?php echo esc_url(admin_url('admin.php?page=so-ssl-privacy')); ?>" target="_blank" class="button button-primary" style="font-size: 14px; height: auto; padding: 8px 16px;">
 				<?php esc_html_e('Open Privacy Page', 'so-ssl'); ?>
                 <span class="dashicons dashicons-external" style="font-size: 16px; height: 16px; width: 16px; vertical-align: text-bottom;"></span>
             </a>

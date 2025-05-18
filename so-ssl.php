@@ -239,6 +239,10 @@ add_action('plugins_loaded', function() {
 	// Any initialization code for the translation functionality
 });
 
+
+
+
+
 register_activation_hook(__FILE__, 'activate_so_ssl');
 
 register_deactivation_hook(__FILE__, 'deactivate_so_ssl');
@@ -262,11 +266,6 @@ require_once SO_SSL_PATH . 'includes/class-so-ssl-login-limit.php';
  * Privacy Compliance functionality.
  */
 require_once SO_SSL_PATH . 'includes/class-so-ssl-privacy-compliance.php';
-
-/**
- * Admin Agreement functionality.
- */
-require_once SO_SSL_PATH . 'includes/class-so-ssl-admin-agreement.php';
 
 /**
  * Modal Controller for managing modal priorities.

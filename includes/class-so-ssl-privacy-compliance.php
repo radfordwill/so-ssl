@@ -40,7 +40,9 @@ class So_SSL_Privacy_Compliance {
 
 		// Add hook for admin scripts (for TinyMCE editor)
 		add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_admin_scripts'));
-	}
+
+    }
+
 
 	/**
 	 * Process privacy form submission (non-AJAX fallback)
@@ -163,7 +165,7 @@ class So_SSL_Privacy_Compliance {
 
 		// Custom CSS to style the notice (same style as admin agreement)
 		$custom_css = "
-        .so-ssl-privacy-notice {
+        .so-ssl-privacy-notice1 {
             background-color: #f0f6fc;
             border-left: 4px solid #2271b1;
             padding: 20px;
@@ -221,6 +223,7 @@ class So_SSL_Privacy_Compliance {
 		echo '<a href="' . esc_url($privacy_url) . '" class="button button-primary">' . esc_html__('View & Accept Privacy Notice', 'so-ssl') . '</a>';
 		echo '</div>';
 		echo '</div>';
+
 	}
 
 	/**
@@ -230,6 +233,7 @@ class So_SSL_Privacy_Compliance {
 	public static function add_privacy_overlay_script() {
 		?>
         <style>
+
             #so-ssl-privacy-overlay {
                 position: fixed;
                 top: 0;
@@ -296,22 +300,21 @@ class So_SSL_Privacy_Compliance {
 	}
 
 	/**
-	 * Add privacy menu
+	 * Add agreement menu
 	 */
 	public static function add_privacy_menu() {
-		// Add a direct admin page (not under settings)
-		add_menu_page(
-			__('Privacy Notice', 'so-ssl'),
-			__('Privacy Notice', 'so-ssl'),
-			'read', // Allow any logged-in user to access
+		add_submenu_page(
+			'so-ssl',
+			__('Privacy Agreement', 'so-ssl'),
+			__('Privacy Agreement', 'so-ssl'),
+			'read', // Allow any logged-in user to access the privacy page
 			'so-ssl-privacy',
 			array(__CLASS__, 'display_privacy_page'),
-			'dashicons-privacy',
 			999
 		);
-
+        // remove_submenu_page results in an error that can't be solved. DEBUG mode only
 		// Hide this from the menu - it's only for direct access
-		remove_menu_page('so-ssl-privacy');
+		//remove_submenu_page('so-ssl','so-ssl-privacy');
 	}
 
 	/**
@@ -333,8 +336,8 @@ class So_SSL_Privacy_Compliance {
 		$redirect_url = !empty($referer) ? $referer : (is_admin() ? admin_url() : home_url());
 
 		// Add CSS for the privacy page - using the same style as admin agreement
-		?>
-        <style>
+		$custom_css = '
+        
             .so-ssl-privacy-wrap {
                 max-width: 800px;
                 margin: 40px auto;
@@ -441,8 +444,9 @@ class So_SSL_Privacy_Compliance {
                 border-color: #8c8f94;
                 color: #1d2327;
             }
-        </style>
-
+        ';
+// Output the CSS
+        echo '<style>' . $custom_css . '</style>';?>
         <div class="wrap so-ssl-privacy-wrap">
             <div class="so-ssl-privacy-container">
                 <div class="so-ssl-privacy-header">
@@ -489,18 +493,6 @@ class So_SSL_Privacy_Compliance {
                             </button>
                         </noscript>
                     </form>
-
-                    <!-- Debug button to test direct submission -->
-                    <div style="margin-top: 20px; padding: 10px; background: #f0f0f1; display: none;" id="debug-fallback">
-                        <p><strong>Debug Mode:</strong> If the AJAX submission is not working, try the direct submission:</p>
-                        <form method="post" action="">
-				            <?php wp_nonce_field('so_ssl_privacy_acknowledgment', 'so_ssl_privacy_nonce'); ?>
-                            <input type="hidden" name="so_ssl_redirect_url" value="<?php echo esc_url($redirect_url); ?>">
-                            <input type="hidden" name="so_ssl_privacy_accept" value="1">
-                            <input type="hidden" name="so_ssl_privacy_fallback" value="1">
-                            <button type="submit" class="button">Direct Submit (Debug)</button>
-                        </form>
-                    </div>
                 </div>
             </div>
         </div>
