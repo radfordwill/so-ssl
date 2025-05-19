@@ -630,12 +630,8 @@ class So_SSL_Privacy_Compliance {
 	 * AJAX handler for saving privacy acknowledgment - DEBUG VERSION
 	 */
 	public static function ajax_save_privacy_acknowledgment() {
-		// Debug logging
-		error_log( 'SO SSL Privacy: AJAX handler called' );
-
 		// Verify nonce
 		if ( ! isset( $_POST['nonce'] ) ) {
-			error_log( 'SO SSL Privacy: No nonce provided' );
 			wp_send_json_error( array( 'message' => __( 'No security token provided.', 'so-ssl' ) ) );
 
 			return;
@@ -643,31 +639,24 @@ class So_SSL_Privacy_Compliance {
 
 		$nonce = sanitize_text_field( wp_unslash( $_POST['nonce'] ) );
 		if ( ! wp_verify_nonce( $nonce, 'so_ssl_privacy_acknowledgment' ) ) {
-			error_log( 'SO SSL Privacy: Nonce verification failed. Provided: ' . $nonce );
 			wp_send_json_error( array( 'message' => __( 'Security verification failed.', 'so-ssl' ) ) );
 
 			return;
 		}
 
-		error_log( 'SO SSL Privacy: Nonce verified' );
-
 		// Verify user is logged in
 		if ( ! is_user_logged_in() ) {
-			error_log( 'SO SSL Privacy: User not logged in' );
 			wp_send_json_error( array( 'message' => __( 'You must be logged in to perform this action.', 'so-ssl' ) ) );
 
 			return;
 		}
 
 		$user_id = get_current_user_id();
-		error_log( 'SO SSL Privacy: User ID: ' . $user_id );
 
 		// Get acceptance value
 		$accept = isset( $_POST['accept'] ) ? absint( $_POST['accept'] ) : 0;
-		error_log( 'SO SSL Privacy: Accept value: ' . $accept );
 
 		if ( $accept !== 1 ) {
-			error_log( 'SO SSL Privacy: Not accepted' );
 			wp_send_json_error( array( 'message' => __( 'You must accept the privacy notice to continue.', 'so-ssl' ) ) );
 
 			return;
@@ -675,11 +664,9 @@ class So_SSL_Privacy_Compliance {
 
 		// Save acceptance to user meta
 		$result = update_user_meta( $user_id, 'so_ssl_privacy_acknowledged', time() );
-		error_log( 'SO SSL Privacy: Update user meta result: ' . ( $result ? 'success' : 'failed' ) );
 
 		// Verify it was saved
 		$check = get_user_meta( $user_id, 'so_ssl_privacy_acknowledged', true );
-		error_log( 'SO SSL Privacy: Verification check: ' . $check );
 
 		// Clear caches
 		clean_user_cache( $user_id );

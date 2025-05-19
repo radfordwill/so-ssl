@@ -778,20 +778,21 @@ if (get_option('so_ssl_disable_weak_passwords', 0)) {
                     ?>
 
                     <?php if (get_option('so_ssl_enable_login_limit', 0)): ?>
-                    <div class="so-ssl-notice">
-                        <p>
+                    <div class="so-ssl-admin-tips">
                             <?php
                             printf(
-                                /* translators: %s: URL to Login Security page */
-                                esc_html__('For detailed settings and statistics, visit the %s page.', 'so-ssl'),
-                                '<a href="' . esc_url(admin_url('options-general.php?page=class-so-ssl-login-limit')) . '">' . esc_html__('Login Security', 'so-ssl') . '</a>'
-                            );
-                            ?>
-                        </p>
+                            /* translators: %s: URL to Login Security page */
+                            esc_html__('For detailed settings and statistics, visit the %s page.', 'so-ssl'),
+                                '<b><a href="' . esc_url(admin_url('options-general.php?page=class-so-ssl-login-limit')) . '">' . esc_html__('Login Security', 'so-ssl') . '</a></b>');?>xxx
                     </div>
-                    <?php endif; ?>
+                        <?php
+                            if (get_option('so_ssl_disable_weak_passwords', 0)): ?>
+                            <div class="so-ssl-notice so-ssl-notice-success">
+                                <p><?php esc_html_e('Login Attempt Limiting is active. This includes login attempt limiting lockouts and black listing to protect your site from brute force attacks.', 'so-ssl'); ?></p>
+                            </div>
+                            <?php endif;
+                            endif; ?>
                 </div>
-
                 <!-- Admin Agreement Tab -->
                 <div id="admin-agreement" class="settings-tab">
                     <h2><?php esc_html_e('Administrator Agreement Settings', 'so-ssl'); ?></h2>
@@ -2419,7 +2420,6 @@ private function register_referrer_policy_settings() {
 		echo '</ol>';
 		echo '</div>';
 	}
-
 /**
  * Password Security section description.
  *
@@ -3260,7 +3260,7 @@ public function add_referrer_policy_header() {
         public function csp_full_section_callback() {
             echo '<p>' . esc_html__('Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross-Site Scripting (XSS) and data injection attacks.', 'so-ssl') . '</p>';
             echo '<p>' . esc_html__('It is recommended to first enable CSP in "Report-Only" mode to ensure it does not break your site functionality.', 'so-ssl') . '</p>';
-            echo '<div class="notice notice-warning inline"><p><strong>'.esc_html__('Warning:', 'so-ssl') . '</strong>' . esc_html__(' Incorrect CSP settings can break functionality on your site. Make sure to test thoroughly.', 'so-ssl') . '</p></div>';
+            echo '<div class="notice notice-warning inline"><p>'.esc_html__('Warning:', 'so-ssl') . esc_html__(' Incorrect CSP settings can break functionality on your site. Make sure to test thoroughly.', 'so-ssl') . '</p></div>';
         }
 
         /**
@@ -3612,7 +3612,7 @@ public function add_referrer_policy_header() {
      */
     public function cross_origin_policy_section_callback() {
         echo '<p>' . esc_html__('Cross-Origin policies control how your site\'s resources can be used by other sites and how your site can interact with other sites.', 'so-ssl') . '</p>';
-        echo '<div class="notice notice-warning inline"><p>' . esc_html__('<strong>Warning:</strong> These settings can break cross-origin functionality. Test thoroughly before enabling in production.', 'so-ssl') . '</p></div>';
+        echo '<div class="notice notice-warning inline"><p>' . esc_html__('Warning: These settings can break cross-origin functionality. Test thoroughly before enabling in production.', 'so-ssl') . '</p></div>';
     }
 
     /**
@@ -3777,10 +3777,10 @@ public function get_password_strength($password, $username = '') {
 
     // Generate feedback for missing requirements
     $missing = array();
-    if (!$requirements['uppercase']) $missing[] = 'uppercase letters (A-Z)';
-    if (!$requirements['lowercase']) $missing[] = 'lowercase letters (a-z)';
-    if (!$requirements['numbers']) $missing[] = 'numbers (0-9)';
-    if (!$requirements['symbols']) $missing[] = 'special characters (!@#$%^&*...)';
+    if (!$requirements['uppercase']) {$missing[] = 'uppercase letters (A-Z)';}
+    if (!$requirements['lowercase']) {$missing[] = 'lowercase letters (a-z)';}
+    if (!$requirements['numbers']) {$missing[] = 'numbers (0-9)';}
+    if (!$requirements['symbols']) {$missing[] = 'special characters (!@#$%^&*...)';}
 
     $feedback = array();
     if (!empty($missing)) {
@@ -3794,364 +3794,284 @@ public function get_password_strength($password, $username = '') {
 }
 
 /**
- * Add JavaScript to disable the weak password checkbox and enforce strong passwords with enhanced feedback
+ * Add JavaScript to disable the weak password checkbox and enforce strong passwords
+ * Fixed version to prevent duplicate elements and improve validation
  */
 public function disable_weak_password_js() {
     ?>
     <script>
     jQuery(document).ready(function($) {
-        // Global password checker function
-        window.soSslCheckPasswordStrength = function(password, username) {
-            var strength = 0;
-            var feedback = [];
-            var requirements = {
-                length: password.length >= 8,
-                uppercase: /[A-Z]/.test(password),
-                lowercase: /[a-z]/.test(password),
-                numbers: /[0-9]/.test(password),
-                symbols: /[^A-Za-z0-9]/.test(password)
-            };
-
-            // Check for weak patterns
-            if (password.length < 8) {
-                return { score: 0, level: 'very-weak', message: 'Very weak - Must be at least 8 characters' };
-            }
-
-            if (username && password.toLowerCase().indexOf(username.toLowerCase()) !== -1) {
-                return { score: 0, level: 'very-weak', message: 'Very weak - Cannot contain username' };
-            }
-
-            // Common weak patterns
-            var weakPatterns = [
-                /^(.)\1+$/,           // All same character
-                /^(..)\1+$/,          // Repeated pairs
-                /^123456/,            // Sequential numbers
-                /^abcdef/i,           // Sequential letters
-                /password/i,          // Contains "password"
-                /qwerty/i             // Contains "qwerty"
-            ];
-
-            for (var i = 0; i < weakPatterns.length; i++) {
-                if (weakPatterns[i].test(password)) {
-                    return { score: 0, level: 'very-weak', message: 'Very weak - Uses common pattern' };
-                }
-            }
-
-            // Count met requirements
-            for (var req in requirements) {
-                if (requirements[req]) strength++;
-            }
-
-            // Determine level and message
-            var result = {};
-            if (strength <= 1) {
-                result = { score: strength, level: 'very-weak', message: 'Very weak' };
-            } else if (strength == 2) {
-                result = { score: strength, level: 'weak', message: 'Weak' };
-            } else if (strength == 3) {
-                result = { score: strength, level: 'medium', message: 'Medium' };
-            } else {
-                result = { score: strength, level: 'strong', message: 'Strong - Meets all requirements' };
-            }
-
-            // Add specific feedback
-            var missing = [];
-            if (!requirements.uppercase) missing.push('uppercase letters');
-            if (!requirements.lowercase) missing.push('lowercase letters');
-            if (!requirements.numbers) missing.push('numbers');
-            if (!requirements.symbols) missing.push('special characters');
-
-            if (missing.length > 0) {
-                result.feedback = 'Missing: ' + missing.join(', ');
-            }
-
-            return result;
-        };
+        // Ensure this only runs once
+        if (window.soSslPasswordEnforced) {
+            return;
+        }
+        window.soSslPasswordEnforced = true;
 
         function enforceStrongPassword() {
-            // Completely remove the weak password checkbox and container
+            // Remove weak password checkbox and related elements
             $('.pw-weak').remove();
             $('#pw-weak-text-message').remove();
 
-            // Add helpful description near password fields
-            function addPasswordDescription() {
-                var $passwordFields = $('#pass1, #pass1-text, #password, #user_pass');
+            // Remove any existing password requirement messages to prevent duplicates
+            $('.password-strength-message, .so-ssl-password-requirements').remove();
 
-                $passwordFields.each(function() {
-                    var $field = $(this);
-                    if ($field.next('.so-ssl-password-description').length === 0) {
-                        var description = '<div class="so-ssl-password-description" style="margin-top: 5px; font-size: 12px; color: #666;">' +
-                            '<strong>Password Requirements:</strong><br/>' +
-                            '• At least 8 characters long<br/>' +
-                            '• Include uppercase letters (A-Z)<br/>' +
-                            '• Include lowercase letters (a-z)<br/>' +
-                            '• Include numbers (0-9)<br/>' +
-                            '• Include special characters (!@#$%^&*...)<br/>' +
-                            '</div>';
-                        $field.after(description);
-                    }
-                });
-            }
-
-            // Add password descriptions
-            addPasswordDescription();
-
-            // Custom strength checking function that replaces WordPress default
-            function customPasswordStrengthCheck(password, blacklist, username, $strengthResult) {
-                var result = window.soSslCheckPasswordStrength(password, username);
-                var submitButton = $('input[type="submit"], button[type="submit"]');
-
-                // Update strength meter UI
-                $strengthResult.removeClass('short bad good strong mismatch');
-
-                // Remove any existing messages
-                $('.so-ssl-password-strength-message').remove();
-
-                if (password.length === 0) {
-                    $strengthResult.addClass('short').html('<?php echo esc_js(__('Enter a password', 'so-ssl')); ?>');
-                    submitButton.prop('disabled', false);
-                } else {
-                    var className = '';
-                    var isAcceptable = result.level === 'strong';
-
-                    switch (result.level) {
-                        case 'very-weak':
-                            className = 'short';
-                            break;
-                        case 'weak':
-                            className = 'bad';
-                            break;
-                        case 'medium':
-                            className = 'bad'; // Still not acceptable
-                            break;
-                        case 'strong':
-                            className = 'strong';
-                            break;
-                    }
-
-                    $strengthResult.addClass(className).html(result.message);
-
-                    // Disable submit if password is not strong
-                    submitButton.prop('disabled', !isAcceptable);
-
-                    // Add detailed feedback
-                    if (!isAcceptable) {
-                        var feedbackHtml = '<div class="so-ssl-password-strength-message" style="color: #dc3232; margin-top: 8px; font-size: 12px;">';
-
-                        if (result.feedback) {
-                            feedbackHtml += '<strong>' + result.feedback + '</strong><br/>';
-                        }
-
-                        feedbackHtml += '<em>All requirements must be met for a strong password.</em></div>';
-
-                        $strengthResult.after(feedbackHtml);
-                    } else {
-                        // Show success message
-                        $strengthResult.after('<div class="so-ssl-password-strength-message" style="color: #46b450; margin-top: 8px; font-size: 12px;"><strong>✓ Password meets all security requirements</strong></div>');
-                    }
+            // Override WordPress's password strength meter
+            if (typeof wp !== 'undefined' && wp.passwordStrength) {
+                // Store original function if we haven't already
+                if (!wp.passwordStrength.originalCheck) {
+                    wp.passwordStrength.originalCheck = wp.passwordStrength.checkPasswordStrength;
                 }
 
-                return result.score;
+                // Override the password strength check function
+                wp.passwordStrength.checkPasswordStrength = function(password, blacklist, username, $strengthResult) {
+                    // Clear previous classes and messages
+                    $strengthResult.removeClass('short bad good strong');
+                    $('.password-strength-message, .so-ssl-password-requirements').remove();
+
+                    var submitButton = $('input[type="submit"], button[type="submit"]').not('[name="wp-admin-bar-search-submit"]');
+
+                    if (password.length === 0) {
+                        $strengthResult.addClass('short').html('<?php echo esc_js(__('Password is required', 'so-ssl')); ?>');
+                        submitButton.prop('disabled', true);
+                        return 0;
+                    }
+
+                    // Implement comprehensive strength check
+                    var strength = calculatePasswordStrength(password, username);
+                    var strengthText = '';
+                    var strengthClass = '';
+                    var isStrong = false;
+
+                    // Determine strength level and styling
+                    if (password.length < 8) {
+                        strengthText = '<?php echo esc_js(__('Too short - Must be at least 8 characters', 'so-ssl')); ?>';
+                        strengthClass = 'short';
+                        isStrong = false;
+                    } else if (strength < 3) {
+                        strengthText = '<?php echo esc_js(__('Weak - Does not meet complexity requirements', 'so-ssl')); ?>';
+                        strengthClass = 'bad';
+                        isStrong = false;
+                    } else if (strength === 3) {
+                        strengthText = '<?php echo esc_js(__('Good - Meets most requirements', 'so-ssl')); ?>';
+                        strengthClass = 'good';
+                        isStrong = true; // Accept "good" passwords
+                    } else {
+                        strengthText = '<?php echo esc_js(__('Strong - Excellent password strength', 'so-ssl')); ?>';
+                        strengthClass = 'strong';
+                        isStrong = true;
+                    }
+
+                    // Apply styling and enable/disable submit button
+                    $strengthResult.addClass(strengthClass).html(strengthText);
+                    submitButton.prop('disabled', !isStrong);
+
+                    // Add detailed requirements if password is not strong enough
+                    if (!isStrong && !$('.so-ssl-password-requirements').length) {
+                        var requirements = $('<div class="so-ssl-password-requirements" style="margin-top: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;"></div>');
+                        var reqList = $('<div style="font-size: 13px; color: #856404;"></div>');
+
+                        reqList.html(
+                            '<strong><?php echo esc_js(__('Password Requirements:', 'so-ssl')); ?></strong><br>' +
+                            getRequirementText(password)
+                        );
+
+                        requirements.append(reqList);
+                        $strengthResult.after(requirements);
+                    }
+
+                    return strength;
+                };
             }
 
-            // Override WordPress's password strength meter completely
-            if (typeof wp !== 'undefined' && wp.passwordStrength) {
-                // Override the main function
-                wp.passwordStrength.meter = function($passwordField, $usernameField, $strengthResult) {
-                    return {
-                        checkPasswordStrength: customPasswordStrengthCheck
-                    };
-                };
+            // Function to calculate actual password strength
+            function calculatePasswordStrength(password, username) {
+                var strength = 0;
 
-                // Also override the standalone function for older WordPress versions
-                wp.passwordStrength.checkPasswordStrength = customPasswordStrengthCheck;
+                // Length requirement (minimum 8 characters)
+                if (password.length < 8) {
+                    return 0;
+                }
+
+                // Check for different character types
+                if (/[A-Z]/.test(password)) strength++; // Uppercase
+                if (/[a-z]/.test(password)) strength++; // Lowercase
+                if (/[0-9]/.test(password)) strength++; // Numbers
+                if (/[^A-Za-z0-9]/.test(password)) strength++; // Special characters
+
+                // Check if password contains username
+                if (username && password.toLowerCase().includes(username.toLowerCase())) {
+                    strength = Math.max(0, strength - 2);
+                }
+
+                // Check for common patterns that reduce strength
+                if (/(.)\1{3,}/.test(password)) { // Repeated characters
+                    strength = Math.max(0, strength - 1);
+                }
+
+                if (/^[0-9]+$/.test(password) || /^[a-zA-Z]+$/.test(password)) { // Only numbers or only letters
+                    strength = Math.max(0, strength - 1);
+                }
+
+                return Math.min(4, strength);
+            }
+
+            // Function to generate requirement text with checkmarks
+            function getRequirementText(password) {
+                var requirements = [
+                    {
+                        text: '<?php echo esc_js(__('At least 8 characters long', 'so-ssl')); ?>',
+                        met: password.length >= 8
+                    },
+                    {
+                        text: '<?php echo esc_js(__('Contains uppercase letters (A-Z)', 'so-ssl')); ?>',
+                        met: /[A-Z]/.test(password)
+                    },
+                    {
+                        text: '<?php echo esc_js(__('Contains lowercase letters (a-z)', 'so-ssl')); ?>',
+                        met: /[a-z]/.test(password)
+                    },
+                    {
+                        text: '<?php echo esc_js(__('Contains numbers (0-9)', 'so-ssl')); ?>',
+                        met: /[0-9]/.test(password)
+                    },
+                    {
+                        text: '<?php echo esc_js(__('Contains special characters (!@#$%^&*...)', 'so-ssl')); ?>',
+                        met: /[^A-Za-z0-9]/.test(password)
+                    }
+                ];
+
+                var html = '';
+                requirements.forEach(function(req) {
+                    var icon = req.met ? '✓' : '✗';
+                    var color = req.met ? '#28a745' : '#dc3545';
+                    html += '• <span style="color: ' + color + ';">' + icon + ' ' + req.text + '</span><br>';
+                });
+
+                return html;
             }
 
             // Override the weak password confirmation
             window.pw_weak = false;
 
-            // Enhanced form submission prevention
-            $('form').off('submit.so-ssl-password').on('submit.so-ssl-password', function(e) {
-                var $form = $(this);
-                var passwordField = $form.find('#pass1, #pass1-text, #password, #user_pass').first();
+            // Prevent form submission if password is weak
+            $('form').off('submit.sossl').on('submit.sossl', function(e) {
+                var $passwordField = $('#pass1, #pass1-text, input[name="pass1"]');
+                if ($passwordField.length && $passwordField.val()) {
+                    var $strengthResult = $('#pass-strength-result');
 
-                if (passwordField.length && passwordField.val()) {
-                    var result = window.soSslCheckPasswordStrength(passwordField.val(), $form.find('#user_login, #username').val() || '');
-
-                    if (result.level !== 'strong') {
+                    // Allow submission only if password is good or strong
+                    if (!$strengthResult.hasClass('good') && !$strengthResult.hasClass('strong')) {
                         e.preventDefault();
 
-                        // Show error message
-                        var errorHtml = '<div class="so-ssl-form-error notice notice-error" style="margin: 10px 0; padding: 10px;">' +
-                            '<p><strong>Error:</strong> Password does not meet security requirements. ' +
-                            'A strong password with all requirements is needed.</p></div>';
-
-                        // Remove existing error, add new one
-                        $('.so-ssl-form-error').remove();
-                        passwordField.closest('.form-field, .form-table, form').before(errorHtml);
-
-                        // Focus back to password field
-                        passwordField.focus();
+                        // Show error message if not already visible
+                        if (!$('.so-ssl-submit-error').length) {
+                            $strengthResult.after(
+                                '<div class="so-ssl-submit-error" style="margin-top: 10px; padding: 10px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; color: #721c24;">' +
+                                '<strong><?php echo esc_js(__('Cannot save:', 'so-ssl')); ?></strong> <?php echo esc_js(__('Please choose a stronger password that meets all requirements.', 'so-ssl')); ?>' +
+                                '</div>'
+                            );
+                        }
 
                         return false;
+                    } else {
+                        // Remove error message if password is now strong
+                        $('.so-ssl-submit-error').remove();
                     }
                 }
             });
-
-            // Real-time password checking on input - enhanced for all contexts
-            $(document).off('input.so-ssl-password keyup.so-ssl-password', '#pass1, #pass1-text, #password, #user_pass')
-                       .on('input.so-ssl-password keyup.so-ssl-password', '#pass1, #pass1-text, #password, #user_pass', function() {
-                var $field = $(this);
-                var $strengthResult = $('#pass-strength-result');
-                var password = $field.val();
-                var username = '';
-
-                // Try to find username field
-                var $usernameField = $('#user_login, #username');
-                if ($usernameField.length) {
-                    username = $usernameField.val();
-                }
-
-                if ($strengthResult.length) {
-                    // Use our custom function directly
-                    customPasswordStrengthCheck(password, [], username, $strengthResult);
-                }
-            });
-
-            // Initial check for pre-filled passwords (like on reset form)
-            var $initialPasswordField = $('#pass1, #pass1-text, #password, #user_pass').first();
-            if ($initialPasswordField.length && $initialPasswordField.val()) {
-                var $strengthResult = $('#pass-strength-result');
-                if ($strengthResult.length) {
-                    var username = $('#user_login, #username').val() || '';
-                    customPasswordStrengthCheck($initialPasswordField.val(), [], username, $strengthResult);
-                }
-            }
-
-            // Special handling for WordPress admin user-edit.php and profile.php
-            if (window.location.pathname.indexOf('user-edit.php') !== -1 ||
-                window.location.pathname.indexOf('profile.php') !== -1) {
-
-                // Initialize the password meter when password fields are revealed
-                $('#createuser, .user-pass-wrap').on('click', '.wp-generate-pw', function() {
-                    setTimeout(function() {
-                        var $passField = $('#pass1');
-                        var $strengthResult = $('#pass-strength-result');
-                        if ($passField.length && $strengthResult.length && $passField.val()) {
-                            customPasswordStrengthCheck($passField.val(), [], '', $strengthResult);
-                        }
-                    }, 100);
-                });
-
-                // Handle toggle password visibility
-                $(document).on('click', '.wp-show-pw', function() {
-                    setTimeout(function() {
-                        var $passField = $('#pass1, #pass1-text');
-                        var $strengthResult = $('#pass-strength-result');
-                        if ($passField.length && $strengthResult.length) {
-                            var password = $passField.filter(':visible').val() || '';
-                            if (password) {
-                                customPasswordStrengthCheck(password, [], '', $strengthResult);
-                            }
-                        }
-                    }, 50);
-                });
-            }
         }
 
         // Initial enforcement
         enforceStrongPassword();
 
-        // Re-run after any Ajax completions (catches dynamic form updates)
-        $(document).ajaxComplete(function() {
-            setTimeout(enforceStrongPassword, 100);
-        });
-
-        // Monitor for any dynamically added password fields
-        if (window.MutationObserver) {
-            var observer = new MutationObserver(function(mutations) {
-                var shouldRerun = false;
-                mutations.forEach(function(mutation) {
-                    if (mutation.addedNodes && mutation.addedNodes.length > 0) {
-                        for (var i = 0; i < mutation.addedNodes.length; i++) {
-                            var node = mutation.addedNodes[i];
-                            if (node.nodeType === 1) { // Element node
-                                if ($(node).find('#pass1, #pass1-text, #password, #user_pass, #pass-strength-result').length > 0 ||
-                                    $(node).is('#pass1, #pass1-text, #password, #user_pass, #pass-strength-result')) {
-                                    shouldRerun = true;
-                                    break;
-                                }
+        // Re-run after DOM changes (for dynamic content)
+        var observer = new MutationObserver(function(mutations) {
+            var shouldRerun = false;
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+                    for (var i = 0; i < mutation.addedNodes.length; i++) {
+                        var node = mutation.addedNodes[i];
+                        if (node.nodeType === 1) { // Element node
+                            if ($(node).find('#pass-strength-result, input[name="pass1"]').length > 0 ||
+                                $(node).is('#pass-strength-result, input[name="pass1"]')) {
+                                shouldRerun = true;
+                                break;
                             }
                         }
                     }
-                });
-
-                if (shouldRerun) {
-                    setTimeout(enforceStrongPassword, 100);
                 }
             });
 
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        }
+            if (shouldRerun) {
+                setTimeout(enforceStrongPassword, 100);
+            }
+        });
 
-        // Additional initialization for specific WordPress pages
-        if (typeof wp !== 'undefined' && wp.updates) {
-            // Handle admin page loads
-            $(window).on('load', function() {
-                setTimeout(enforceStrongPassword, 500);
-            });
-        }
+        // Start observing
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        // Handle password field changes
+        $(document).on('input', '#pass1, #pass1-text, input[name="pass1"]', function() {
+            // Trigger strength check
+            if (typeof wp !== 'undefined' && wp.passwordStrength && wp.passwordStrength.checkPasswordStrength) {
+                var $this = $(this);
+                var password = $this.val();
+                var username = $('#user_login').val() || $('#email').val() || '';
+                var $strengthResult = $('#pass-strength-result');
+
+                if ($strengthResult.length) {
+                    wp.passwordStrength.checkPasswordStrength(password, [], username, $strengthResult);
+                }
+            }
+        });
     });
     </script>
 
     <style>
-    .so-ssl-password-description {
-        background: #f0f6fc;
-        border-left: 3px solid #2271b1;
-        padding: 8px 10px;
-        border-radius: 0 4px 4px 0;
-        margin-top: 5px;
+    /* Additional styles for better appearance */
+    .so-ssl-password-requirements {
+        font-size: 13px !important;
+        line-height: 1.4 !important;
     }
 
-    .so-ssl-password-description strong {
-        color: #2271b1;
+    .so-ssl-submit-error {
+        animation: shake 0.5s ease-in-out;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    /* Ensure password strength meter is visible */
+    #pass-strength-result {
+        padding: 8px !important;
+        margin-top: 8px !important;
+        border-radius: 4px !important;
+        font-weight: 500 !important;
+    }
+
+    #pass-strength-result.short,
+    #pass-strength-result.bad {
+        background-color: #f8d7da !important;
+        border: 1px solid #f5c6cb !important;
+        color: #721c24 !important;
+    }
+
+    #pass-strength-result.good {
+        background-color: #d1ecf1 !important;
+        border: 1px solid #bee5eb !important;
+        color: #0c5460 !important;
     }
 
     #pass-strength-result.strong {
-        background-color: #d4edda;
-        border-color: #c3e6cb;
-        color: #155724;
-    }
-
-    #pass-strength-result.bad {
-        background-color: #f8d7da;
-        border-color: #f5c6cb;
-        color: #721c24;
-    }
-
-    #pass-strength-result.short {
-        background-color: #f8d7da;
-        border-color: #f5c6cb;
-        color: #721c24;
-    }
-
-    input[type="submit"]:disabled,
-    button[type="submit"]:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    /* Ensure the strength result is visible */
-    #pass-strength-result {
-        display: block !important;
-        min-height: 20px;
-        padding: 5px 10px;
-        margin-top: 5px;
-        border: 1px solid #ddd;
-        border-radius: 3px;
+        background-color: #d4edda !important;
+        border: 1px solid #c3e6cb !important;
+        color: #155724 !important;
     }
     </style>
     <?php
@@ -4163,6 +4083,7 @@ public function disable_weak_password_js() {
  * @param WP_Error $errors Error object
  * @param bool $update Whether this is an existing user update
  * @param stdClass|WP_User|null $user User object
+ *
  * @return WP_Error Updated error object
  */
 public function enforce_strong_password($errors, $update, $user = null) {
@@ -4226,6 +4147,7 @@ public function enforce_strong_password($errors, $update, $user = null) {
  *
  * @param WP_Error $errors Error object
  * @param WP_User $user User object
+ *
  * @return WP_Error
  */
 public function validate_password_reset($errors, $user) {
@@ -4371,7 +4293,7 @@ public function user_sessions_section_callback() {
      * Login limit section description.
      */
     public function login_limit_section_callback() {
-        echo '<p>' . esc_html__('Configure login attempt limiting to protect your site from brute force attacks.', 'so-ssl') . '</p>';
+        echo '<div class="notice notice-warning inline"><p>'.esc_html__('Warning:', 'so-ssl') . esc_html__(' Please have a back up admin user (administration rights) before enabling this feature. It can lock you out for a period of time or blacklist your I.P.', 'so-ssl') . '</p></div>';
     }
 
     /**
@@ -4392,4 +4314,5 @@ public function user_sessions_section_callback() {
         esc_url(admin_url('options-general.php?page=class-so-ssl-login-limit')) . '">' .
         esc_html__('Login Security', 'so-ssl') . '</a>';
         }
+
 }

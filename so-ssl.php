@@ -90,15 +90,6 @@ add_action( 'init', function () {
 			exit;
 		}
 	}
-
-	// Show success notice if coming from emergency override
-	if ( isset( $_GET['agreement_disabled'] ) && $_GET['agreement_disabled'] == '1' ) {
-		add_action( 'admin_notices', function () {
-			echo '<div class="notice notice-success is-dismissible">';
-			echo '<p><strong>Success:</strong> Administrator agreement has been disabled.</p>';
-			echo '</div>';
-		} );
-	}
 }, 1 );
 
 /**
@@ -338,23 +329,3 @@ function run_so_ssl() {
 
 // Initialize the plugin
 add_action( 'plugins_loaded', 'run_so_ssl', 10 );
-
-/**
- * Debug function to check if admin agreement is working
- * Remove this after confirming everything works
- */
-add_action( 'admin_notices', function () {
-	if ( current_user_can( 'manage_options' ) && isset( $_GET['page'] ) && $_GET['page'] === 'so-ssl' ) {
-		$agreement_enabled = get_option( 'so_ssl_enable_admin_agreement', 1 );
-		$user_id           = get_current_user_id();
-		$user_agreement    = get_user_meta( $user_id, 'so_ssl_admin_agreement_accepted', true );
-
-		if ( $agreement_enabled && empty( $user_agreement ) ) {
-			echo '<div class="notice notice-info"><p>';
-			echo '<strong>Debug Info:</strong> Admin Agreement is enabled but you haven\'t accepted it yet. ';
-			echo 'Agreement Status: ' . ( $agreement_enabled ? 'Enabled' : 'Disabled' ) . ', ';
-			echo 'User Agreement: ' . ( $user_agreement ? date( 'Y-m-d H:i:s', $user_agreement ) : 'Not accepted' );
-			echo '</p></div>';
-		}
-	}
-} );
