@@ -16,9 +16,15 @@ class So_SSL_Modal_Controller {
 	 */
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'setup_modal_priorities' ), 1 );
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_modal_assets' ) );
+		add_action( 'admin_enqueue_scripts', array(
+			__CLASS__,
+			'enqueue_modal_assets'
+		) );
 		add_action( 'admin_footer', array( __CLASS__, 'render_modal_html' ) );
-		add_action( 'wp_ajax_so_ssl_save_agreement', array( __CLASS__, 'save_agreement_acceptance' ) );
+		add_action( 'wp_ajax_so_ssl_save_agreement', array(
+			__CLASS__,
+			'save_agreement_acceptance'
+		) );
 	}
 
 	/**
@@ -90,6 +96,7 @@ class So_SSL_Modal_Controller {
 		}
 
 		$screen = get_current_screen();
+
 		// Add your plugin's page screen IDs here
 		return ! empty( $screen ) && strpos( $screen->id, 'so-ssl' ) !== false;
 	}
@@ -121,7 +128,7 @@ class So_SSL_Modal_Controller {
 				'soSslModal',
 				array(
 					'ajaxurl' => admin_url( 'admin-ajax.php' ),
-					'nonce' => wp_create_nonce( 'so_ssl_modal_nonce' )
+					'nonce'   => wp_create_nonce( 'so_ssl_modal_nonce' )
 				)
 			);
 		}
@@ -136,15 +143,16 @@ class So_SSL_Modal_Controller {
 			return;
 		}
 		?>
-		<div id="sslAgreementModal" class="so-ssl-modal-overlay" style="display: none;">
-			<div class="so-ssl-modal-content">
-				<h2><?php esc_html_e( 'SSL Agreement Required', 'so-ssl' ); ?></h2>
-				<p><?php esc_html_e( 'You must accept the SSL agreement to continue.', 'so-ssl' ); ?></p>
-				<button id="soSslAcceptButton" class="button button-primary">
+        <div id="sslAgreementModal" class="so-ssl-modal-overlay"
+             style="display: none;">
+            <div class="so-ssl-modal-content">
+                <h2><?php esc_html_e( 'SSL Agreement Required', 'so-ssl' ); ?></h2>
+                <p><?php esc_html_e( 'You must accept the SSL agreement to continue.', 'so-ssl' ); ?></p>
+                <button id="soSslAcceptButton" class="button button-primary">
 					<?php esc_html_e( 'Accept Agreement', 'so-ssl' ); ?>
-				</button>
-			</div>
-		</div>
+                </button>
+            </div>
+        </div>
 		<?php
 	}
 

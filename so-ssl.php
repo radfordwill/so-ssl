@@ -194,7 +194,7 @@ function activate_so_ssl() {
 
 	// Set default values for each permission
 	foreach ( $permissions as $permission ) {
-		$option_name = 'so_ssl_permissions_policy_' . str_replace( '-', '_', $permission );
+		$option_name   = 'so_ssl_permissions_policy_' . str_replace( '-', '_', $permission );
 		$default_value = ( $permission === 'picture-in-picture' ) ? '*' : 'self';
 		add_option( $option_name, $default_value );
 	}

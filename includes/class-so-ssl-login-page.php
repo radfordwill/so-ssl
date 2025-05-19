@@ -6,40 +6,46 @@
  */
 
 // If this file is called directly, abort.
-if (!defined('WPINC')) {
+if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
 class So_SSL_Login_Page {
 
-    /**
-     * Initialize login page enhancements
-     */
-    public static function init() {
-        // Only proceed if 2FA is enabled
-        if (!get_option('so_ssl_enable_2fa', 0)) {
-            return;
-        }
+	/**
+	 * Initialize login page enhancements
+	 */
+	public static function init() {
+		// Only proceed if 2FA is enabled
+		if ( ! get_option( 'so_ssl_enable_2fa', 0 ) ) {
+			return;
+		}
 
-        // Enqueue styles and scripts
-        add_action('login_enqueue_scripts', array(__CLASS__, 'enqueue_login_assets'));
-        
-        // Modify login form
-        add_action('login_form', array(__CLASS__, 'enhance_login_form'));
-        
-        // Modify login message
-        add_filter('login_message', array(__CLASS__, 'enhance_login_message'));
-    }
+		// Enqueue styles and scripts
+		add_action( 'login_enqueue_scripts', array(
+			__CLASS__,
+			'enqueue_login_assets'
+		) );
+
+		// Modify login form
+		add_action( 'login_form', array( __CLASS__, 'enhance_login_form' ) );
+
+		// Modify login message
+		add_filter( 'login_message', array(
+			__CLASS__,
+			'enhance_login_message'
+		) );
+	}
 
 	/**
 	 * Enqueue login page assets with enhanced styles
 	 */
 	public static function enqueue_login_assets() {
 		// Enqueue base styles
-		wp_enqueue_style('so-ssl-login', SO_SSL_URL . 'assets/css/so-ssl-login.css', array(), SO_SSL_VERSION);
+		wp_enqueue_style( 'so-ssl-login', SO_SSL_URL . 'assets/css/so-ssl-login.css', array(), SO_SSL_VERSION );
 
 		// Enqueue scripts
-		wp_enqueue_script('so-ssl-login', SO_SSL_URL . 'assets/js/so-ssl-login.js', array('jquery'), SO_SSL_VERSION, true);
+		wp_enqueue_script( 'so-ssl-login', SO_SSL_URL . 'assets/js/so-ssl-login.js', array( 'jquery' ), SO_SSL_VERSION, true );
 
 		// Add custom inline styles that match the plugin's color palette
 		$custom_css = "
@@ -117,22 +123,22 @@ class So_SSL_Login_Page {
         }
     ";
 
-		wp_add_inline_style('so-ssl-login', $custom_css);
+		wp_add_inline_style( 'so-ssl-login', $custom_css );
 	}
 
 	/**
 	 * Enhance login form for 2FA
-     *
+	 *
 	 * @since    1.4.5
-     *
- */
+	 *
+	 */
 	public static function enhance_login_form() {
 		// Check if 2FA is active on the login form
-		if (isset($_SESSION['so_ssl_2fa_required']) && sanitize_text_field($_SESSION['so_ssl_2fa_required'])) {
+		if ( isset( $_SESSION['so_ssl_2fa_required'] ) && sanitize_text_field( $_SESSION['so_ssl_2fa_required'] ) ) {
 			// Add custom classes to 2FA code field and enhance UI
 			?>
             <script type="text/javascript">
-                jQuery(document).ready(function($) {
+                jQuery(document).ready(function ($) {
                     // Add custom classes to the 2FA field
                     $('input[name="so_ssl_2fa_code"]').addClass('so-ssl-2fa-input active');
 
@@ -146,7 +152,7 @@ class So_SSL_Login_Page {
                     $('input[name="so_ssl_2fa_code"]').focus();
 
                     // Format the code with a space after 3 digits
-                    $('input[name="so_ssl_2fa_code"]').on('input', function() {
+                    $('input[name="so_ssl_2fa_code"]').on('input', function () {
                         var value = $(this).val().replace(/[^0-9]/g, '');
                         if (value.length > 6) {
                             value = value.substr(0, 6);
@@ -166,23 +172,24 @@ class So_SSL_Login_Page {
 	 * Enhanced login message for 2FA
 	 *
 	 * @param string $message The login message
+	 *
 	 * @return string Enhanced login message
 	 */
-	public static function enhance_login_message($message) {
+	public static function enhance_login_message( $message ) {
 		// Check if 2FA is active on the login form
-		if (isset($_SESSION['so_ssl_2fa_required']) && sanitize_text_field($_SESSION['so_ssl_2fa_required'])) {
-			$method = get_option('so_ssl_2fa_method', 'email');
+		if ( isset( $_SESSION['so_ssl_2fa_required'] ) && sanitize_text_field( $_SESSION['so_ssl_2fa_required'] ) ) {
+			$method = get_option( 'so_ssl_2fa_method', 'email' );
 
 			// Create enhanced message based on authentication method
-			if ($method === 'email') {
+			if ( $method === 'email' ) {
 				$message = '<div class="message">' .
-				           '<p><strong>' . __('Two-Factor Authentication Required', 'so-ssl') . '</strong></p>' .
-				           '<p>' . __('Please enter the verification code sent to your email address. For your security, this code will expire in 10 minutes.', 'so-ssl') . '</p>' .
+				           '<p><strong>' . __( 'Two-Factor Authentication Required', 'so-ssl' ) . '</strong></p>' .
+				           '<p>' . __( 'Please enter the verification code sent to your email address. For your security, this code will expire in 10 minutes.', 'so-ssl' ) . '</p>' .
 				           '</div>';
 			} else {
 				$message = '<div class="message">' .
-				           '<p><strong>' . __('Two-Factor Authentication Required', 'so-ssl') . '</strong></p>' .
-				           '<p>' . __('Please enter the verification code from your authenticator app (like Google Authenticator, Authy, or Microsoft Authenticator).', 'so-ssl') . '</p>' .
+				           '<p><strong>' . __( 'Two-Factor Authentication Required', 'so-ssl' ) . '</strong></p>' .
+				           '<p>' . __( 'Please enter the verification code from your authenticator app (like Google Authenticator, Authy, or Microsoft Authenticator).', 'so-ssl' ) . '</p>' .
 				           '</div>';
 			}
 		}
