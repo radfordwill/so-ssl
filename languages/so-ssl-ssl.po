@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: So SSL\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-04-25 17:37+0000\n"
-"PO-Revision-Date: 2025-05-19 09:37+0000\n"
+"PO-Revision-Date: 2025-05-19 20:13+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: ssl\n"
 "Language: ssl\n"
@@ -15,9 +15,127 @@ msgstr ""
 "X-Loco-Version: 2.7.2; wp-6.8\n"
 "X-Domain: so-ssl"
 
+#: includes/class-so-ssl.php:3266
+msgid ""
+" Incorrect CSP settings can break functionality on your site. Make sure to "
+"test thoroughly."
+msgstr ""
+
+#: includes/class-so-ssl.php:2549
+msgid ""
+" Only enable HSTS if you are certain your site will always use HTTPS. Once a "
+"browser receives this header, it will not allow access to your site over "
+"HTTP until the max-age expires, even if you disable SSL later."
+msgstr ""
+
+#: includes/class-so-ssl.php:4299
+msgid ""
+" Please have a back up admin user (administration rights) before enabling "
+"this feature. It can lock you out for a period of time or blacklist your I.P."
+msgstr ""
+
+#: includes/class-so-ssl.php:3398
+msgid "'none' - Block all content of this type"
+msgstr ""
+
+#: includes/class-so-ssl.php:3436
+msgid "'none' - Block all plugins (recommended)"
+msgstr ""
+
+#: includes/class-so-ssl.php:2722
+msgid "'none' - No site can embed your content (most restrictive)"
+msgstr ""
+
+#: includes/class-so-ssl.php:3454
+msgid "'none' - Prevent use of base elements"
+msgstr ""
+
+#: includes/class-so-ssl.php:3407
+msgid "'self' 'unsafe-eval' - Allow same origin and eval()"
+msgstr ""
+
+#: includes/class-so-ssl.php:3408
+msgid ""
+"'self' 'unsafe-inline' 'unsafe-eval' - Allow same origin, inline scripts and "
+"eval()"
+msgstr ""
+
+#: includes/class-so-ssl.php:3406
+msgid "'self' 'unsafe-inline' - Allow same origin and inline scripts"
+msgstr ""
+
+#: includes/class-so-ssl.php:3413
+msgid "'self' 'unsafe-inline' - Allow same origin and inline styles"
+msgstr ""
+
+#: includes/class-so-ssl.php:3396
+msgid "'self' - Allow content from same origin only"
+msgstr ""
+
+#: includes/class-so-ssl.php:3459
+msgid "'self' - Allow forms to submit to same origin only"
+msgstr ""
+
+#: includes/class-so-ssl.php:3437
+msgid "'self' - Allow plugins from same origin only"
+msgstr ""
+
+#: includes/class-so-ssl.php:2723
+msgid "'self' - Only your own site can embed your content"
+msgstr ""
+
+#: includes/class-so-ssl.php:3453
+msgid "'self' - Restrict base URI to same origin"
+msgstr ""
+
+#: includes/class-so-ssl.php:3425
+msgid "'self' api.example.com - Allow same origin and specific API"
+msgstr ""
+
+#: includes/class-so-ssl.php:3419 includes/class-so-ssl.php:3431
+msgid "'self' data: - Allow same origin and data URIs"
+msgstr ""
+
+#: includes/class-so-ssl.php:3420
+msgid "'self' data: https: - Allow same origin, data URIs and any HTTPS source"
+msgstr ""
+
+#: includes/class-so-ssl.php:3414
+msgid "'self' fonts.googleapis.com - Allow same origin and Google Fonts"
+msgstr ""
+
+#: includes/class-so-ssl.php:3430
+msgid "'self' fonts.gstatic.com - Allow same origin and Google Fonts"
+msgstr ""
+
+#: includes/class-so-ssl.php:3397
+msgid ""
+"'self' https: - Allow content from same origin and any secure HTTPS source"
+msgstr ""
+
+#: includes/class-so-ssl.php:3460
+msgid "'self' https: - Allow forms to submit to same origin and any HTTPS URL"
+msgstr ""
+
+#: includes/class-so-ssl.php:3442
+msgid "'self' media.example.com - Allow same origin and specific media source"
+msgstr ""
+
+#: includes/class-so-ssl.php:3448
+msgid "'self' vimeo.com - Allow same origin and Vimeo"
+msgstr ""
+
+#: includes/class-so-ssl.php:3447
+msgid "'self' youtube.com - Allow same origin and YouTube"
+msgstr ""
+
 #: includes/class-so-ssl-user-sessions.php:162
 #: includes/class-so-ssl-user-sessions.php:275
 msgid "(Current)"
+msgstr ""
+
+#: includes/class-so-ssl.php:3399
+msgid "* - Allow content from any source (least secure)"
 msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:1128
@@ -30,6 +148,30 @@ msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:1127
 msgid "- Keep these codes secure and do not share them with anyone"
+msgstr ""
+
+#: includes/class-so-ssl.php:2610
+msgid "1 Day (86400 seconds)"
+msgstr ""
+
+#: includes/class-so-ssl.php:2612
+msgid "1 Month (2592000 seconds)"
+msgstr ""
+
+#: includes/class-so-ssl.php:2611
+msgid "1 Week (604800 seconds)"
+msgstr ""
+
+#: includes/class-so-ssl.php:2613
+msgid "1 Year (31536000 seconds) - Recommended"
+msgstr ""
+
+#: includes/class-so-ssl.php:2614
+msgid "2 Years (63072000 seconds)"
+msgstr ""
+
+#: includes/class-so-ssl.php:4316
+msgid "<a href=\""
 msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:936
@@ -52,6 +194,13 @@ msgstr ""
 msgid ""
 "<strong>ERROR</strong>: Your IP address has been blocked due to too many "
 "failed login attempts."
+msgstr ""
+
+#: includes/class-so-ssl.php:3708
+msgid ""
+"<strong>ERROR</strong>: Your password does not meet the minimum strength "
+"requirements. Please choose a stronger password that includes uppercase "
+"letters, lowercase letters, numbers, and special characters."
 msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:944
@@ -105,12 +254,12 @@ msgstr ""
 msgid "Accept Agreement"
 msgstr ""
 
-#: includes/class-so-ssl-privacy-compliance.php:513
-#: includes/class-so-ssl-privacy-compliance.php:607
-#: includes/class-so-ssl-privacy-compliance.php:621
 #: includes/class-so-ssl-admin-agreement.php:763
 #: includes/class-so-ssl-admin-agreement.php:841
 #: includes/class-so-ssl-admin-agreement.php:852
+#: includes/class-so-ssl-privacy-compliance.php:513
+#: includes/class-so-ssl-privacy-compliance.php:607
+#: includes/class-so-ssl-privacy-compliance.php:621
 msgid "Accept and Continue"
 msgstr ""
 
@@ -130,11 +279,11 @@ msgstr ""
 msgid "Account:"
 msgstr ""
 
-#: includes/class-so-ssl.php:2224
+#: includes/class-so-ssl.php:2227
 msgid "Acknowledgment Checkbox Text"
 msgstr ""
 
-#: includes/class-so-ssl.php:2232
+#: includes/class-so-ssl.php:2235
 msgid "Acknowledgment Expiry (Days)"
 msgstr ""
 
@@ -156,7 +305,7 @@ msgstr ""
 msgid "Active User Sessions"
 msgstr ""
 
-#: includes/class-so-ssl.php:835
+#: includes/class-so-ssl.php:838
 msgid ""
 "Add an extra layer of security with email or authenticator app verification."
 msgstr ""
@@ -169,6 +318,10 @@ msgstr ""
 #. Heading for adding IP to whitelist form
 #: includes/class-so-ssl-login-limit.php:711
 msgid "Add IP to Whitelist"
+msgstr ""
+
+#: includes/class-so-ssl.php:2644
+msgid "Add preload flag"
 msgstr ""
 
 #. Button text to add IP to blacklist
@@ -187,13 +340,50 @@ msgstr ""
 msgid "Added"
 msgstr ""
 
-#: includes/class-so-ssl.php:593 includes/class-so-ssl.php:880
-#: includes/class-so-ssl.php:946 includes/class-so-ssl-admin-agreement.php:312
-#: includes/class-so-ssl-admin-agreement.php:313
+#: includes/class-so-ssl.php:2447
+msgid "Adds an additional security layer to the WordPress login process."
+msgstr ""
+
+#: includes/class-so-ssl.php:4292
+msgid "Adds the ability to view and manage user login sessions across devices."
+msgstr ""
+
+#: includes/class-so-ssl.php:3281
+msgid ""
+"Adds the Content-Security-Policy header to restrict what resources can be "
+"loaded."
+msgstr ""
+
+#: includes/class-so-ssl.php:2710
+msgid ""
+"Adds the Content-Security-Policy header with frame-ancestors directive to "
+"control iframe embedding."
+msgstr ""
+
+#: includes/class-so-ssl.php:3540
+msgid ""
+"Adds the Permissions-Policy header to control browser feature permissions."
+msgstr ""
+
+#: includes/class-so-ssl.php:3216
+msgid ""
+"Adds the Referrer-Policy header to control what information is sent in the "
+"Referer header."
+msgstr ""
+
+#: includes/class-so-ssl.php:2598
+msgid ""
+"Adds the Strict-Transport-Security header to tell browsers to always use "
+"HTTPS for this domain."
+msgstr ""
+
+#: includes/class-so-ssl-admin-agreement.php:312
+#: includes/class-so-ssl-admin-agreement.php:313 includes/class-so-ssl.php:596
+#: includes/class-so-ssl.php:883 includes/class-so-ssl.php:949
 msgid "Admin Agreement"
 msgstr ""
 
-#: includes/class-so-ssl.php:2330
+#: includes/class-so-ssl.php:2333
 msgid "Administrator Agreement Form"
 msgstr ""
 
@@ -201,19 +391,19 @@ msgstr ""
 msgid "Administrator Agreement Required"
 msgstr ""
 
-#: includes/class-so-ssl.php:798 includes/class-so-ssl-admin-agreement.php:409
+#: includes/class-so-ssl-admin-agreement.php:409 includes/class-so-ssl.php:801
 msgid "Administrator Agreement Settings"
 msgstr ""
 
-#: includes/class-so-ssl.php:657
+#: includes/class-so-ssl.php:660
 msgid "Administrator Setup Guide"
 msgstr ""
 
-#: includes/class-so-ssl.php:953
+#: includes/class-so-ssl.php:956
 msgid "Administrator Terms"
 msgstr ""
 
-#: includes/class-so-ssl.php:672
+#: includes/class-so-ssl.php:675
 msgid "Administrators - Always enable (highest privileges)"
 msgstr ""
 
@@ -223,7 +413,7 @@ msgid ""
 "period."
 msgstr ""
 
-#: includes/class-so-ssl.php:681
+#: includes/class-so-ssl.php:684
 msgid "After enabling 2FA, users must:"
 msgstr ""
 
@@ -235,19 +425,19 @@ msgstr ""
 msgid "Agreement accepted. Redirecting..."
 msgstr ""
 
-#: includes/class-so-ssl.php:2361 includes/class-so-ssl-admin-agreement.php:440
+#: includes/class-so-ssl-admin-agreement.php:440 includes/class-so-ssl.php:2364
 msgid "Agreement Checkbox Text"
 msgstr ""
 
-#: includes/class-so-ssl.php:2369 includes/class-so-ssl-admin-agreement.php:448
+#: includes/class-so-ssl-admin-agreement.php:448 includes/class-so-ssl.php:2372
 msgid "Agreement Expiry (Days)"
 msgstr ""
 
-#: includes/class-so-ssl.php:2345 includes/class-so-ssl-admin-agreement.php:424
+#: includes/class-so-ssl-admin-agreement.php:424 includes/class-so-ssl.php:2348
 msgid "Agreement Page Title"
 msgstr ""
 
-#: includes/class-so-ssl.php:2353 includes/class-so-ssl-admin-agreement.php:432
+#: includes/class-so-ssl-admin-agreement.php:432 includes/class-so-ssl.php:2356
 msgid "Agreement Text"
 msgstr ""
 
@@ -259,19 +449,35 @@ msgstr ""
 msgid "All sessions terminated successfully."
 msgstr ""
 
-#: includes/class-so-ssl.php:1507
+#: includes/class-so-ssl.php:3556
+msgid "Allow for all origins (*)"
+msgstr ""
+
+#: includes/class-so-ssl.php:3557
+msgid "Allow for own origin only (self)"
+msgstr ""
+
+#: includes/class-so-ssl.php:1510
 msgid "Allow From Domain"
 msgstr ""
 
-#: includes/class-so-ssl.php:1598
+#: includes/class-so-ssl.php:2741
+msgid "Allow your own site to embed your content when using custom domains."
+msgstr ""
+
+#: includes/class-so-ssl.php:2681
+msgid "ALLOW-FROM - Allow a specific domain to frame content"
+msgstr ""
+
+#: includes/class-so-ssl.php:1601
 msgid "Allowed Domains"
 msgstr ""
 
-#: includes/class-so-ssl.php:204
+#: includes/class-so-ssl.php:207
 msgid "Always exempt administrators"
 msgstr ""
 
-#: includes/class-so-ssl.php:214 includes/class-so-ssl-admin-agreement.php:553
+#: includes/class-so-ssl-admin-agreement.php:553 includes/class-so-ssl.php:217
 msgid "Always exempt original admin (user ID 1)"
 msgstr ""
 
@@ -281,9 +487,13 @@ msgid ""
 "Please review and accept the agreement to continue using the plugin."
 msgstr ""
 
-#: includes/class-so-ssl-privacy-compliance.php:617
 #: includes/class-so-ssl-admin-agreement.php:848
+#: includes/class-so-ssl-privacy-compliance.php:617
 msgid "An error occurred. Please try again."
+msgstr ""
+
+#: includes/class-so-ssl.php:2629
+msgid "Apply HSTS to all subdomains"
 msgstr ""
 
 #: includes/class-so-ssl-login-limit.php:460
@@ -320,6 +530,10 @@ msgstr ""
 msgid "Are you sure you want to whitelist this IP?"
 msgstr ""
 
+#: includes/class-so-ssl.php:3925
+msgid "At least 8 characters long"
+msgstr ""
+
 #. Column header for attempted usernames
 #: includes/class-so-ssl-login-limit.php:541
 msgid "Attempted Usernames"
@@ -336,19 +550,27 @@ msgstr ""
 msgid "Authentication Code"
 msgstr ""
 
-#: includes/class-so-ssl.php:1675
+#: includes/class-so-ssl.php:1678
 msgid "Authentication Method"
+msgstr ""
+
+#: includes/class-so-ssl.php:2529
+msgid "Authenticator App"
+msgstr ""
+
+#: includes/class-so-ssl.php:2508
+msgid "Authenticator App - Use Google Authenticator or similar apps"
 msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:138
 msgid "Authenticator App Setup"
 msgstr ""
 
-#: includes/class-so-ssl.php:664
+#: includes/class-so-ssl.php:667
 msgid "Authenticator App:"
 msgstr ""
 
-#: includes/class-so-ssl.php:674
+#: includes/class-so-ssl.php:677
 msgid "Authors - Optional (can write posts)"
 msgstr ""
 
@@ -360,7 +582,7 @@ msgstr ""
 msgid "Auto-Blacklist IPs"
 msgstr ""
 
-#: includes/class-so-ssl.php:925
+#: includes/class-so-ssl.php:928
 msgid "Automatic Certificate Management"
 msgstr ""
 
@@ -368,13 +590,13 @@ msgstr ""
 msgid "Automatically blacklist IPs after extended lockout"
 msgstr ""
 
-#: includes/class-so-ssl.php:934
+#: includes/class-so-ssl.php:937
 msgid ""
 "Automatically identify and fix mixed content warnings that affect your site "
 "security."
 msgstr ""
 
-#: includes/class-so-ssl.php:819
+#: includes/class-so-ssl.php:822
 msgid ""
 "Automatically redirect all traffic to HTTPS to ensure secure connections."
 msgstr ""
@@ -417,11 +639,11 @@ msgstr ""
 msgid "Browser"
 msgstr ""
 
-#: includes/class-so-ssl.php:625
+#: includes/class-so-ssl.php:628
 msgid "Browser Feature Controls"
 msgstr ""
 
-#: includes/class-so-ssl.php:586
+#: includes/class-so-ssl.php:589
 msgid "Browser Features"
 msgstr ""
 
@@ -429,11 +651,23 @@ msgstr ""
 msgid "Can't scan? Enter code manually"
 msgstr ""
 
-#: so-ssl.php:281
+#: so-ssl.php:272
 msgid "Cancel"
 msgstr ""
 
-#: includes/class-so-ssl.php:715
+#: includes/class-so-ssl.php:2470
+msgid "Cannot contain username"
+msgstr ""
+
+#: includes/class-so-ssl.php:3973
+msgid "Cannot save:"
+msgstr ""
+
+#: includes/class-so-ssl.php:2471
+msgid "Cannot use common weak patterns"
+msgstr ""
+
+#: includes/class-so-ssl.php:718
 msgid "Check that the correct user roles are selected"
 msgstr ""
 
@@ -441,17 +675,17 @@ msgstr ""
 msgid "Check your spam folder if you don't receive the email"
 msgstr ""
 
-#: includes/class-so-ssl.php:2414
+#: includes/class-so-ssl.php:2417
 msgid "Choose authentication method (email or app)"
 msgstr ""
 
-#: includes/class-so-ssl.php:902
+#: includes/class-so-ssl.php:905
 msgid ""
 "Choose which user roles require privacy acknowledgment, with optional "
 "exemption for administrators."
 msgstr ""
 
-#: includes/class-so-ssl.php:670
+#: includes/class-so-ssl.php:673
 msgid "Choose which user roles will be required to use 2FA. We recommend:"
 msgstr ""
 
@@ -459,22 +693,28 @@ msgstr ""
 msgid "Code verified successfully!"
 msgstr ""
 
-#: includes/class-so-ssl.php:2419
+#: includes/class-so-ssl.php:2422
 msgid "Communicate with users about the new requirement"
 msgstr ""
 
-#: includes/class-so-ssl.php:685
+#: includes/class-so-ssl.php:688
 msgid "Complete the setup process for their chosen method"
 msgstr ""
 
-#: includes/class-so-ssl.php:965
+#: includes/class-so-ssl.php:968
 msgid "Configure Admin Agreement"
 msgstr ""
 
 #. %s: URL to User Sessions page
-#: includes/class-so-ssl.php:764
+#: includes/class-so-ssl.php:767
 #, php-format
 msgid "Configure detailed settings and view active sessions on the %s page."
+msgstr ""
+
+#: includes/class-so-ssl.php:2773
+msgid ""
+"Configure for GDPR and US privacy compliance settings to inform users about "
+"data collection and tracking."
 msgstr ""
 
 #: includes/class-so-ssl-user-sessions.php:724
@@ -487,176 +727,252 @@ msgid ""
 "attacks."
 msgstr ""
 
-#: includes/class-so-ssl.php:909
+#: includes/class-so-ssl.php:2432
+msgid ""
+"Configure password security settings to enforce stronger passwords and "
+"improve login security."
+msgstr ""
+
+#: includes/class-so-ssl.php:912
 msgid "Configure Privacy Compliance"
 msgstr ""
 
-#: includes/class-so-ssl.php:2390
+#: includes/class-so-ssl.php:2393
 msgid "Configure SSL settings for your website."
 msgstr ""
 
-#: includes/class-so-ssl.php:224 includes/class-so-ssl-admin-agreement.php:468
+#: includes/class-so-ssl-admin-agreement.php:468 includes/class-so-ssl.php:227
 msgid ""
 "Configure the agreement that administrators must accept before using the "
 "plugin."
 msgstr ""
 
-#: includes/class-so-ssl.php:2406
+#: includes/class-so-ssl.php:2409
 msgid ""
 "Configure Two-Factor Authentication (2FA) settings for your WordPress users."
 msgstr ""
 
-#: includes/class-so-ssl.php:700
+#: includes/class-so-ssl.php:4279
+msgid ""
+"Configure user session management to enhance security by controlling and "
+"monitoring active sessions."
+msgstr ""
+
+#: includes/class-so-ssl.php:703
 msgid "Consider creating documentation for your users"
 msgstr ""
 
-#: includes/class-so-ssl.php:585
+#: includes/class-so-ssl.php:3933
+msgid "Contains lowercase letters (a-z)"
+msgstr ""
+
+#: includes/class-so-ssl.php:3937
+msgid "Contains numbers (0-9)"
+msgstr ""
+
+#: includes/class-so-ssl.php:3941
+msgid "Contains special characters (!@#$%^&*...)"
+msgstr ""
+
+#: includes/class-so-ssl.php:3929
+msgid "Contains uppercase letters (A-Z)"
+msgstr ""
+
+#: includes/class-so-ssl.php:588
 msgid "Content Security"
 msgstr ""
 
-#: includes/class-so-ssl.php:616
+#: includes/class-so-ssl.php:619
 msgid "Content Security Policies"
 msgstr ""
 
-#: includes/class-so-ssl.php:1808
+#: includes/class-so-ssl.php:1811
 msgid "Content Security Policy (CSP)"
 msgstr ""
 
-#: includes/class-so-ssl.php:1566
+#: includes/class-so-ssl.php:3264
+msgid ""
+"Content Security Policy (CSP) is an added layer of security that helps to "
+"detect and mitigate certain types of attacks, including Cross-Site Scripting "
+"(XSS) and data injection attacks."
+msgstr ""
+
+#: includes/class-so-ssl.php:2567
+msgid ""
+"Content Security Policy (CSP) with frame-ancestors directive is a modern "
+"replacement for X-Frame-Options. It provides more flexibility for "
+"controlling which domains can embed your site in an iframe."
+msgstr ""
+
+#: includes/class-so-ssl.php:1569
 msgid "Content Security Policy (CSP): Frame-Ancestors"
 msgstr ""
 
-#: includes/class-so-ssl.php:1868
-msgid "Controls access to accelerometer sensors"
-msgstr ""
-
-#: includes/class-so-ssl.php:1869
-msgid "Controls access to ambient light sensors"
-msgstr ""
-
-#: includes/class-so-ssl.php:1881
-msgid "Controls access to audio capture devices"
+#. Title
+#: includes/class-so-ssl.php:3379
+#, php-format
+msgid "Controls %s sources."
 msgstr ""
 
 #: includes/class-so-ssl.php:1871
-msgid "Controls access to battery information"
-msgstr ""
-
-#: includes/class-so-ssl.php:1875
-msgid "Controls access to EME API"
-msgstr ""
-
-#: includes/class-so-ssl.php:1880
-msgid "Controls access to gyroscope sensors"
-msgstr ""
-
-#: includes/class-so-ssl.php:1882
-msgid "Controls access to MIDI devices"
-msgstr ""
-
-#: includes/class-so-ssl.php:1879
-msgid "Controls access to the geolocation API"
-msgstr ""
-
-#: includes/class-so-ssl.php:1884
-msgid "Controls access to the Payment Request API"
-msgstr ""
-
-#: includes/class-so-ssl.php:1890
-msgid "Controls access to the Web Share API"
-msgstr ""
-
-#: includes/class-so-ssl.php:1889
-msgid "Controls access to USB devices"
+msgid "Controls access to accelerometer sensors"
 msgstr ""
 
 #: includes/class-so-ssl.php:1872
-msgid "Controls access to video cameras"
+msgid "Controls access to ambient light sensors"
 msgstr ""
 
-#: includes/class-so-ssl.php:1887
-msgid "Controls access to Wake Lock API"
-msgstr ""
-
-#: includes/class-so-ssl.php:1886
-msgid "Controls access to WebAuthn API"
-msgstr ""
-
-#: includes/class-so-ssl.php:1891
-msgid "Controls access to WebXR features"
-msgstr ""
-
-#: includes/class-so-ssl.php:1876
-msgid "Controls execution when not rendered"
-msgstr ""
-
-#: includes/class-so-ssl.php:1877
-msgid "Controls execution when outside viewport"
-msgstr ""
-
-#: includes/class-so-ssl.php:1990
-msgid "Controls how resources can be loaded cross-origin"
-msgstr ""
-
-#: includes/class-so-ssl.php:1981
-msgid "Controls how windows/tabs opened from your site can interact with it"
-msgstr ""
-
-#: includes/class-so-ssl.php:1870
-msgid "Controls the ability to autoplay media"
-msgstr ""
-
-#: includes/class-so-ssl.php:1873
-msgid "Controls the ability to capture screen content"
-msgstr ""
-
-#: includes/class-so-ssl.php:1883
-msgid "Controls the ability to override navigation"
+#: includes/class-so-ssl.php:1884
+msgid "Controls access to audio capture devices"
 msgstr ""
 
 #: includes/class-so-ssl.php:1874
-msgid "Controls the ability to set document.domain"
+msgid "Controls access to battery information"
 msgstr ""
 
 #: includes/class-so-ssl.php:1878
-msgid "Controls the ability to use fullscreen mode"
+msgid "Controls access to EME API"
+msgstr ""
+
+#: includes/class-so-ssl.php:1883
+msgid "Controls access to gyroscope sensors"
 msgstr ""
 
 #: includes/class-so-ssl.php:1885
-msgid "Controls the ability to use Picture-in-Picture"
+msgid "Controls access to MIDI devices"
+msgstr ""
+
+#: includes/class-so-ssl.php:1882
+msgid "Controls access to the geolocation API"
+msgstr ""
+
+#: includes/class-so-ssl.php:1887
+msgid "Controls access to the Payment Request API"
+msgstr ""
+
+#: includes/class-so-ssl.php:1893
+msgid "Controls access to the Web Share API"
+msgstr ""
+
+#: includes/class-so-ssl.php:1892
+msgid "Controls access to USB devices"
+msgstr ""
+
+#: includes/class-so-ssl.php:1875
+msgid "Controls access to video cameras"
+msgstr ""
+
+#: includes/class-so-ssl.php:1890
+msgid "Controls access to Wake Lock API"
+msgstr ""
+
+#: includes/class-so-ssl.php:1889
+msgid "Controls access to WebAuthn API"
+msgstr ""
+
+#: includes/class-so-ssl.php:1894
+msgid "Controls access to WebXR features"
+msgstr ""
+
+#: includes/class-so-ssl.php:3373
+msgid ""
+"Controls CSS sources. Example: 'self' 'unsafe-inline' https://fonts."
+"googleapis.com"
+msgstr ""
+
+#: includes/class-so-ssl.php:1879
+msgid "Controls execution when not rendered"
+msgstr ""
+
+#: includes/class-so-ssl.php:1880
+msgid "Controls execution when outside viewport"
+msgstr ""
+
+#: includes/class-so-ssl.php:1993
+msgid "Controls how resources can be loaded cross-origin"
+msgstr ""
+
+#: includes/class-so-ssl.php:1984
+msgid "Controls how windows/tabs opened from your site can interact with it"
+msgstr ""
+
+#: includes/class-so-ssl.php:3376
+msgid "Controls image sources. Example: 'self' data: https://*.trusted-cdn.com"
+msgstr ""
+
+#: includes/class-so-ssl.php:3370
+msgid ""
+"Controls JavaScript sources. Example: 'self' 'unsafe-inline' https://trusted-"
+"scripts.com"
+msgstr ""
+
+#: includes/class-so-ssl.php:1873
+msgid "Controls the ability to autoplay media"
+msgstr ""
+
+#: includes/class-so-ssl.php:1876
+msgid "Controls the ability to capture screen content"
+msgstr ""
+
+#: includes/class-so-ssl.php:1886
+msgid "Controls the ability to override navigation"
+msgstr ""
+
+#: includes/class-so-ssl.php:1877
+msgid "Controls the ability to set document.domain"
+msgstr ""
+
+#: includes/class-so-ssl.php:1881
+msgid "Controls the ability to use fullscreen mode"
 msgstr ""
 
 #: includes/class-so-ssl.php:1888
+msgid "Controls the ability to use Picture-in-Picture"
+msgstr ""
+
+#: includes/class-so-ssl.php:1891
 msgid "Controls the ability to use synchronous XHR"
 msgstr ""
 
-#: includes/class-so-ssl.php:1972
+#: includes/class-so-ssl.php:1975
 msgid "Controls whether resources can be embedded cross-origin"
 msgstr ""
 
-#: includes/class-so-ssl.php:898
+#: includes/class-so-ssl.php:2667
+msgid ""
+"Controls whether your site can be loaded in an iframe (recommended for "
+"security)."
+msgstr ""
+
+#: includes/class-so-ssl.php:901
 msgid ""
 "Create a custom privacy acknowledgment page that users must accept before "
 "accessing your site."
 msgstr ""
 
-#: includes/class-so-ssl.php:587
+#: includes/class-so-ssl.php:590
 msgid "Cross-Origin"
 msgstr ""
 
-#: includes/class-so-ssl.php:1988
+#: includes/class-so-ssl.php:1991
 msgid "cross-origin - Resources can be loaded from any origin (less secure)"
 msgstr ""
 
-#: includes/class-so-ssl.php:2024
+#: includes/class-so-ssl.php:2027
 msgid "Cross-Origin Policies"
 msgstr ""
 
-#: includes/class-so-ssl.php:641
+#: includes/class-so-ssl.php:3617
+msgid ""
+"Cross-Origin policies control how your site's resources can be used by other "
+"sites and how your site can interact with other sites."
+msgstr ""
+
+#: includes/class-so-ssl.php:644
 msgid "Cross-Origin Security Controls"
 msgstr ""
 
-#: includes/class-so-ssl.php:1823
+#: includes/class-so-ssl.php:1826
 msgid "CSP Mode"
 msgstr ""
 
@@ -667,12 +983,49 @@ msgstr ""
 msgid "Current Lockouts"
 msgstr ""
 
-#: includes/class-so-ssl.php:897
+#: includes/class-so-ssl.php:3345
+msgid "Custom"
+msgstr ""
+
+#: includes/class-so-ssl.php:2724
+msgid "Custom - Specify allowed domains"
+msgstr ""
+
+#: includes/class-so-ssl.php:900
 msgid "Customizable Privacy Page"
+msgstr ""
+
+#: includes/class-so-ssl.php:2679
+msgid "DENY - Prevents any site from loading this site in an iframe"
+msgstr ""
+
+#: includes/class-so-ssl.php:3237
+msgid ""
+"Determines how much information is included in the Referer header when "
+"making requests."
+msgstr ""
+
+#. Description of what the CSP mode setting does
+#: includes/class-so-ssl.php:3310
+msgid ""
+"Determines whether the browser should enforce the policy or just report "
+"violations."
+msgstr ""
+
+#: includes/class-so-ssl.php:2726
+msgid "Determines which sites (if any) can embed your site in an iframe."
+msgstr ""
+
+#: includes/class-so-ssl.php:2683
+msgid "Determines which sites (if any) can load your site in an iframe."
 msgstr ""
 
 #: includes/class-so-ssl-admin-agreement.php:786
 msgid "Disable Admin Agreement"
+msgstr ""
+
+#: includes/class-so-ssl.php:3558
+msgid "Disable entirely (none)"
 msgstr ""
 
 #: includes/class-so-ssl-admin-agreement.php:768
@@ -687,16 +1040,20 @@ msgstr ""
 msgid "Each code can only be used once:"
 msgstr ""
 
-#: includes/class-so-ssl.php:663
+#: includes/class-so-ssl.php:666
 msgid "Easier to set up, sends codes via email. Good for most users."
 msgstr ""
 
-#: includes/class-so-ssl.php:673
+#: includes/class-so-ssl.php:676
 msgid "Editors - Recommended (can publish content)"
 msgstr ""
 
-#: includes/class-so-ssl.php:698
+#: includes/class-so-ssl.php:701
 msgid "Educate users about backup codes and keeping them safe"
+msgstr ""
+
+#: includes/class-so-ssl.php:2507
+msgid "Email - Send verification code via email"
 msgstr ""
 
 #: includes/class-so-ssl-login-limit.php:1416
@@ -711,31 +1068,39 @@ msgstr ""
 msgid "Email backup codes to:"
 msgstr ""
 
+#: includes/class-so-ssl.php:2517
+msgid "Email Method"
+msgstr ""
+
 #: includes/class-so-ssl-login-limit.php:1316
 msgid "Email Notifications"
 msgstr ""
 
-#: includes/class-so-ssl.php:663
+#: includes/class-so-ssl.php:666
 msgid "Email Verification:"
 msgstr ""
 
-#: includes/class-so-ssl.php:961
+#: includes/class-so-ssl.php:964
 msgid "Emergency Override"
 msgstr ""
 
-#: includes/class-so-ssl.php:962
+#: includes/class-so-ssl.php:965
 msgid ""
 "Emergency override options to prevent accidental lockouts with periodic re-"
 "acknowledgment."
 msgstr ""
 
-#: includes/class-so-ssl.php:732
+#: includes/class-so-ssl.php:3640
+msgid "Enable"
+msgstr ""
+
+#: includes/class-so-ssl.php:735
 msgid ""
 "Enable 2FA above to add an extra layer of security to your WordPress login "
 "process."
 msgstr ""
 
-#: includes/class-so-ssl.php:2413
+#: includes/class-so-ssl.php:2416
 msgid "Enable 2FA below"
 msgstr ""
 
@@ -744,76 +1109,127 @@ msgstr ""
 msgid "Enable 2FA by checking the box below"
 msgstr ""
 
-#: includes/class-so-ssl.php:684
+#: includes/class-so-ssl.php:687
 msgid "Enable 2FA in the \"Two-Factor Authentication\" section"
 msgstr ""
 
-#: includes/class-so-ssl.php:2337 includes/class-so-ssl-admin-agreement.php:416
+#: includes/class-so-ssl-admin-agreement.php:416 includes/class-so-ssl.php:2340
 msgid "Enable Admin Agreement"
 msgstr ""
 
-#: includes/class-so-ssl.php:1815
+#: includes/class-so-ssl.php:1818
 msgid "Enable Content Security Policy"
 msgstr ""
 
-#: includes/class-so-ssl.php:1573
+#: includes/class-so-ssl.php:3279
+msgid "Enable Content Security Policy header"
+msgstr ""
+
+#: includes/class-so-ssl.php:2708
+msgid "Enable Content Security Policy: frame-ancestors directive"
+msgstr ""
+
+#: includes/class-so-ssl.php:1576
 msgid "Enable CSP Frame-Ancestors"
 msgstr ""
 
-#: includes/class-so-ssl.php:1412
+#: includes/class-so-ssl.php:1415
 msgid "Enable HSTS"
 msgstr ""
 
-#: includes/class-so-ssl-login-limit.php:1348
+#: includes/class-so-ssl.php:2596
+msgid "Enable HTTP Strict Transport Security (HSTS)"
+msgstr ""
+
+#: includes/class-so-ssl-login-limit.php:1348 includes/class-so-ssl.php:4310
 msgid "Enable login attempt limiting"
 msgstr ""
 
-#: includes/class-so-ssl-login-limit.php:1276 includes/class-so-ssl.php:1312
+#: includes/class-so-ssl-login-limit.php:1276 includes/class-so-ssl.php:1315
 msgid "Enable Login Limiting"
 msgstr ""
 
-#: includes/class-so-ssl.php:1931
+#: includes/class-so-ssl.php:1934
 msgid "Enable Permissions Policy"
 msgstr ""
 
-#: includes/class-so-ssl.php:2192
+#: includes/class-so-ssl.php:3538
+msgid "Enable Permissions Policy header"
+msgstr ""
+
+#: includes/class-so-ssl.php:2195
 msgid "Enable Privacy Compliance"
 msgstr ""
 
-#: includes/class-so-ssl.php:102
+#: includes/class-so-ssl.php:105
 msgid "Enable privacy compliance acknowledgment page"
 msgstr ""
 
-#: includes/class-so-ssl.php:1720
+#: includes/class-so-ssl.php:1723
 msgid "Enable Referrer Policy"
 msgstr ""
 
-#: includes/class-so-ssl-two-factor.php:125 includes/class-so-ssl.php:1659
+#: includes/class-so-ssl.php:3214
+msgid "Enable Referrer Policy header"
+msgstr ""
+
+#: includes/class-so-ssl-two-factor.php:125 includes/class-so-ssl.php:1662
 msgid "Enable Two-Factor Authentication"
+msgstr ""
+
+#: includes/class-so-ssl.php:2445
+msgid "Enable Two-Factor Authentication for users"
 msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:131
 msgid "Enable two-factor authentication for your account."
 msgstr ""
 
-#: includes/class-so-ssl.php:1296
+#: includes/class-so-ssl.php:3331
+msgid "Enable upgrade-insecure-requests directive"
+msgstr ""
+
+#: includes/class-so-ssl.php:1299
 msgid "Enable User Sessions Management"
 msgstr ""
 
-#: includes/class-so-ssl.php:1491
+#: includes/class-so-ssl.php:4290
+msgid "Enable user sessions management"
+msgstr ""
+
+#: includes/class-so-ssl.php:1494
 msgid "Enable X-Frame-Options"
 msgstr ""
 
-#: includes/class-so-ssl.php:843
+#: includes/class-so-ssl.php:2665
+msgid "Enable X-Frame-Options header"
+msgstr ""
+
+#. CSP mode option that enforces the policy
+#: includes/class-so-ssl.php:3303
+msgid "Enforce - Enforce the policy (only use after testing)"
+msgstr ""
+
+#: includes/class-so-ssl.php:846
 msgid "Enforce secure password policies for all users on your WordPress site."
 msgstr ""
 
-#: includes/class-so-ssl.php:2079
+#: includes/class-so-ssl.php:2082
 msgid "Enforce Strong Passwords"
 msgstr ""
 
-#: includes/class-so-ssl.php:697
+#: includes/class-so-ssl.php:2460
+msgid "Enforce strong passwords for all users"
+msgstr ""
+
+#: includes/class-so-ssl.php:700
 msgid "Ensure users have valid email addresses for email verification"
+msgstr ""
+
+#: includes/class-so-ssl.php:2753
+msgid ""
+"Enter domains that are allowed to embed your site, one per line. Example: "
+"https://example.com"
 msgstr ""
 
 #: includes/class-so-ssl-login-limit.php:714
@@ -829,7 +1245,13 @@ msgstr ""
 msgid "Enter the code within 10 minutes to complete login"
 msgstr ""
 
-#: includes/class-so-ssl.php:905
+#: includes/class-so-ssl.php:2695
+msgid ""
+"Enter the full domain that is allowed to load your site in an iframe (only "
+"used with ALLOW-FROM option)."
+msgstr ""
+
+#: includes/class-so-ssl.php:908
 msgid "Expiration Controls"
 msgstr ""
 
@@ -866,25 +1288,34 @@ msgstr ""
 msgid "Failed to send backup codes. Please try again."
 msgstr ""
 
-#: includes/class-so-ssl.php:811
+#: includes/class-so-ssl.php:3367
+msgid ""
+"Fallback for other CSP directives. Example: 'self' https://*.trusted-cdn.com"
+msgstr ""
+
+#: includes/class-so-ssl.php:814
 msgid "Feature Overview"
 msgstr ""
 
 #. %s: URL to Login Security page
-#: includes/class-so-ssl.php:785
+#: includes/class-so-ssl.php:788 includes/class-so-ssl.php:4315
 #, php-format
 msgid "For detailed settings and statistics, visit the %s page."
 msgstr ""
 
-#: includes/class-so-ssl.php:1347
+#: includes/class-so-ssl.php:2581
+msgid "Force all traffic to use HTTPS/SSL"
+msgstr ""
+
+#: includes/class-so-ssl.php:1350
 msgid "Force SSL"
 msgstr ""
 
-#: includes/class-so-ssl.php:1581
+#: includes/class-so-ssl.php:1584
 msgid "Frame-Ancestors Value"
 msgstr ""
 
-#: includes/class-so-ssl.php:686
+#: includes/class-so-ssl.php:689
 msgid "Generate and save backup codes"
 msgstr ""
 
@@ -910,15 +1341,19 @@ msgstr ""
 msgid "Global Sessions Management"
 msgstr ""
 
-#: includes/class-so-ssl.php:683
+#: includes/class-so-ssl.php:686
 msgid "Go to their WordPress profile page"
+msgstr ""
+
+#: includes/class-so-ssl.php:3858
+msgid "Good - Meets most requirements"
 msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:335
 msgid "Google Authenticator"
 msgstr ""
 
-#: includes/class-so-ssl.php:699
+#: includes/class-so-ssl.php:702
 msgid "Have a recovery plan if users lose access to their 2FA method"
 msgstr ""
 
@@ -949,20 +1384,37 @@ msgid ""
 "login attempts."
 msgstr ""
 
+#: includes/class-so-ssl.php:2616
+msgid ""
+"How long browsers should remember that this site is only to be accessed "
+"using HTTPS."
+msgstr ""
+
+#: includes/class-so-ssl.php:2767
+msgid "How This Works"
+msgstr ""
+
 #: includes/class-so-ssl-login-limit.php:1431
 msgid "How to handle blocked or locked out IPs."
 msgstr ""
 
-#: includes/class-so-ssl.php:547
+#: includes/class-so-ssl.php:550
 msgid "HSTS is enabled"
 msgstr ""
 
-#: includes/class-so-ssl.php:547
+#: includes/class-so-ssl.php:550
 msgid "HSTS is not enabled"
 msgstr ""
 
-#: includes/class-so-ssl.php:1405
+#: includes/class-so-ssl.php:1408
 msgid "HTTP Strict Transport Security (HSTS)"
+msgstr ""
+
+#: includes/class-so-ssl.php:2548
+msgid ""
+"HTTP Strict Transport Security (HSTS) instructs browsers to only access your "
+"site over HTTPS, even if the user enters or clicks on a plain HTTP URL. This "
+"helps protect against SSL stripping attacks."
 msgstr ""
 
 #. Author URI of the plugin
@@ -988,28 +1440,28 @@ msgid ""
 "immediately."
 msgstr ""
 
-#: includes/class-so-ssl.php:827
+#: includes/class-so-ssl.php:830
 msgid ""
 "Implement advanced security headers like HSTS, CSP, and X-Frame-Options."
 msgstr ""
 
-#: includes/class-so-ssl.php:866 includes/class-so-ssl.php:874
+#: includes/class-so-ssl.php:869 includes/class-so-ssl.php:877
 msgid ""
 "Implement GDPR and US privacy law compliance with customizable privacy "
 "acknowledgment for users."
 msgstr ""
 
-#: includes/class-so-ssl.php:958
+#: includes/class-so-ssl.php:961
 msgid ""
 "Implement role-based requirements with specific exemption options for "
 "certain administrators."
 msgstr ""
 
-#: includes/class-so-ssl.php:525
+#: includes/class-so-ssl.php:528
 msgid "Implementing more security features will improve your score"
 msgstr ""
 
-#: includes/class-so-ssl.php:693
+#: includes/class-so-ssl.php:696
 msgid "Important Considerations"
 msgstr ""
 
@@ -1033,15 +1485,35 @@ msgstr ""
 msgid "Important: Make sure you have access to your email address: %s"
 msgstr ""
 
-#: includes/class-so-ssl.php:1589
+#: includes/class-so-ssl.php:2739
+msgid "Include 'self' in allowed domains"
+msgstr ""
+
+#: includes/class-so-ssl.php:2467
+msgid "Include lowercase letters (a-z)"
+msgstr ""
+
+#: includes/class-so-ssl.php:2468
+msgid "Include numbers (0-9)"
+msgstr ""
+
+#: includes/class-so-ssl.php:1592
 msgid "Include Self"
 msgstr ""
 
-#: includes/class-so-ssl.php:1428
+#: includes/class-so-ssl.php:2469
+msgid "Include special characters (!@#$%^&*...)"
+msgstr ""
+
+#: includes/class-so-ssl.php:1431
 msgid "Include Subdomains"
 msgstr ""
 
-#: includes/class-so-ssl.php:716
+#: includes/class-so-ssl.php:2466
+msgid "Include uppercase letters (A-Z)"
+msgstr ""
+
+#: includes/class-so-ssl.php:719
 msgid "Inform users to set up 2FA in their profile settings"
 msgstr ""
 
@@ -1053,6 +1525,10 @@ msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:331
 msgid "Install an authenticator app on your phone:"
+msgstr ""
+
+#: includes/class-so-ssl.php:3333
+msgid "Instructs browsers to upgrade HTTP requests to HTTPS before fetching."
 msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:1174
@@ -1154,6 +1630,12 @@ msgid ""
 "IP: %1$s has had %2$d failed login attempts and is temporarily locked out."
 msgstr ""
 
+#: includes/class-so-ssl.php:3265
+msgid ""
+"It is recommended to first enable CSP in \"Report-Only\" mode to ensure it "
+"does not break your site functionality."
+msgstr ""
+
 #: includes/class-so-ssl-two-factor.php:373
 msgid "Key:"
 msgstr ""
@@ -1163,11 +1645,11 @@ msgstr ""
 msgid "Last Attempt"
 msgstr ""
 
-#: includes/class-so-ssl.php:859
+#: includes/class-so-ssl.php:862
 msgid "Limit login attempts and protect against brute force attacks."
 msgstr ""
 
-#: includes/class-so-ssl-login-limit.php:1350
+#: includes/class-so-ssl-login-limit.php:1350 includes/class-so-ssl.php:4312
 msgid "Limits the number of failed login attempts allowed per IP address."
 msgstr ""
 
@@ -1194,11 +1676,11 @@ msgstr ""
 msgid "lockouts"
 msgstr ""
 
-#: includes/class-so-ssl-login-limit.php:1269 includes/class-so-ssl.php:1305
+#: includes/class-so-ssl-login-limit.php:1269 includes/class-so-ssl.php:1308
 msgid "Login Attempt Limiting"
 msgstr ""
 
-#: includes/class-so-ssl.php:791
+#: includes/class-so-ssl.php:794
 msgid ""
 "Login Attempt Limiting is active. This includes login attempt limiting "
 "lockouts and black listing to protect your site from brute force attacks."
@@ -1209,7 +1691,7 @@ msgstr ""
 msgid "Login Attempt Statistics"
 msgstr ""
 
-#: includes/class-so-ssl.php:775
+#: includes/class-so-ssl.php:778
 msgid "Login Attempts"
 msgstr ""
 
@@ -1226,7 +1708,7 @@ msgstr ""
 msgid "Login History"
 msgstr ""
 
-#: includes/class-so-ssl.php:591
+#: includes/class-so-ssl.php:594
 msgid "Login Limiting"
 msgstr ""
 
@@ -1235,16 +1717,17 @@ msgstr ""
 msgid "Login Limiting Settings"
 msgstr ""
 
-#: includes/class-so-ssl.php:589 includes/class-so-ssl.php:857
+#: includes/class-so-ssl.php:592 includes/class-so-ssl.php:860
 msgid "Login Protection"
 msgstr ""
 
-#: includes/class-so-ssl.php:739
+#: includes/class-so-ssl.php:742
 msgid "Login Protection Settings"
 msgstr ""
 
 #: includes/class-so-ssl-login-limit.php:428
-#: includes/class-so-ssl-login-limit.php:429 includes/class-so-ssl.php:786
+#: includes/class-so-ssl-login-limit.php:429 includes/class-so-ssl.php:789
+#: includes/class-so-ssl.php:4318
 msgid "Login Security"
 msgstr ""
 
@@ -1257,7 +1740,7 @@ msgstr ""
 msgid "Logout"
 msgstr ""
 
-#: includes/class-so-ssl.php:937
+#: includes/class-so-ssl.php:940
 msgid "Manage SSL Settings"
 msgstr ""
 
@@ -1269,7 +1752,7 @@ msgstr ""
 msgid "Manually blacklisted"
 msgstr ""
 
-#: includes/class-so-ssl.php:1420
+#: includes/class-so-ssl.php:1423
 msgid "Max Age"
 msgstr ""
 
@@ -1301,15 +1784,19 @@ msgstr ""
 msgid "Microsoft Authenticator"
 msgstr ""
 
-#: includes/class-so-ssl.php:933
+#: includes/class-so-ssl.php:2465
+msgid "Minimum 8 characters long"
+msgstr ""
+
+#: includes/class-so-ssl.php:936
 msgid "Mixed Content Detection"
 msgstr ""
 
-#: includes/class-so-ssl.php:718
+#: includes/class-so-ssl.php:721
 msgid "Monitor for any user issues or support requests"
 msgstr ""
 
-#: includes/class-so-ssl.php:664
+#: includes/class-so-ssl.php:667
 msgid ""
 "More secure, requires mobile app. Best for administrators and high-privilege "
 "users."
@@ -1324,7 +1811,7 @@ msgstr ""
 msgid "Need to disable this agreement feature?"
 msgstr ""
 
-#: includes/class-so-ssl.php:712
+#: includes/class-so-ssl.php:715
 msgid "Next Steps:"
 msgstr ""
 
@@ -1368,8 +1855,17 @@ msgstr ""
 msgid "No login history recorded."
 msgstr ""
 
-#: includes/class-so-ssl-privacy-compliance.php:639
+#: includes/class-so-ssl-privacy-compliance.php:635
 msgid "No security token provided."
+msgstr ""
+
+#: includes/class-so-ssl.php:3228
+msgid "no-referrer - No referrer information is sent"
+msgstr ""
+
+#: includes/class-so-ssl.php:3229
+msgid ""
+"no-referrer-when-downgrade - No referrer when downgrading (e.g., HTTPS→HTTP)"
 msgstr ""
 
 #. Text shown when no usernames were attempted
@@ -1383,13 +1879,19 @@ msgid ""
 "can shorten them."
 msgstr ""
 
-#: includes/class-so-ssl.php:287 includes/class-so-ssl-admin-agreement.php:531
+#: includes/class-so-ssl.php:2568
+msgid ""
+"Note: You can use both X-Frame-Options and CSP frame-ancestors for better "
+"browser compatibility."
+msgstr ""
+
+#: includes/class-so-ssl-admin-agreement.php:531 includes/class-so-ssl.php:290
 msgid ""
 "Number of days before administrators need to re-accept the agreement. "
 "Default is 365 days (yearly)."
 msgstr ""
 
-#: includes/class-so-ssl.php:182
+#: includes/class-so-ssl.php:185
 msgid ""
 "Number of days before users need to re-acknowledge the privacy notice. Set "
 "to 365 for annual acknowledgment."
@@ -1405,7 +1907,36 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: includes/class-so-ssl.php:2072
+#: includes/class-so-ssl.php:2462
+msgid ""
+"Only allow strong passwords that meet ALL requirements: 8+ characters, "
+"uppercase letters, lowercase letters, numbers, and special characters. Weak "
+"and medium strength passwords will be rejected."
+msgstr ""
+
+#: includes/class-so-ssl.php:2779
+msgid "Open Privacy Page"
+msgstr ""
+
+#: includes/class-so-ssl.php:3230
+msgid "origin - Only send the origin of the document"
+msgstr ""
+
+#: includes/class-so-ssl.php:3231
+msgid ""
+"origin-when-cross-origin - Full path for same origin, only origin for cross-"
+"origin"
+msgstr ""
+
+#: includes/class-so-ssl.php:3837
+msgid "Password is required"
+msgstr ""
+
+#: includes/class-so-ssl.php:2464 includes/class-so-ssl.php:3877
+msgid "Password Requirements:"
+msgstr ""
+
+#: includes/class-so-ssl.php:2075
 msgid "Password Security"
 msgstr ""
 
@@ -1413,8 +1944,12 @@ msgstr ""
 msgid "Permanently block IPs that trigger the extended lockout threshold."
 msgstr ""
 
-#: includes/class-so-ssl.php:1924
+#: includes/class-so-ssl.php:1927
 msgid "Permissions Policy"
+msgstr ""
+
+#: includes/class-so-ssl.php:3973
+msgid "Please choose a stronger password that meets all requirements."
 msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:706
@@ -1445,7 +1980,11 @@ msgstr ""
 msgid "Please enter the verification code sent to your email."
 msgstr ""
 
-#: includes/class-so-ssl.php:1436
+#: includes/class-so-ssl.php:3344
+msgid "Predefined"
+msgstr ""
+
+#: includes/class-so-ssl.php:1439
 msgid "Preload"
 msgstr ""
 
@@ -1459,34 +1998,34 @@ msgstr ""
 msgid "Privacy Agreement"
 msgstr ""
 
-#: includes/class-so-ssl.php:592 includes/class-so-ssl.php:864
-#: includes/class-so-ssl.php:872 includes/class-so-ssl.php:890
-#: includes/class-so-ssl.php:2096
+#: includes/class-so-ssl.php:595 includes/class-so-ssl.php:867
+#: includes/class-so-ssl.php:875 includes/class-so-ssl.php:893
+#: includes/class-so-ssl.php:2099
 msgid "Privacy Compliance"
 msgstr ""
 
-#: includes/class-so-ssl.php:633
+#: includes/class-so-ssl.php:636
 msgid "Privacy Compliance Settings"
 msgstr ""
 
-#: includes/class-so-ssl-privacy-compliance.php:689
+#: includes/class-so-ssl-privacy-compliance.php:676
 msgid "Privacy notice accepted. Redirecting..."
 msgstr ""
 
-#: includes/class-so-ssl.php:2216
+#: includes/class-so-ssl.php:2219
 msgid "Privacy Notice Text"
 msgstr ""
 
-#: includes/class-so-ssl.php:2208
+#: includes/class-so-ssl.php:2211
 msgid "Privacy Page Slug"
 msgstr ""
 
-#: includes/class-so-ssl.php:2200
+#: includes/class-so-ssl.php:2203
 msgid "Privacy Page Title"
 msgstr ""
 
-#: includes/class-so-ssl-privacy-compliance.php:560
 #: includes/class-so-ssl-admin-agreement.php:810
+#: includes/class-so-ssl-privacy-compliance.php:560
 msgid "Processing..."
 msgstr ""
 
@@ -1494,15 +2033,15 @@ msgstr ""
 msgid "profile settings"
 msgstr ""
 
-#: includes/class-so-ssl.php:723
+#: includes/class-so-ssl.php:726
 msgid "Quick Links:"
 msgstr ""
 
-#: includes/class-so-ssl.php:2411
+#: includes/class-so-ssl.php:2414
 msgid "Quick Setup Checklist:"
 msgstr ""
 
-#: includes/class-so-ssl.php:930
+#: includes/class-so-ssl.php:933
 msgid ""
 "Real-time monitoring of SSL certificate status with automated alerts for "
 "expiration."
@@ -1513,11 +2052,11 @@ msgstr ""
 msgid "Reason"
 msgstr ""
 
-#: includes/class-so-ssl.php:1713
+#: includes/class-so-ssl.php:1716
 msgid "Referrer Policy"
 msgstr ""
 
-#: includes/class-so-ssl.php:1728
+#: includes/class-so-ssl.php:1731
 msgid "Referrer Policy Value"
 msgstr ""
 
@@ -1528,32 +2067,39 @@ msgstr ""
 msgid "Remove"
 msgstr ""
 
-#: includes/class-so-ssl.php:235 includes/class-so-ssl-admin-agreement.php:479
+#. CSP mode option that only reports violations without enforcing
+#: includes/class-so-ssl.php:3297
+msgid ""
+"Report-Only - Just report violations, do not enforce (recommended for "
+"testing)"
+msgstr ""
+
+#: includes/class-so-ssl-admin-agreement.php:479 includes/class-so-ssl.php:238
 msgid "Require administrators to accept an agreement before using the plugin"
 msgstr ""
 
-#: includes/class-so-ssl.php:954
+#: includes/class-so-ssl.php:957
 msgid ""
 "Require administrators to accept terms before accessing plugin features with "
 "customizable text."
 msgstr ""
 
-#: includes/class-so-ssl.php:882
+#: includes/class-so-ssl.php:885
 msgid ""
 "Require administrators to accept terms before accessing plugin features with "
 "emergency override to prevent accidental lockouts."
 msgstr ""
 
-#: includes/class-so-ssl.php:1969
+#: includes/class-so-ssl.php:1972
 msgid "require-corp - Embedded resources must opt in"
 msgstr ""
 
-#: includes/class-so-ssl.php:2240 includes/class-so-ssl.php:2377
-#: includes/class-so-ssl-admin-agreement.php:457
+#: includes/class-so-ssl-admin-agreement.php:457 includes/class-so-ssl.php:2243
+#: includes/class-so-ssl.php:2380
 msgid "Required for User Roles"
 msgstr ""
 
-#: includes/class-so-ssl.php:104
+#: includes/class-so-ssl.php:107
 msgid "Requires users to acknowledge a privacy notice after login."
 msgstr ""
 
@@ -1566,31 +2112,39 @@ msgstr ""
 msgid "Return to Settings"
 msgstr ""
 
-#: includes/class-so-ssl.php:957
+#: includes/class-so-ssl.php:960
 msgid "Role Exemptions"
 msgstr ""
 
-#: includes/class-so-ssl.php:901
+#: includes/class-so-ssl.php:904
 msgid "Role-Based Configuration"
 msgstr ""
 
-#: includes/class-so-ssl.php:1978
+#: includes/class-so-ssl.php:1981
 msgid "same-origin - Isolates browsing context to same origin"
 msgstr ""
 
-#: includes/class-so-ssl.php:1987
+#: includes/class-so-ssl.php:1990
 msgid "same-origin - Resources can only be loaded from the same origin"
 msgstr ""
 
-#: includes/class-so-ssl.php:1979
+#: includes/class-so-ssl.php:3232
+msgid "same-origin - Send referrer only for same-origin requests"
+msgstr ""
+
+#: includes/class-so-ssl.php:1982
 msgid "same-origin-allow-popups - Isolates browsing context but allows popups"
 msgstr ""
 
-#: includes/class-so-ssl.php:1986
+#: includes/class-so-ssl.php:1989
 msgid "same-site - Resources can only be loaded on the same site"
 msgstr ""
 
-#: includes/class-so-ssl.php:2416
+#: includes/class-so-ssl.php:2680
+msgid "SAMEORIGIN - Only allow same site to frame content (recommended)"
+msgstr ""
+
+#: includes/class-so-ssl.php:2419
 msgid "Save settings"
 msgstr ""
 
@@ -1612,7 +2166,7 @@ msgstr ""
 msgid "Scan this QR code with your authenticator app:"
 msgstr ""
 
-#: includes/class-so-ssl.php:926
+#: includes/class-so-ssl.php:929
 msgid ""
 "Seamlessly install and renew SSL certificates with automated tools and "
 "verification."
@@ -1622,25 +2176,29 @@ msgstr ""
 msgid "Secret key not found."
 msgstr ""
 
-#: includes/class-so-ssl.php:825
+#: includes/class-so-ssl.php:828
 msgid "Security Headers"
 msgstr ""
 
-#: includes/class-so-ssl.php:929
+#: includes/class-so-ssl.php:932
 msgid "Security Monitoring"
 msgstr ""
 
-#: includes/class-so-ssl.php:520
+#: includes/class-so-ssl.php:523
 msgid "Security Status"
 msgstr ""
 
-#: includes/class-so-ssl-privacy-compliance.php:70
-#: includes/class-so-ssl-privacy-compliance.php:647
 #: includes/class-so-ssl-admin-agreement.php:867
+#: includes/class-so-ssl-privacy-compliance.php:70
+#: includes/class-so-ssl-privacy-compliance.php:642
 msgid "Security verification failed."
 msgstr ""
 
-#: includes/class-so-ssl.php:2415
+#: includes/class-so-ssl.php:2510
+msgid "Select the Two-Factor Authentication method to use."
+msgstr ""
+
+#: includes/class-so-ssl.php:2418
 msgid "Select which user roles require 2FA"
 msgstr ""
 
@@ -1650,9 +2208,15 @@ msgid ""
 "agreement. Hold Ctrl/Cmd to select multiple roles."
 msgstr ""
 
-#: includes/class-so-ssl.php:197
+#: includes/class-so-ssl.php:200
 msgid ""
 "Select which user roles will be required to acknowledge the privacy notice. "
+"Hold Ctrl/Cmd to select multiple roles."
+msgstr ""
+
+#: includes/class-so-ssl.php:2495
+msgid ""
+"Select which user roles will be required to use Two-Factor Authentication. "
 "Hold Ctrl/Cmd to select multiple roles."
 msgstr ""
 
@@ -1667,7 +2231,7 @@ msgid ""
 msgstr ""
 
 #. %s: Title'
-#: includes/class-so-ssl-user-sessions.php:108 includes/class-so-ssl.php:849
+#: includes/class-so-ssl-user-sessions.php:108 includes/class-so-ssl.php:852
 msgid "Session Management"
 msgstr ""
 
@@ -1683,13 +2247,13 @@ msgstr ""
 msgid "Session terminated successfully."
 msgstr ""
 
-#: includes/class-so-ssl.php:906
+#: includes/class-so-ssl.php:909
 msgid ""
 "Set acknowledgment expiry periods to ensure users regularly review updated "
 "privacy information."
 msgstr ""
 
-#: includes/class-so-ssl.php:2417
+#: includes/class-so-ssl.php:2420
 msgid "Set up 2FA in your own profile first"
 msgstr ""
 
@@ -1711,7 +2275,7 @@ msgid "Silent block - Return 403 error without explanation"
 msgstr ""
 
 #. Name of the plugin
-#: includes/class-so-ssl.php:399
+#: includes/class-so-ssl.php:402
 msgid "So SSL"
 msgstr ""
 
@@ -1719,11 +2283,11 @@ msgstr ""
 msgid "So SSL Agreement Required"
 msgstr ""
 
-#: includes/class-so-ssl.php:398
+#: includes/class-so-ssl.php:401
 msgid "So SSL Settings"
 msgstr ""
 
-#: includes/class-so-ssl.php:601
+#: includes/class-so-ssl.php:604
 msgid "SSL & Basic Security Settings"
 msgstr ""
 
@@ -1731,23 +2295,23 @@ msgstr ""
 msgid "SSL Agreement Required"
 msgstr ""
 
-#: includes/class-so-ssl.php:817
+#: includes/class-so-ssl.php:820
 msgid "SSL Enforcement"
 msgstr ""
 
-#: includes/class-so-ssl.php:534
+#: includes/class-so-ssl.php:537
 msgid "SSL is active"
 msgstr ""
 
-#: includes/class-so-ssl.php:534
+#: includes/class-so-ssl.php:537
 msgid "SSL is not active"
 msgstr ""
 
-#: includes/class-so-ssl.php:918
+#: includes/class-so-ssl.php:921
 msgid "SSL Security"
 msgstr ""
 
-#: includes/class-so-ssl.php:584 includes/class-so-ssl.php:1340
+#: includes/class-so-ssl.php:587 includes/class-so-ssl.php:1343
 msgid "SSL Settings"
 msgstr ""
 
@@ -1763,41 +2327,56 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: includes/class-so-ssl.php:661
+#: includes/class-so-ssl.php:664
 msgid "Step 1: Choose Authentication Method"
 msgstr ""
 
-#: includes/class-so-ssl.php:669
+#: includes/class-so-ssl.php:672
 msgid "Step 2: Select User Roles"
 msgstr ""
 
-#: includes/class-so-ssl.php:680
+#: includes/class-so-ssl.php:683
 msgid "Step 3: User Setup Process"
 msgstr ""
 
-#: includes/class-so-ssl.php:746
+#: includes/class-so-ssl.php:3233
+msgid ""
+"strict-origin - Only send origin when protocol security level stays the same"
+msgstr ""
+
+#: includes/class-so-ssl.php:3234
+msgid ""
+"strict-origin-when-cross-origin - (Recommended) Send full referrer to same-"
+"origin, only send origin when protocol security level stays the same"
+msgstr ""
+
+#: includes/class-so-ssl.php:3862
+msgid "Strong - Excellent password strength"
+msgstr ""
+
+#: includes/class-so-ssl.php:749
 msgid ""
 "Strong password enforcement is active. Users will be required to create "
 "strong passwords when registering or changing their passwords."
 msgstr ""
 
-#: includes/class-so-ssl.php:841
+#: includes/class-so-ssl.php:844
 msgid "Strong Passwords"
 msgstr ""
 
-#: includes/class-so-ssl.php:573
+#: includes/class-so-ssl.php:576
 msgid "Strong Passwords are enforced"
 msgstr ""
 
-#: includes/class-so-ssl.php:573
+#: includes/class-so-ssl.php:576
 msgid "Strong Passwords are not enforced"
 msgstr ""
 
-#: so-ssl.php:279
+#: so-ssl.php:270
 msgid "Submit"
 msgstr ""
 
-#: includes/class-so-ssl.php:675
+#: includes/class-so-ssl.php:678
 msgid "Subscribers - Usually not needed"
 msgstr ""
 
@@ -1828,40 +2407,70 @@ msgstr ""
 msgid "Terminate All Sessions"
 msgstr ""
 
-#: includes/class-so-ssl.php:696
+#: includes/class-so-ssl.php:699
 msgid "Test 2FA with a test account before enabling for all users"
 msgstr ""
 
-#: includes/class-so-ssl.php:717
+#: includes/class-so-ssl.php:720
 msgid "Test the 2FA login process with a test account"
 msgstr ""
 
-#: includes/class-so-ssl.php:2418
+#: includes/class-so-ssl.php:2421
 msgid "Test the login process"
 msgstr ""
 
-#: includes/class-so-ssl.php:162
+#: includes/class-so-ssl.php:165
 msgid "Text explaining what data is collected and why. HTML is allowed."
 msgstr ""
 
-#: includes/class-so-ssl.php:172
+#: includes/class-so-ssl.php:175
 msgid "Text for the acknowledgment checkbox."
 msgstr ""
 
-#: includes/class-so-ssl.php:277 includes/class-so-ssl-admin-agreement.php:521
+#: includes/class-so-ssl-admin-agreement.php:521 includes/class-so-ssl.php:280
 msgid "Text for the agreement checkbox."
 msgstr ""
 
-#: includes/class-so-ssl.php:267 includes/class-so-ssl-admin-agreement.php:511
+#: includes/class-so-ssl-admin-agreement.php:511 includes/class-so-ssl.php:270
 msgid "Text of the agreement that administrators must accept. HTML is allowed."
+msgstr ""
+
+#: includes/class-so-ssl.php:2771
+msgid "The acknowledgment is stored in user metadata with a timestamp."
 msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:157
 msgid "The code is valid for 10 minutes"
 msgstr ""
 
+#: includes/class-so-ssl.php:3524
+msgid ""
+"The Permissions Policy header allows you to control which browser features "
+"and APIs can be used in your site."
+msgstr ""
+
+#: includes/class-so-ssl.php:3201
+msgid ""
+"The Referrer-Policy HTTP header controls how much referrer information "
+"should be included with requests."
+msgstr ""
+
 #: includes/class-so-ssl-two-factor.php:871
 msgid "This code will expire in 10 minutes."
+msgstr ""
+
+#. %s: URL to HSTS Preload List website
+#: includes/class-so-ssl.php:2649
+#, php-format
+msgid ""
+"This is necessary for submitting to the <a href=\"%s\" target=\"_blank\">"
+"HSTS Preload List</a>. Only enable if you intend to submit your site to this "
+"list."
+msgstr ""
+
+#: includes/class-so-ssl.php:3525
+msgid ""
+"This replaces the older Feature-Policy header with more granular controls."
 msgstr ""
 
 #. Column header for login time
@@ -1869,11 +2478,11 @@ msgstr ""
 msgid "Time"
 msgstr ""
 
-#: includes/class-so-ssl.php:247 includes/class-so-ssl-admin-agreement.php:491
+#: includes/class-so-ssl-admin-agreement.php:491 includes/class-so-ssl.php:250
 msgid "Title of the administrator agreement page."
 msgstr ""
 
-#: includes/class-so-ssl.php:114
+#: includes/class-so-ssl.php:117
 msgid "Title of the privacy acknowledgment page."
 msgstr ""
 
@@ -1891,21 +2500,25 @@ msgid ""
 "in %2$s."
 msgstr ""
 
+#: includes/class-so-ssl.php:3850
+msgid "Too short - Must be at least 8 characters"
+msgstr ""
+
 #. Label for total lockouts count
 #: includes/class-so-ssl-login-limit.php:656
 msgid "Total Lockouts"
 msgstr ""
 
-#: includes/class-so-ssl.php:588
+#: includes/class-so-ssl.php:591
 msgid "Two-Factor Auth"
 msgstr ""
 
-#: includes/class-so-ssl-two-factor.php:89 includes/class-so-ssl.php:651
-#: includes/class-so-ssl.php:833
+#: includes/class-so-ssl-two-factor.php:89 includes/class-so-ssl.php:654
+#: includes/class-so-ssl.php:836
 msgid "Two-Factor Authentication"
 msgstr ""
 
-#: includes/class-so-ssl.php:2407
+#: includes/class-so-ssl.php:2410
 msgid ""
 "Two-Factor Authentication adds an extra layer of security by requiring a "
 "second verification method in addition to the password."
@@ -1915,15 +2528,15 @@ msgstr ""
 msgid "Two-Factor Authentication Instructions"
 msgstr ""
 
-#: includes/class-so-ssl.php:731
+#: includes/class-so-ssl.php:734
 msgid "Two-Factor Authentication is Disabled"
 msgstr ""
 
-#: includes/class-so-ssl.php:560
+#: includes/class-so-ssl.php:563
 msgid "Two-Factor Authentication is enabled"
 msgstr ""
 
-#: includes/class-so-ssl.php:560
+#: includes/class-so-ssl.php:563
 msgid "Two-Factor Authentication is not enabled"
 msgstr ""
 
@@ -1932,7 +2545,7 @@ msgstr ""
 msgid "Two-Factor Authentication Required"
 msgstr ""
 
-#: includes/class-so-ssl.php:1652
+#: includes/class-so-ssl.php:1655
 msgid "Two-Factor Authentication Settings"
 msgstr ""
 
@@ -1949,16 +2562,20 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
-#: includes/class-so-ssl.php:1970
+#: includes/class-so-ssl.php:1973
 msgid "unsafe-none - Allows loading any resource (default browser behavior)"
 msgstr ""
 
-#: includes/class-so-ssl.php:1977
+#: includes/class-so-ssl.php:1980
 msgid ""
 "unsafe-none - Allows sharing browsing context (default browser behavior)"
 msgstr ""
 
-#: includes/class-so-ssl.php:124
+#: includes/class-so-ssl.php:3235
+msgid "unsafe-url - Always send full referrer information (least secure)"
+msgstr ""
+
+#: includes/class-so-ssl.php:127
 msgid "URL slug for the privacy acknowledgment page."
 msgstr ""
 
@@ -1967,21 +2584,21 @@ msgstr ""
 msgid "User Agent"
 msgstr ""
 
-#: includes/class-so-ssl.php:725
+#: includes/class-so-ssl.php:728
 msgid "User Management"
 msgstr ""
 
-#: includes/class-so-ssl.php:1667
+#: includes/class-so-ssl.php:1670
 msgid "User Roles"
 msgstr ""
 
 #: includes/class-so-ssl-user-sessions.php:180
-#: includes/class-so-ssl-user-sessions.php:181 includes/class-so-ssl.php:590
-#: includes/class-so-ssl.php:753 includes/class-so-ssl.php:765
+#: includes/class-so-ssl-user-sessions.php:181 includes/class-so-ssl.php:593
+#: includes/class-so-ssl.php:756 includes/class-so-ssl.php:768
 msgid "User Sessions"
 msgstr ""
 
-#: includes/class-so-ssl.php:1289
+#: includes/class-so-ssl.php:1292
 msgid "User Sessions Management"
 msgstr ""
 
@@ -1989,6 +2606,10 @@ msgstr ""
 #: includes/class-so-ssl-login-limit.php:678
 #: includes/class-so-ssl-login-limit.php:835
 msgid "Username"
+msgstr ""
+
+#: includes/class-so-ssl.php:2770
+msgid "Users must check the acknowledgment box to access the site."
 msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:97
@@ -2013,7 +2634,7 @@ msgstr ""
 msgid "Verify setup by entering a code from your app:"
 msgstr ""
 
-#: includes/class-so-ssl.php:714
+#: includes/class-so-ssl.php:717
 msgid "Verify the authentication method is set correctly above"
 msgstr ""
 
@@ -2031,11 +2652,35 @@ msgstr ""
 msgid "View & Accept Privacy Notice"
 msgstr ""
 
-#: includes/class-so-ssl.php:851
+#: includes/class-so-ssl.php:854
 msgid "View and control all active user sessions across multiple devices."
 msgstr ""
 
-#: includes/class-so-ssl.php:206
+#: includes/class-so-ssl.php:2549 includes/class-so-ssl.php:3266
+#: includes/class-so-ssl.php:4299
+msgid "Warning:"
+msgstr ""
+
+#: includes/class-so-ssl.php:2631
+msgid "Warning: Only enable if ALL subdomains have SSL certificates!"
+msgstr ""
+
+#: includes/class-so-ssl.php:2583
+msgid ""
+"Warning: Only enable this if you have a valid SSL certificate installed."
+msgstr ""
+
+#: includes/class-so-ssl.php:3618
+msgid ""
+"Warning: These settings can break cross-origin functionality. Test "
+"thoroughly before enabling in production."
+msgstr ""
+
+#: includes/class-so-ssl.php:3854
+msgid "Weak - Does not meet complexity requirements"
+msgstr ""
+
+#: includes/class-so-ssl.php:209
 msgid ""
 "When checked, administrators will never be required to acknowledge the "
 "privacy notice, regardless of role selection above."
@@ -2047,16 +2692,22 @@ msgid ""
 "acknowledge the admin agreement."
 msgstr ""
 
-#: includes/class-so-ssl.php:216
+#: includes/class-so-ssl.php:219
 msgid ""
 "When checked, the original admin user (ID 1) will never be required to "
 "acknowledge the privacy notice."
 msgstr ""
 
-#: includes/class-so-ssl.php:237 includes/class-so-ssl-admin-agreement.php:481
+#: includes/class-so-ssl-admin-agreement.php:481 includes/class-so-ssl.php:240
 msgid ""
 "When enabled, administrators must accept the agreement before accessing "
 "plugin settings."
+msgstr ""
+
+#: includes/class-so-ssl.php:2769
+msgid ""
+"When enabled, users will be redirected to a privacy acknowledgment page "
+"after login."
 msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:111
@@ -2085,12 +2736,29 @@ msgstr ""
 msgid "Will Radford"
 msgstr ""
 
-#: includes/class-so-ssl.php:1484
+#: includes/class-so-ssl.php:1487
 msgid "X-Frame-Options (Iframe Protection)"
 msgstr ""
 
-#: includes/class-so-ssl.php:1499
+#: includes/class-so-ssl.php:2558
+msgid ""
+"X-Frame-Options header controls whether your site can be loaded in an iframe."
+" This helps prevent clickjacking attacks where an attacker might embed your "
+"site in their own malicious site."
+msgstr ""
+
+#: includes/class-so-ssl.php:1502
 msgid "X-Frame-Options Value"
+msgstr ""
+
+#: includes/class-so-ssl.php:2754
+msgid "You can also use wildcards like *.example.com to allow all subdomains."
+msgstr ""
+
+#: includes/class-so-ssl.php:2772
+msgid ""
+"You can set an expiry period after which users must re-acknowledge the "
+"notice."
 msgstr ""
 
 #: includes/class-so-ssl-two-factor.php:159
@@ -2102,6 +2770,7 @@ msgstr ""
 msgid "You can view and manage your active login sessions across all devices."
 msgstr ""
 
+#: includes/class-so-ssl-admin-agreement.php:872
 #: includes/class-so-ssl-login-limit.php:1072
 #: includes/class-so-ssl-login-limit.php:1097
 #: includes/class-so-ssl-login-limit.php:1124
@@ -2109,7 +2778,6 @@ msgstr ""
 #: includes/class-so-ssl-two-factor.php:1044
 #: includes/class-so-ssl-two-factor.php:1152
 #: includes/class-so-ssl-two-factor.php:1188
-#: includes/class-so-ssl-admin-agreement.php:872
 msgid "You do not have permission to perform this action."
 msgstr ""
 
@@ -2131,7 +2799,7 @@ msgid "You must accept the privacy notice before accessing this site."
 msgstr ""
 
 #: includes/class-so-ssl-privacy-compliance.php:77
-#: includes/class-so-ssl-privacy-compliance.php:671
+#: includes/class-so-ssl-privacy-compliance.php:660
 msgid "You must accept the privacy notice to continue."
 msgstr ""
 
@@ -2145,12 +2813,12 @@ msgstr ""
 msgid "You must accept the SSL agreement to continue."
 msgstr ""
 
-#: includes/class-so-ssl-privacy-compliance.php:657
+#: includes/class-so-ssl-privacy-compliance.php:649
 msgid "You must be logged in to perform this action."
 msgstr ""
 
-#: includes/class-so-ssl-privacy-compliance.php:355
 #: includes/class-so-ssl-admin-agreement.php:565
+#: includes/class-so-ssl-privacy-compliance.php:355
 msgid "You must be logged in to view this page."
 msgstr ""
 
@@ -2162,15 +2830,15 @@ msgstr ""
 msgid "You'll need this code every time you log in"
 msgstr ""
 
-#: includes/class-so-ssl.php:724
+#: includes/class-so-ssl.php:727
 msgid "Your 2FA Settings"
 msgstr ""
 
-#: includes/class-so-ssl.php:605 includes/class-so-ssl.php:2394
+#: includes/class-so-ssl.php:608 includes/class-so-ssl.php:2397
 msgid "Your site is currently using SSL/HTTPS."
 msgstr ""
 
-#: includes/class-so-ssl.php:607 includes/class-so-ssl.php:2396
+#: includes/class-so-ssl.php:610 includes/class-so-ssl.php:2399
 msgid ""
 "Your site is not using SSL/HTTPS. Enabling force SSL without having a valid "
 "SSL certificate may make your site inaccessible."
@@ -2182,6 +2850,46 @@ msgstr ""
 msgid "Your verification code for logging into %s is:"
 msgstr ""
 
-#: includes/class-so-ssl.php:711
+#: includes/class-so-ssl.php:2519
+msgid "✓ Easy to set up"
+msgstr ""
+
+#: includes/class-so-ssl.php:2533
+msgid "✓ Instant codes"
+msgstr ""
+
+#: includes/class-so-ssl.php:2531
+msgid "✓ More secure"
+msgstr ""
+
+#: includes/class-so-ssl.php:2520
+msgid "✓ No app required"
+msgstr ""
+
+#: includes/class-so-ssl.php:714
 msgid "✓ Two-Factor Authentication is Enabled"
+msgstr ""
+
+#: includes/class-so-ssl.php:2532
+msgid "✓ Works offline"
+msgstr ""
+
+#: includes/class-so-ssl.php:2521
+msgid "✓ Works on any device"
+msgstr ""
+
+#: includes/class-so-ssl.php:2535
+msgid "✗ Initial setup needed"
+msgstr ""
+
+#: includes/class-so-ssl.php:2523
+msgid "✗ Less secure than app"
+msgstr ""
+
+#: includes/class-so-ssl.php:2522
+msgid "✗ Requires email access"
+msgstr ""
+
+#: includes/class-so-ssl.php:2534
+msgid "✗ Requires smartphone"
 msgstr ""
