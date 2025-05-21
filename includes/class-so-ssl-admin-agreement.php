@@ -54,7 +54,7 @@ class So_SSL_Admin_Agreement {
 		$screen = get_current_screen();
 		if ( $screen && ( $screen->id === 'plugins' || strpos( $screen->id, 'so-ssl' ) !== false ) ) {
 			echo '<div class="notice notice-info is-dismissible">';
-			echo '<p><strong>So SSL Tip:</strong> If you ever get locked out of the plugin due to the admin agreement, you can use this URL to disable it: <code>' . admin_url( 'index.php?disable_so_ssl_agreement=1' ) . '</code></p>';
+			echo '<p><strong>So SSL Tip:</strong> If you ever get locked out of the plugin due to the admin agreement, you can use this URL to disable it: <code>' . esc_url( admin_url( 'index.php?disable_so_ssl_agreement=1' ) ) . '</code></p>';
 			echo '</div>';
 		}
 	}
@@ -84,13 +84,14 @@ class So_SSL_Admin_Agreement {
 
 			// List of So SSL plugin pages to protect
 			$so_ssl_pages = array(
-				'so-ssl',
 				// Main plugin page
-				'so-ssl-sessions',
+                'so-ssl',
 				// User sessions page
-				'class-so-ssl-login-limit',
+				'so-ssl-sessions',
 				// Login limit page
-				'so-ssl-login-limit'
+				'so-ssl-login-limit',
+				// Login limit page
+				'class-so-ssl-login-limit'
 				// Another login limit page name possibility
 			);
 
@@ -228,7 +229,7 @@ class So_SSL_Admin_Agreement {
     ";
 
 		// Output the CSS
-		echo '<style>' . $custom_css . '</style>';
+		echo '<style>' . wp_kses_post( $custom_css ) . '</style>';
 
 		// Output the enhanced notice
 		echo '<div class="so-ssl-agreement-notice">';
@@ -562,7 +563,7 @@ class So_SSL_Admin_Agreement {
 	public static function display_agreement_page() {
 		// Check user capabilities - any logged in user can view
 		if ( ! is_user_logged_in() ) {
-			wp_die( __( 'You must be logged in to view this page.', 'so-ssl' ) );
+			wp_die( esc_html_e( 'You must be logged in to view this page.', 'so-ssl' ) );
 
 			return;
 		}
@@ -779,7 +780,7 @@ class So_SSL_Admin_Agreement {
                     <p>
 						<?php esc_html_e( 'Need to disable this agreement feature?', 'so-ssl' ); ?>
                     </p>
-                    <a href="<?php echo esc_url( admin_url( 'index.php?disable_so_ssl_agreement=1' ) ); ?>"
+                    <a href="<?php echo esc_url( admin_url( 'index.php&disable_so_ssl_agreement=1' ) ); ?>"
                        class="so-ssl-emergency-button">
                         <span class="dashicons dashicons-dismiss"
                               style="margin-right: 4px; margin-top: 3px;"></span>

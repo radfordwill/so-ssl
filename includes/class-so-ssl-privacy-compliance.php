@@ -67,21 +67,21 @@ class So_SSL_Privacy_Compliance {
 
 		// Verify nonce
 		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['so_ssl_privacy_nonce'] ) ), 'so_ssl_privacy_acknowledgment' ) ) {
-			wp_die( __( 'Security verification failed.', 'so-ssl' ) );
+			wp_die( esc_html_e( 'Security verification failed.', 'so-ssl' ) );
 
 			return;
 		}
 
 		// Check if accepted
 		if ( ! isset( $_POST['so_ssl_privacy_accept'] ) || $_POST['so_ssl_privacy_accept'] != '1' ) {
-			wp_die( __( 'You must accept the privacy notice to continue.', 'so-ssl' ) );
+			wp_die( esc_html_e( 'You must accept the privacy notice to continue.', 'so-ssl' ) );
 
 			return;
 		}
 
 		$user_id = get_current_user_id();
 		if ( ! $user_id ) {
-			wp_die( __( 'You must be logged in.', 'so-ssl' ) );
+			wp_die( esc_html_e( 'You must be logged in.', 'so-ssl' ) );
 
 			return;
 		}
@@ -194,7 +194,7 @@ class So_SSL_Privacy_Compliance {
 
 		// Custom CSS to style the notice (same style as admin agreement)
 		$custom_css = "
-        .so-ssl-privacy-notice1 {
+        .so-ssl-privacy-notice {
             background-color: #f0f6fc;
             border-left: 4px solid #2271b1;
             padding: 20px;
@@ -242,7 +242,7 @@ class So_SSL_Privacy_Compliance {
         ";
 
 		// Output the CSS
-		echo '<style>' . $custom_css . '</style>';
+		echo '<style>' . wp_kses_post($custom_css) . '</style>';
 
 		// Output the notice
 		echo '<div class="so-ssl-privacy-notice">';
@@ -352,7 +352,7 @@ class So_SSL_Privacy_Compliance {
 	public static function display_privacy_page() {
 		// Check user capabilities - any logged in user can view
 		if ( ! is_user_logged_in() ) {
-			wp_die( __( 'You must be logged in to view this page.', 'so-ssl' ) );
+			wp_die( esc_html_e( 'You must be logged in to view this page.', 'so-ssl' ) );
 
 			return;
 		}
@@ -476,7 +476,7 @@ class So_SSL_Privacy_Compliance {
             }
         ';
 // Output the CSS
-		echo '<style>' . $custom_css . '</style>'; ?>
+		echo '<style>' . wp_kses_post( $custom_css ) . '</style>'; ?>
         <div class="wrap so-ssl-privacy-wrap">
             <div class="so-ssl-privacy-container">
                 <div class="so-ssl-privacy-header">

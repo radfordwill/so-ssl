@@ -6,7 +6,7 @@ Tested up to: 6.8
 Stable tag: 1.4.6
 Requires PHP: 7.0
 License: GPLv3 or later
-License URI: http://www.gnu.org/licenses/gpl-3.0.html
+License URI: http://www.gnu.org/licenses/gpl-3.0.txt
 
 A comprehensive security and privacy plugin to enforce SSL/HTTPS, implement advanced security headers, and ensure privacy compliance.
 

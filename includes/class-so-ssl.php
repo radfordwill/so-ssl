@@ -78,8 +78,11 @@ class So_SSL {
      * @since 1.2.0
      */
 	public function load_two_factor_authentication() {
+
+        if ( ! class_exists( 'TOTP' ) ) {
 		// Always load TOTP implementation (needed for settings UI)
 		require_once SO_SSL_PATH . 'includes/class-so-ssl-totp.php';
+        }
 
 		// Only load the actual 2FA functionality if it's enabled
 		if (get_option('so_ssl_enable_2fa', 0)) {
@@ -721,8 +724,8 @@ if (get_option('so_ssl_disable_weak_passwords', 0)) {
                             <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
                                 <p style="margin: 0;">
                                     <strong><?php esc_html_e('Quick Links:', 'so-ssl'); ?></strong>
-                                    <a href="<?php echo admin_url('profile.php#so_ssl_2fa_enabled'); ?>" style="margin: 0 10px;"><?php esc_html_e('Your 2FA Settings', 'so-ssl'); ?></a>
-                                    <a href="<?php echo admin_url('users.php'); ?>" style="margin: 0 10px;"><?php esc_html_e('User Management', 'so-ssl'); ?></a>
+                                    <a href="<?php echo esc_url(admin_url('profile.php#so_ssl_2fa_enabled')); ?>" style="margin: 0 10px;"><?php esc_html_e('Your 2FA Settings', 'so-ssl'); ?></a>
+                                    <a href="<?php echo esc_url(admin_url('users.php')); ?>" style="margin: 0 10px;"><?php esc_html_e('User Management', 'so-ssl'); ?></a>
                                 </p>
                             </div>
                         </div>
@@ -783,7 +786,7 @@ if (get_option('so_ssl_disable_weak_passwords', 0)) {
                             printf(
                             /* translators: %s: URL to Login Security page */
                             esc_html__('For detailed settings and statistics, visit the %s page.', 'so-ssl'),
-                                '<b><a href="' . esc_url(admin_url('options-general.php?page=class-so-ssl-login-limit')) . '">' . esc_html__('Login Security', 'so-ssl') . '</a></b>');?>xxx
+                                '<b><a href="' . esc_url(admin_url('options-general.php?page=class-so-ssl-login-limit')) . '">' . esc_html__('Login Security', 'so-ssl') . '</a></b>');?>
                     </div>
                         <?php
                             if (get_option('so_ssl_disable_weak_passwords', 0)): ?>
@@ -2486,7 +2489,7 @@ public function disable_weak_passwords_callback() {
 		echo '<select multiple id="so_ssl_2fa_user_roles" name="so_ssl_2fa_user_roles[]" class="regular-text" style="height: 120px;">';
 		foreach ($roles as $role_value => $role_name) {
 			$selected = in_array($role_value, $selected_roles) ? 'selected="selected"' : '';
-			echo '<option value="' . esc_attr($role_value) . '" ' . $selected . '>' . esc_html($role_name) . '</option>';
+			echo '<option value="' . esc_attr($role_value) . '" ' . esc_html( $selected ) . '>' . esc_html($role_name) . '</option>';
 		}
 		echo '</select>';
 		echo '<p class="description">' . esc_html__('Select which user roles will be required to use Two-Factor Authentication. Hold Ctrl/Cmd to select multiple roles.', 'so-ssl') . '</p>';
