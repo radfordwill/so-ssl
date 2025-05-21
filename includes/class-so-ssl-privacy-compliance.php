@@ -53,8 +53,31 @@ class So_SSL_Privacy_Compliance {
 			'enqueue_admin_scripts'
 		) );
 
-	}
+		/**
+		 * Emergency override for admin agreement
+		 * This must be loaded very early to catch the query parameter
+		 */
+		add_action( 'init', function () {
+			// Check for emergency override
+			if ( isset( $_GET['disable_so_ssl_agreement'] ) && $_GET['disable_so_ssl_agreement'] == '1' ) {
+				// Verify user is an admin
+				if ( current_user_can( 'manage_options' ) ) {
+					// Verify nonce for security
+					if ( isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_key( $_GET['_wpnonce'] ), 'disable_so_ssl_agreement' ) ) {
+						// Disable admin agreement
+						update_option( 'so_ssl_enable_admin_agreement', 0 );
 
+						// Redirect to admin with success message
+						wp_safe_redirect( admin_url( 'options-general.php?page=so-ssl&agreement_disabled=1' ) );
+						exit;
+					} else {
+						// Invalid nonce
+						wp_die( 'Security check failed. Please try again with a valid link.', 'Security Error', array( 'response' => 403 ) );
+					}
+				}
+			}
+		}, 1 );
+	}
 
 	/**
 	 * Process privacy form submission (non-AJAX fallback)
@@ -94,7 +117,7 @@ class So_SSL_Privacy_Compliance {
 		wp_cache_delete( $user_id, 'user_meta' );
 
 		// Redirect
-		$redirect = isset( $_POST['so_ssl_redirect_url'] ) ? esc_url_raw( $_POST['so_ssl_redirect_url'] ) : admin_url();
+		$redirect = isset( $_POST['so_ssl_redirect_url'] ) ? esc_url_raw( wp_unslash( $_POST['so_ssl_redirect_url'] ) ) : admin_url();
 		wp_safe_redirect( $redirect );
 		exit;
 	}
@@ -115,12 +138,17 @@ class So_SSL_Privacy_Compliance {
 		}
 
 		// Skip logout requests
-		if ( isset( $_GET['action'] ) && $_GET['action'] === 'logout' ) {
+		if ( isset( $_GET['action'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		     && sanitize_key( wp_unslash( $_GET['action'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		        === 'logout' ) {
 			return;
 		}
 
 		// Exception for the privacy page itself
-		if ( isset( $_GET['page'] ) && $_GET['page'] === 'so-ssl-privacy' ) {
+		// Skip logout requests
+		if ( isset( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		     && sanitize_key( wp_unslash( $_GET['page'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		        === 'so-ssl-privacy' ) {
 			return;
 		}
 
@@ -242,7 +270,7 @@ class So_SSL_Privacy_Compliance {
         ";
 
 		// Output the CSS
-		echo '<style>' . wp_kses_post($custom_css) . '</style>';
+		echo '<style>' . wp_kses_post( $custom_css ) . '</style>';
 
 		// Output the notice
 		echo '<div class="so-ssl-privacy-notice">';
@@ -362,7 +390,7 @@ class So_SSL_Privacy_Compliance {
 		$checkbox_text = get_option( 'so_ssl_privacy_checkbox_text', '' );
 
 		// Get the referring page (for return after acceptance)
-		$referer      = isset( $_SERVER['HTTP_REFERER'] ) ? wp_unslash( $_SERVER['HTTP_REFERER'] ) : '';
+		$referer      = isset( $_SERVER['HTTP_REFERER'] ) ? wp_unslash( sanitize_key( $_SERVER['HTTP_REFERER'] ) ) : '';
 		$redirect_url = ! empty( $referer ) ? $referer : ( is_admin() ? admin_url() : home_url() );
 
 		// Add CSS for the privacy page - using the same style as admin agreement

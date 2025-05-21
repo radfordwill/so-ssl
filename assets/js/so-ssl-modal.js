@@ -1,4 +1,4 @@
-jQuery(document).ready(function($) {
+jQuery(document).ready(function ($) {
     const modal = $('#sslAgreementModal');
     const acceptButton = $('#soSslAcceptButton');
     const body = $('body');
@@ -21,7 +21,7 @@ jQuery(document).ready(function($) {
     }
 
     // Handle accept button click
-    acceptButton.on('click', function() {
+    acceptButton.on('click', function () {
         // Save acceptance via AJAX
         $.ajax({
             url: soSslModal.ajaxurl,
@@ -30,7 +30,7 @@ jQuery(document).ready(function($) {
                 action: 'so_ssl_save_agreement',
                 nonce: soSslModal.nonce
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     localStorage.setItem('sslAgreementAccepted', 'true');
                     hideModal();
@@ -38,21 +38,21 @@ jQuery(document).ready(function($) {
                     alert('Error saving agreement acceptance. Please try again.');
                 }
             },
-            error: function() {
+            error: function () {
                 alert('Error saving agreement acceptance. Please try again.');
             }
         });
     });
 
     // Prevent clicking through to background
-    modal.on('click', function(event) {
+    modal.on('click', function (event) {
         if (event.target === this) {
             event.stopPropagation();
         }
     });
 
     // Prevent keyboard navigation while modal is open
-    $(document).on('keydown', function(event) {
+    $(document).on('keydown', function (event) {
         if (modal.is(':visible')) {
             if (event.key === 'Tab') {
                 event.preventDefault();

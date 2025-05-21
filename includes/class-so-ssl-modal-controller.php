@@ -36,7 +36,7 @@ class So_SSL_Modal_Controller {
 		// 2. Privacy Compliance
 
 		// Check if modals are enabled
-		$admin_agreement_enabled = get_option( 'so_ssl_enable_admin_agreement', 1 );
+		$admin_agreement_enabled    = get_option( 'so_ssl_enable_admin_agreement', 1 );
 		$privacy_compliance_enabled = get_option( 'so_ssl_enable_privacy_compliance', 0 );
 
 		// Setup filters to control modal display

@@ -1,4 +1,4 @@
-(function($) {
+(function ($) {
     'use strict';
 
     // Function to initialize tooltips
@@ -19,11 +19,11 @@
     }
 
     // Initialize on document ready
-    $(document).ready(function() {
+    $(document).ready(function () {
         initializeTooltips();
 
         // Copy backup code when clicked
-        $(document).on('click', '.so-ssl-backup-codes code', function() {
+        $(document).on('click', '.so-ssl-backup-codes code', function () {
             const code = $(this).text();
             copyToClipboard(code);
 
@@ -31,13 +31,13 @@
             const original = $(this).text();
             $(this).text('Copied!');
 
-            setTimeout(function() {
+            setTimeout(function () {
                 $(this).text(original);
             }.bind(this), 1000);
         });
 
         // Format verification code input
-        $(document).on('input', '#so_ssl_verify_code, #so_ssl_2fa_code', function() {
+        $(document).on('input', '#so_ssl_verify_code, #so_ssl_2fa_code', function () {
             // Remove non-numeric characters
             let value = $(this).val().replace(/[^0-9]/g, '');
 

@@ -5,7 +5,7 @@
  * Added unsaved changes warning to prevent accidental navigation away from the page.
  */
 
-(function($) {
+(function ($) {
     'use strict';
 
     // Flag to track if form has been modified
@@ -21,7 +21,7 @@
     // Toggle sections based on checkbox state
     function toggleSections() {
         // HSTS fields
-        $('#so_ssl_enable_hsts').on('change', function() {
+        $('#so_ssl_enable_hsts').on('change', function () {
             const $hstsFields = $('.so-ssl-hsts-field').closest('tr');
             if ($(this).is(':checked')) {
                 $hstsFields.fadeIn(300);
@@ -32,7 +32,7 @@
         });
 
         // X-Frame-Options fields
-        $('#so_ssl_enable_xframe').on('change', function() {
+        $('#so_ssl_enable_xframe').on('change', function () {
             const $xframeFields = $('.so-ssl-xframe-field').closest('tr');
             if ($(this).is(':checked')) {
                 $xframeFields.fadeIn(300);
@@ -43,7 +43,7 @@
         });
 
         // CSP Frame-Ancestors fields
-        $('#so_ssl_enable_csp_frame_ancestors').on('change', function() {
+        $('#so_ssl_enable_csp_frame_ancestors').on('change', function () {
             const $cspFields = $('.so-ssl-csp-field').closest('tr');
             if ($(this).is(':checked')) {
                 $cspFields.fadeIn(300);
@@ -54,7 +54,7 @@
         });
 
         // Content Security Policy fields
-        $('#so_ssl_enable_csp').on('change', function() {
+        $('#so_ssl_enable_csp').on('change', function () {
             const $cspFields = $('.so-ssl-csp-directive-field').closest('tr');
             const $cspMode = $('#so_ssl_csp_mode').closest('tr');
             if ($(this).is(':checked')) {
@@ -68,7 +68,7 @@
         });
 
         // Permissions Policy fields
-        $('#so_ssl_enable_permissions_policy').on('change', function() {
+        $('#so_ssl_enable_permissions_policy').on('change', function () {
             const $permissionsFields = $('.so-ssl-permissions-policy-field').closest('tr');
             if ($(this).is(':checked')) {
                 $permissionsFields.fadeIn(300);
@@ -79,7 +79,7 @@
         });
 
         // Referrer Policy fields
-        $('#so_ssl_enable_referrer_policy').on('change', function() {
+        $('#so_ssl_enable_referrer_policy').on('change', function () {
             const $referrerFields = $('.so-ssl-referrer-field').closest('tr');
             if ($(this).is(':checked')) {
                 $referrerFields.fadeIn(300);
@@ -90,7 +90,7 @@
         });
 
         // Two-Factor Authentication fields
-        $('#so_ssl_enable_2fa').on('change', function() {
+        $('#so_ssl_enable_2fa').on('change', function () {
             const $twoFactorFields = $('.so-ssl-2fa-field').closest('tr');
             if ($(this).is(':checked')) {
                 $twoFactorFields.fadeIn(300);
@@ -101,7 +101,7 @@
         });
 
         // User Sessions fields
-        $('#so_ssl_enable_user_sessions').on('change', function() {
+        $('#so_ssl_enable_user_sessions').on('change', function () {
             const $sessionsFields = $('.so-ssl-sessions-field').closest('tr');
             if ($(this).is(':checked')) {
                 $sessionsFields.fadeIn(300);
@@ -112,7 +112,7 @@
         });
 
         // Login Limiting fields
-        $('#so_ssl_enable_login_limit').on('change', function() {
+        $('#so_ssl_enable_login_limit').on('change', function () {
             const $loginLimitFields = $('.so-ssl-login-limit-field').closest('tr');
             if ($(this).is(':checked')) {
                 $loginLimitFields.fadeIn(300);
@@ -126,7 +126,7 @@
     // Dynamic CSP field handling
     function handleCSPFields() {
         // CSP frame ancestors option toggle
-        $('#so_ssl_csp_frame_ancestors_option').on('change', function() {
+        $('#so_ssl_csp_frame_ancestors_option').on('change', function () {
             const value = $(this).val();
             const $customFields = $('.so-ssl-csp-custom-field').closest('tr');
 
@@ -142,7 +142,7 @@
     // X-Frame-Options field handling
     function handleXFrameFields() {
         // X-Frame-Options toggle
-        $('#so_ssl_xframe_option').on('change', function() {
+        $('#so_ssl_xframe_option').on('change', function () {
             const value = $(this).val();
             const $allowFromField = $('.so_ssl_allow_from_field').closest('tr');
 
@@ -158,15 +158,15 @@
     // Copy backup codes to clipboard
     function handleBackupCodes() {
         // Copy backup code when clicked
-        $(document).on('click', '.so-ssl-backup-codes li', function() {
+        $(document).on('click', '.so-ssl-backup-codes li', function () {
             const code = $(this).text();
-            navigator.clipboard.writeText(code).then(function() {
+            navigator.clipboard.writeText(code).then(function () {
                 const $element = $(this);
                 const originalText = $element.text();
 
                 $element.text('Copied!');
 
-                setTimeout(function() {
+                setTimeout(function () {
                     $element.text(originalText);
                 }, 1000);
             }.bind(this));
@@ -175,7 +175,7 @@
 
     // Format verification code input
     function formatVerificationCode() {
-        $(document).on('input', '#so_ssl_verify_code, #so_ssl_2fa_code', function() {
+        $(document).on('input', '#so_ssl_verify_code, #so_ssl_2fa_code', function () {
             // Remove non-numeric characters
             let value = $(this).val().replace(/[^0-9]/g, '');
 
@@ -270,7 +270,7 @@
 
     // Handle tab navigation
     function handleTabs() {
-        $('.nav-tab').on('click', function(e) {
+        $('.nav-tab').on('click', function (e) {
             e.preventDefault();
 
             // Check for unsaved changes before switching tabs
@@ -331,7 +331,7 @@
      * This function should replace the convertCheckboxesToSwitches function in assets/js/so-ssl-admin.js
      */
     function convertCheckboxesToSwitches() {
-        $('input[type="checkbox"]').each(function() {
+        $('input[type="checkbox"]').each(function () {
             const $checkbox = $(this);
 
             // Skip if already converted or has the skip class
@@ -361,7 +361,7 @@
             }
 
             // Add event listener to animate the slider when checkbox state changes
-            $checkbox.on('change', function() {
+            $checkbox.on('change', function () {
                 if ($(this).is(':checked')) {
                     $slider.addClass('checked');
                 } else {
@@ -379,7 +379,7 @@
      * Alternative improved implementation for complete toggle switch functionality
      */
     function improvedConvertCheckboxesToSwitches() {
-        $('input[type="checkbox"]').each(function() {
+        $('input[type="checkbox"]').each(function () {
             const $checkbox = $(this);
 
             // Skip if already converted or has the skip class
@@ -411,7 +411,7 @@
             }
 
             // When the checkbox changes (through label click), update the slider
-            $checkbox.on('change', function() {
+            $checkbox.on('change', function () {
                 if ($(this).is(':checked')) {
                     $slider.addClass('checked').css('background-color', '#2271b1');
                     $slider.find('before').css('transform', 'translateX(24px)');
@@ -443,7 +443,7 @@
 
     // Handle form submission
     function handleFormSubmission() {
-        $('form').on('submit', function() {
+        $('form').on('submit', function () {
             // Clear the formModified flag since we're saving
             formModified = false;
         });
@@ -452,19 +452,19 @@
     // Track form changes
     function trackFormChanges() {
         // Mark form as modified when inputs change
-        $('input, select, textarea').on('change', function() {
+        $('input, select, textarea').on('change', function () {
             formModified = true;
         });
 
         // Also track typing in text fields
-        $('input[type="text"], input[type="number"], textarea').on('input', function() {
+        $('input[type="text"], input[type="number"], textarea').on('input', function () {
             formModified = true;
         });
     }
 
     // Set up beforeunload event for unsaved changes warning
     function setupUnsavedChangesWarning() {
-        $(window).on('beforeunload', function(e) {
+        $(window).on('beforeunload', function (e) {
             if (formModified) {
                 // The message set here isn't actually used by modern browsers,
                 // but we need to return something for the confirmation dialog to appear
@@ -477,7 +477,7 @@
     }
 
     // Initialize when document is ready
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Initialize tooltips
         initializeTooltips();
 
@@ -506,7 +506,7 @@
         convertCheckboxesToSwitches();
 
         // Initial setup - hide fields for disabled features
-        $('input[type="checkbox"]').each(function() {
+        $('input[type="checkbox"]').each(function () {
             $(this).trigger('change');
         });
 
@@ -523,7 +523,7 @@
         setupUnsavedChangesWarning();
     });
 
-    jQuery(document).ready(function($) {
+    jQuery(document).ready(function ($) {
         // Find the SVG logo and increase its attributes
         $('.so-ssl-icon').attr({
             'width': '48',
@@ -537,14 +537,14 @@
 
         // Optional: Add a subtle animation on hover
         $('.so-ssl-icon').closest('h1').hover(
-            function() {
+            function () {
                 // On mouse enter
                 $('.so-ssl-icon').css({
                     'transform': 'scale(1.1)',
                     'transition': 'transform 0.3s ease'
                 });
             },
-            function() {
+            function () {
                 // On mouse leave
                 $('.so-ssl-icon').css({
                     'transform': 'scale(1)',

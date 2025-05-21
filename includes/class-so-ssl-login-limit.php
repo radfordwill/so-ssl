@@ -264,11 +264,13 @@ class So_SSL_Login_Limit {
 
 				// Notify admin if enabled
 				if ( get_option( 'so_ssl_lockout_notify', 0 ) ) {
-					if (!empty($subject)) $subject='';
-						/* translators: %s: Site name */
-						esc_html( __( '[%s] IP Blacklisted Due to Failed Login Attempts', 'so-ssl' ), get_bloginfo( 'name' ) );
-					$message ='';
-						/* translators: %1$s: IP address, %2$d: Number of failed attempts */
+					if ( ! empty( $subject ) ) {
+						$subject = '';
+					}
+					/* translators: %s: Site name */
+					esc_html( __( '[%s] IP Blacklisted Due to Failed Login Attempts', 'so-ssl' ), get_bloginfo( 'name' ) );
+					$message = '';
+					/* translators: %1$s: IP address, %2$d: Number of failed attempts */
 					$message .= esc_html( __( 'IP: %1$s has been blacklisted after %2$d failed login attempts.', 'so-ssl' ),
 							$ip, $attempts[ $ip ]['count'] ) . "\n\n";
 					/* translators: %s: List of attempted usernames */
@@ -285,10 +287,12 @@ class So_SSL_Login_Limit {
 				if ( $attempts[ $ip ]['lockout_count'] > 1 && get_option( 'so_ssl_lockout_notify', 0 ) ) {
 					/* translators: %s: Site name */
 					esc_html( __( '[%s] Multiple Failed Login Attempts', 'so-ssl' ), get_bloginfo( 'name' ) );
-					if (!empty($message)) $message='';
-						/* translators: %1$s: IP address, %2$d: Number of failed attempts */
-						esc_html( __( 'IP: %1$s has had %2$d failed login attempts and is temporarily locked out.', 'so-ssl' ),
-							$ip, $attempts[ $ip ]['count'] ) . "\n\n";
+					if ( ! empty( $message ) ) {
+						$message = '';
+					}
+					/* translators: %1$s: IP address, %2$d: Number of failed attempts */
+					esc_html( __( 'IP: %1$s has had %2$d failed login attempts and is temporarily locked out.', 'so-ssl' ),
+						$ip, $attempts[ $ip ]['count'] ) . "\n\n";
 					$message .=
 						/* translators: %s: List of attempted usernames */
 						esc_html( __( 'Attempted usernames: %s', 'so-ssl' ), implode( ', ', array_keys( $attempts[ $ip ]['usernames'] ) ) ) . "\n\n";

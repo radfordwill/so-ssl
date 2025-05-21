@@ -1182,7 +1182,7 @@ class So_SSL_Two_Factor {
 		check_ajax_referer( 'so_ssl_2fa_nonce', 'nonce' );
 
 		$user_id = isset( $_POST['user_id'] ) ? intval( $_POST['user_id'] ) : 0;
-		$codes   = isset( $_POST['codes'] ) ? array_map( 'sanitize_text_field', $_POST['codes'] ) : array();
+		$codes   = isset( $_POST['codes'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['codes'] ) ) : array();
 
 		if ( ! current_user_can( 'edit_user', $user_id ) ) {
 			wp_send_json_error( array( 'message' => __( 'You do not have permission to perform this action.', 'so-ssl' ) ) );

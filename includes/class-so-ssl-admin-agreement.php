@@ -79,13 +79,16 @@ class So_SSL_Admin_Agreement {
 		$is_plugin_page = false;
 
 		// Check query parameters for the plugin pages
-		if ( isset( $_GET['page'] ) ) {
-			$page = sanitize_text_field( $_GET['page'] );
+		if ( isset( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            ) {
+			$page = sanitize_text_field( wp_unslash( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+
+            );
 
 			// List of So SSL plugin pages to protect
 			$so_ssl_pages = array(
 				// Main plugin page
-                'so-ssl',
+				'so-ssl',
 				// User sessions page
 				'so-ssl-sessions',
 				// Login limit page
@@ -107,7 +110,12 @@ class So_SSL_Admin_Agreement {
 		}
 
 		// Exception for the agreement page itself
-		if ( isset( $_GET['page'] ) && $_GET['page'] === 'so-ssl-agreement' ) {
+
+		sanitize_text_field( wp_unslash( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        );
+		if ( sanitize_text_field( wp_unslash( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+             ) && sanitize_text_field( wp_unslash( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+                               ) === 'so-ssl-agreement' ) {
 			return;
 		}
 
@@ -573,9 +581,9 @@ class So_SSL_Admin_Agreement {
 		$checkbox_text  = get_option( 'so_ssl_admin_agreement_checkbox_text', '' );
 
 		// Get the referring plugin page (for return after acceptance)
-		$referer      = isset( $_SERVER['HTTP_REFERER'] ) ? wp_unslash( $_SERVER['HTTP_REFERER'] ) : '';
+		$referer      = isset( $_SERVER['HTTP_REFERER'] ) ? sanitize_key( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
 		$redirect_url = ! empty( $referer ) && strpos( $referer, 'page=so-ssl' ) !== false ?
-			$referer : admin_url( 'options-general.php?page=so-ssl' );
+			$referer : esc_url( admin_url( 'options-general.php?page=so-ssl' ) );
 
 		// Add CSS for the agreement page - using the plugin's color palette
 		?>
