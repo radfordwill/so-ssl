@@ -1,9 +1,9 @@
-(function($) {
+(function ($) {
     'use strict';
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Whitelist an IP
-        $('.so-ssl-whitelist-ip').on('click', function() {
+        $('.so-ssl-whitelist-ip').on('click', function () {
             var ip = $(this).data('ip');
 
             if (confirm(soSslLoginLimit.whitelistConfirm)) {
@@ -15,7 +15,7 @@
                         ip: ip,
                         nonce: soSslLoginLimit.nonce
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             alert(response.data.message);
                             window.location.reload();
@@ -28,7 +28,7 @@
         });
 
         // Blacklist an IP
-        $('.so-ssl-blacklist-ip').on('click', function() {
+        $('.so-ssl-blacklist-ip').on('click', function () {
             var ip = $(this).data('ip');
 
             if (confirm(soSslLoginLimit.blacklistConfirm)) {
@@ -40,7 +40,7 @@
                         ip: ip,
                         nonce: soSslLoginLimit.nonce
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             alert(response.data.message);
                             window.location.reload();
@@ -53,7 +53,7 @@
         });
 
         // Reset attempts for an IP
-        $('.so-ssl-reset-attempts').on('click', function() {
+        $('.so-ssl-reset-attempts').on('click', function () {
             var ip = $(this).data('ip');
 
             if (confirm(soSslLoginLimit.resetConfirm)) {
@@ -65,7 +65,7 @@
                         ip: ip,
                         nonce: soSslLoginLimit.nonce
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             alert(response.data.message);
                             window.location.reload();
@@ -78,7 +78,7 @@
         });
 
         // Remove from whitelist/blacklist
-        $('.so-ssl-remove-from-list').on('click', function() {
+        $('.so-ssl-remove-from-list').on('click', function () {
             var ip = $(this).data('ip');
             var list = $(this).data('list');
 
@@ -92,7 +92,7 @@
                         list: list,
                         nonce: soSslLoginLimit.nonce
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             alert(response.data.message);
                             window.location.reload();
@@ -105,7 +105,7 @@
         });
 
         // Add to whitelist form
-        $('#so-ssl-add-whitelist-form').on('submit', function(e) {
+        $('#so-ssl-add-whitelist-form').on('submit', function (e) {
             e.preventDefault();
 
             var ip = $('#so-ssl-new-whitelist-ip').val();
@@ -123,7 +123,7 @@
                     ip: ip,
                     nonce: soSslLoginLimit.nonce
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         alert(response.data.message);
                         window.location.reload();
@@ -135,7 +135,7 @@
         });
 
         // Add to blacklist form
-        $('#so-ssl-add-blacklist-form').on('submit', function(e) {
+        $('#so-ssl-add-blacklist-form').on('submit', function (e) {
             e.preventDefault();
 
             var ip = $('#so-ssl-new-blacklist-ip').val();
@@ -154,7 +154,7 @@
                     reason: 'Manually blacklisted',
                     nonce: soSslLoginLimit.nonce
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         alert(response.data.message);
                         window.location.reload();

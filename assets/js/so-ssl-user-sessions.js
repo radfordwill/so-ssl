@@ -1,9 +1,9 @@
-(function($) {
+(function ($) {
     'use strict';
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Terminate single session
-        $('.so-ssl-terminate-session').on('click', function() {
+        $('.so-ssl-terminate-session').on('click', function () {
             var token = $(this).data('token');
             var userId = $(this).data('user') || soSslUserSessions.userId;
 
@@ -17,7 +17,7 @@
                         user_id: userId,
                         nonce: soSslUserSessions.nonce
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             // If terminating current session, redirect to login
                             if (token === soSslUserSessions.currentSession) {
@@ -35,7 +35,7 @@
         });
 
         // Terminate all sessions for current user
-        $('#so_ssl_terminate_all_sessions').on('click', function() {
+        $('#so_ssl_terminate_all_sessions').on('click', function () {
             if (confirm(soSslUserSessions.terminateAllConfirm)) {
                 $.ajax({
                     url: soSslUserSessions.ajaxUrl,
@@ -45,7 +45,7 @@
                         user_id: soSslUserSessions.userId,
                         nonce: soSslUserSessions.nonce
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             // Redirect to login page
                             window.location.href = '/wp-login.php';
@@ -58,7 +58,7 @@
         });
 
         // Terminate all other sessions for current user
-        $('#so_ssl_terminate_other_sessions').on('click', function() {
+        $('#so_ssl_terminate_other_sessions').on('click', function () {
             if (confirm(soSslUserSessions.terminateOthersConfirm)) {
                 $.ajax({
                     url: soSslUserSessions.ajaxUrl,
@@ -68,7 +68,7 @@
                         user_id: soSslUserSessions.userId,
                         nonce: soSslUserSessions.nonce
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             // Reload the page to refresh the sessions list
                             window.location.reload();
@@ -81,7 +81,7 @@
         });
 
         // Terminate all sessions for specific user (admin page)
-        $('.so-ssl-terminate-all-user-sessions').on('click', function() {
+        $('.so-ssl-terminate-all-user-sessions').on('click', function () {
             var userId = $(this).data('user');
 
             if (confirm(soSslUserSessions.terminateAllConfirm)) {
@@ -93,7 +93,7 @@
                         user_id: userId,
                         nonce: soSslUserSessions.nonce
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             // If terminating current user's sessions, redirect to login
                             if (userId == soSslUserSessions.userId) {

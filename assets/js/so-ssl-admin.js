@@ -4,7 +4,7 @@
  * Balanced form change detection that properly tracks changes without false positives
  */
 
-(function($) {
+(function ($) {
     'use strict';
 
     // Flag to track if form has been modified
@@ -20,7 +20,7 @@
     // Function to store the initial state of the form
     function storeOriginalFormValues() {
         originalFormValues = [];
-        $('form:first').find('input, select, textarea').each(function() {
+        $('form:first').find('input, select, textarea').each(function () {
             const $el = $(this);
             const id = $el.attr('id') || '';
             const name = $el.attr('name') || '';
@@ -131,7 +131,7 @@
     // Toggle sections based on checkbox state
     function toggleSections() {
         // HSTS fields
-        $('#so_ssl_enable_hsts').on('change', function() {
+        $('#so_ssl_enable_hsts').on('change', function () {
             const $hstsFields = $('.so-ssl-hsts-field').closest('tr');
             if ($(this).is(':checked')) {
                 $hstsFields.fadeIn(300);
@@ -142,7 +142,7 @@
         });
 
         // X-Frame-Options fields
-        $('#so_ssl_enable_xframe').on('change', function() {
+        $('#so_ssl_enable_xframe').on('change', function () {
             const $xframeFields = $('.so-ssl-xframe-field').closest('tr');
             if ($(this).is(':checked')) {
                 $xframeFields.fadeIn(300);
@@ -153,7 +153,7 @@
         });
 
         // CSP Frame-Ancestors fields
-        $('#so_ssl_enable_csp_frame_ancestors').on('change', function() {
+        $('#so_ssl_enable_csp_frame_ancestors').on('change', function () {
             const $cspFields = $('.so-ssl-csp-field').closest('tr');
             if ($(this).is(':checked')) {
                 $cspFields.fadeIn(300);
@@ -164,7 +164,7 @@
         });
 
         // Content Security Policy fields
-        $('#so_ssl_enable_csp').on('change', function() {
+        $('#so_ssl_enable_csp').on('change', function () {
             const $cspFields = $('.so-ssl-csp-directive-field').closest('tr');
             const $cspMode = $('#so_ssl_csp_mode').closest('tr');
             if ($(this).is(':checked')) {
@@ -178,7 +178,7 @@
         });
 
         // Permissions Policy fields
-        $('#so_ssl_enable_permissions_policy').on('change', function() {
+        $('#so_ssl_enable_permissions_policy').on('change', function () {
             const $permissionsFields = $('.so-ssl-permissions-policy-field').closest('tr');
             if ($(this).is(':checked')) {
                 $permissionsFields.fadeIn(300);
@@ -189,7 +189,7 @@
         });
 
         // Referrer Policy fields
-        $('#so_ssl_enable_referrer_policy').on('change', function() {
+        $('#so_ssl_enable_referrer_policy').on('change', function () {
             const $referrerFields = $('.so-ssl-referrer-field').closest('tr');
             if ($(this).is(':checked')) {
                 $referrerFields.fadeIn(300);
@@ -200,7 +200,7 @@
         });
 
         // Two-Factor Authentication fields
-        $('#so_ssl_enable_2fa').on('change', function() {
+        $('#so_ssl_enable_2fa').on('change', function () {
             const $twoFactorFields = $('.so-ssl-2fa-field').closest('tr');
             if ($(this).is(':checked')) {
                 $twoFactorFields.fadeIn(300);
@@ -211,7 +211,7 @@
         });
 
         // User Sessions fields
-        $('#so_ssl_enable_user_sessions').on('change', function() {
+        $('#so_ssl_enable_user_sessions').on('change', function () {
             const $sessionsFields = $('.so-ssl-sessions-field').closest('tr');
             if ($(this).is(':checked')) {
                 $sessionsFields.fadeIn(300);
@@ -222,7 +222,7 @@
         });
 
         // Login Limiting fields
-        $('#so_ssl_enable_login_limit').on('change', function() {
+        $('#so_ssl_enable_login_limit').on('change', function () {
             const $loginLimitFields = $('.so-ssl-login-limit-field').closest('tr');
             if ($(this).is(':checked')) {
                 $loginLimitFields.fadeIn(300);
@@ -236,7 +236,7 @@
     // Dynamic CSP field handling
     function handleCSPFields() {
         // CSP frame ancestors option toggle
-        $('#so_ssl_csp_frame_ancestors_option').on('change', function() {
+        $('#so_ssl_csp_frame_ancestors_option').on('change', function () {
             const value = $(this).val();
             const $customFields = $('.so-ssl-csp-custom-field').closest('tr');
 
@@ -252,7 +252,7 @@
     // X-Frame-Options field handling
     function handleXFrameFields() {
         // X-Frame-Options toggle
-        $('#so_ssl_xframe_option').on('change', function() {
+        $('#so_ssl_xframe_option').on('change', function () {
             const value = $(this).val();
             const $allowFromField = $('.so_ssl_allow_from_field').closest('tr');
 
@@ -268,15 +268,15 @@
     // Copy backup codes to clipboard
     function handleBackupCodes() {
         // Copy backup code when clicked
-        $(document).on('click', '.so-ssl-backup-codes li', function() {
+        $(document).on('click', '.so-ssl-backup-codes li', function () {
             const code = $(this).text();
-            navigator.clipboard.writeText(code).then(function() {
+            navigator.clipboard.writeText(code).then(function () {
                 const $element = $(this);
                 const originalText = $element.text();
 
                 $element.text('Copied!');
 
-                setTimeout(function() {
+                setTimeout(function () {
                     $element.text(originalText);
                 }, 1000);
             }.bind(this));
@@ -285,7 +285,7 @@
 
     // Format verification code input
     function formatVerificationCode() {
-        $(document).on('input', '#so_ssl_verify_code, #so_ssl_2fa_code', function() {
+        $(document).on('input', '#so_ssl_verify_code, #so_ssl_2fa_code', function () {
             // Remove non-numeric characters
             let value = $(this).val().replace(/[^0-9]/g, '');
 
@@ -312,9 +312,9 @@
 
             // Check SSL enabled
             if ($('#so_ssl_force_ssl').is(':checked')) {
-                score += 15;
+                score += 25;
             }
-            total += 15;
+            total += 25;
 
             // Check HSTS enabled
             if ($('#so_ssl_enable_hsts').is(':checked')) {
@@ -348,15 +348,15 @@
 
             // Check session management enabled
             if ($('#so_ssl_enable_user_sessions').is(':checked')) {
-                score += 10;
+                score += 15;
             }
             total += 10;
 
             // Check login limiting enabled
             if ($('#so_ssl_enable_login_limit').is(':checked')) {
-                score += 10;
+                score += 15;
             }
-            total += 10;
+            total += 15;
 
             // Calculate percentage
             const percentage = Math.round((score / total) * 100);
@@ -380,7 +380,7 @@
 
     // Handle tab navigation
     function handleTabs() {
-        $('.nav-tab').on('click', function(e) {
+        $('.nav-tab').on('click', function (e) {
             e.preventDefault();
 
             // Get target tab
@@ -493,7 +493,7 @@
      * Updated function to properly convert checkboxes to toggle switches
      */
     function convertCheckboxesToSwitches() {
-        $('input[type="checkbox"]').each(function() {
+        $('input[type="checkbox"]').each(function () {
             const $checkbox = $(this);
 
             // Skip if already converted or has the skip class
@@ -523,7 +523,7 @@
             }
 
             // Add event listener to animate the slider when checkbox state changes
-            $checkbox.on('change', function() {
+            $checkbox.on('change', function () {
                 if ($(this).is(':checked')) {
                     $slider.addClass('checked');
                 } else {
@@ -615,7 +615,7 @@
     // Handle form submission
     // Handle form submission - updated version to prevent immediate warnings
     function handleFormSubmission() {
-        $('form').on('submit', function() {
+        $('form').on('submit', function () {
             // Set the submitting flag to true
             isFormSubmitting = true;
 
@@ -629,7 +629,7 @@
             //console.log('Form is being submitted, warnings disabled');
 
             // Clear the flag after 3 seconds (in case submission fails)
-            setTimeout(function() {
+            setTimeout(function () {
                 if (isFormSubmitting) {
                     isFormSubmitting = false;
                     storeOriginalFormValues();
@@ -643,18 +643,18 @@
     // Track form changes
     function trackFormChanges() {
         // Track all input changes
-        $('form:first').on('change', 'input, select, textarea', function() {
+        $('form:first').on('change', 'input, select, textarea', function () {
             updateFormModifiedState();
         });
 
         // Track typing in text inputs
-        $('form:first').on('input', 'input[type="text"], input[type="number"], textarea', function() {
+        $('form:first').on('input', 'input[type="text"], input[type="number"], textarea', function () {
             updateFormModifiedState();
         });
     }
 
     // Initialize when document is ready
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Set formModified to false initially
         formModified = false;
 
@@ -696,12 +696,12 @@
 
         // Capture initial form state AFTER all UI is setup
         // This ensures we don't detect false changes
-        setTimeout(function() {
+        setTimeout(function () {
             storeOriginalFormValues();
         }, 500);
     });
 
-    jQuery(document).ready(function($) {
+    jQuery(document).ready(function ($) {
         // Find the SVG logo and increase its attributes
         $('.so-ssl-icon').attr({
             'width': '48',
@@ -715,14 +715,14 @@
 
         // Optional: Add a subtle animation on hover
         $('.so-ssl-icon').closest('h1').hover(
-            function() {
+            function () {
                 // On mouse enter
                 $('.so-ssl-icon').css({
                     'transform': 'scale(1.1)',
                     'transition': 'transform 0.3s ease'
                 });
             },
-            function() {
+            function () {
                 // On mouse leave
                 $('.so-ssl-icon').css({
                     'transform': 'scale(1)',
