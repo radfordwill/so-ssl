@@ -138,17 +138,25 @@ class So_SSL_Privacy_Compliance {
 		}
 
 		// Skip logout requests
-		if ( isset( $_GET['action'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		     && sanitize_key( wp_unslash( $_GET['action'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		        === 'logout' ) {
+		if (
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			isset( $_GET['action'] )
+			&&
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			sanitize_key( wp_unslash( $_GET['action'] ) )
+			=== 'logout' ) {
 			return;
 		}
 
 		// Exception for the privacy page itself
 		// Skip logout requests
-		if ( isset( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		     && sanitize_key( wp_unslash( $_GET['page'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		        === 'so-ssl-privacy' ) {
+		if (
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			isset( $_GET['page'] )
+			&&
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			sanitize_key( wp_unslash( $_GET['page'] ) )
+			=== 'so-ssl-privacy' ) {
 			return;
 		}
 

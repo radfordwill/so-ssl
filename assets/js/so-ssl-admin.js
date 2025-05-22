@@ -312,9 +312,9 @@
 
             // Check SSL enabled
             if ($('#so_ssl_force_ssl').is(':checked')) {
-                score += 15;
+                score += 25;
             }
-            total += 15;
+            total += 25;
 
             // Check HSTS enabled
             if ($('#so_ssl_enable_hsts').is(':checked')) {
@@ -348,15 +348,15 @@
 
             // Check session management enabled
             if ($('#so_ssl_enable_user_sessions').is(':checked')) {
-                score += 10;
+                score += 15;
             }
             total += 10;
 
             // Check login limiting enabled
             if ($('#so_ssl_enable_login_limit').is(':checked')) {
-                score += 10;
+                score += 15;
             }
-            total += 10;
+            total += 15;
 
             // Calculate percentage
             const percentage = Math.round((score / total) * 100);

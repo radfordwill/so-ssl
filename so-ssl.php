@@ -79,9 +79,13 @@ define( 'SO_SSL_URL', plugin_dir_url( __FILE__ ) );
  */
 add_action( 'init', function () {
 	// Check for emergency override
-	if ( sanitize_key( isset( $_GET['disable_so_ssl_agreement'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-	     ) && sanitize_key( isset( $_GET['disable_so_ssl_agreement'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-	                   ) == '1' ) {
+	if (
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		sanitize_key( isset( $_GET['disable_so_ssl_agreement'] )
+		) &&
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		sanitize_key( isset( $_GET['disable_so_ssl_agreement'] )
+		) == '1' ) {
 		// Verify user is an admin
 		if ( current_user_can( 'manage_options' ) ) {
 			// Disable admin agreement

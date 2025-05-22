@@ -4102,16 +4102,32 @@ public function enforce_strong_password($errors, $update, $user = null) {
 
     // Get the password
     $password = '';
-    if (isset($_POST['pass1']) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-     && !empty($_POST['pass1']) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+    if (
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        isset(
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        $_POST['pass1']
+        )
+     &&
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        !empty($_POST['pass1'])
      ) {
-        $password = sanitize_text_field(wp_unslash($_POST['pass1']) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        $password =
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        sanitize_text_field(wp_unslash($_POST['pass1'])
         );
-    } elseif (isset($_POST['password']) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-     && !empty($_POST['password']) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+    } elseif
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        (isset($_POST['password'])
+        &&
+        !empty(
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        $_POST['password'])
     ) {
         // Registration form password field
-        $password = sanitize_text_field(wp_unslash($_POST['password']) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        $password =
+         // phpcs:ignore WordPress.Security.NonceVerification.Missing
+         sanitize_text_field(wp_unslash($_POST['password'])
         );
     }
 
@@ -4124,9 +4140,13 @@ public function enforce_strong_password($errors, $update, $user = null) {
     $username = '';
     if ($user instanceof WP_User) {
         $username = $user->user_login;
-    } elseif (isset($_POST['user_login']) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+    } elseif
+     // phpcs:ignore WordPress.Security.NonceVerification.Missing
+    (isset($_POST['user_login'])
     ) {
-        $username = sanitize_text_field(wp_unslash($_POST['user_login']) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        $username =
+         // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        sanitize_text_field(wp_unslash($_POST['user_login'])
         );
     }
 
@@ -4173,10 +4193,16 @@ public function validate_password_reset($errors, $user) {
     }
 
     // Check if password is set
-    if (isset($_POST['pass1']) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-     && !empty($_POST['pass1']) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+    if
+     // phpcs:ignore WordPress.Security.NonceVerification.Missing
+    (isset($_POST['pass1'])
+     &&
+      // phpcs:ignore WordPress.Security.NonceVerification.Missing
+     sanitize_text_field( wp_unslash(!empty($_POST['pass1'])))
      ) {
-        $password = sanitize_text_field(wp_unslash($_POST['pass1']) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        $password =
+         // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        sanitize_text_field(wp_unslash($_POST['pass1'])
         );
         $strength_result = $this->get_password_strength($password, $user->user_login);
 

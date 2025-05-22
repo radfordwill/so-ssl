@@ -79,11 +79,11 @@ class So_SSL_Admin_Agreement {
 		$is_plugin_page = false;
 
 		// Check query parameters for the plugin pages
-		if ( isset( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-            ) {
-			$page = sanitize_text_field( wp_unslash( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( isset( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		) {
+			$page = sanitize_text_field( wp_unslash( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
-            );
+			);
 
 			// List of So SSL plugin pages to protect
 			$so_ssl_pages = array(
@@ -111,11 +111,11 @@ class So_SSL_Admin_Agreement {
 
 		// Exception for the agreement page itself
 
-		sanitize_text_field( wp_unslash( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-        );
-		if ( sanitize_text_field( wp_unslash( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-             ) && sanitize_text_field( wp_unslash( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing
-                               ) === 'so-ssl-agreement' ) {
+		sanitize_text_field( wp_unslash( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		);
+		if ( sanitize_text_field( wp_unslash( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		     ) && sanitize_text_field( wp_unslash( $_GET['page'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		          ) === 'so-ssl-agreement' ) {
 			return;
 		}
 
