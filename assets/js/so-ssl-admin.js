@@ -316,23 +316,11 @@
             }
             total += 25;
 
-            // Check HSTS enabled
+            // Check SSL enabled
             if ($('#so_ssl_enable_hsts').is(':checked')) {
                 score += 10;
             }
             total += 10;
-
-            // Check X-Frame-Options enabled
-            if ($('#so_ssl_enable_xframe').is(':checked')) {
-                score += 5;
-            }
-            total += 5;
-
-            // Check CSP enabled
-            if ($('#so_ssl_enable_csp').is(':checked')) {
-                score += 15;
-            }
-            total += 15;
 
             // Check 2FA enabled
             if ($('#so_ssl_enable_2fa').is(':checked')) {
@@ -348,7 +336,7 @@
 
             // Check session management enabled
             if ($('#so_ssl_enable_user_sessions').is(':checked')) {
-                score += 15;
+                score += 10;
             }
             total += 10;
 
@@ -357,6 +345,18 @@
                 score += 15;
             }
             total += 15;
+
+            // Check XML-RPC disabled
+            if ($('#so_ssl_disable_xmlrpc').is(':checked')) {
+                score += 5;
+            }
+            total += 5;
+
+            // Check REST API protected
+            if ($('#so_ssl_disable_rest_api').is(':checked')) {
+                score += 5;
+            }
+            total += 5;
 
             // Calculate percentage
             const percentage = Math.round((score / total) * 100);

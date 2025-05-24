@@ -325,51 +325,80 @@ class So_SSL {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
     }
 
-   /**
- * Register all of the hooks related to the public-facing functionality.
- *
- * @since    1.0.2
- * @access   private
- */
-private function define_public_hooks() {
-    // Check SSL and redirect if needed
-    add_action('template_redirect', array($this, 'check_ssl'));
+        /**
+         * Register all of the hooks related to the public-facing functionality.
+         *
+         * @since    1.0.2
+         * @access   private
+         */
+        private function define_public_hooks() {
+            // Check SSL and redirect if needed
+            add_action('template_redirect', array($this, 'check_ssl'));
 
-    // Add security headers
-    add_action('send_headers', array($this, 'add_hsts_header'));
-    add_action('send_headers', array($this, 'add_xframe_header'));
-    add_action('send_headers', array($this, 'add_csp_frame_ancestors_header'));
-    add_action('send_headers', array($this, 'add_referrer_policy_header'));
-    add_action('send_headers', array($this, 'add_content_security_policy_header'));
-    add_action('send_headers', array($this, 'add_permissions_policy_header'));
-    add_action('send_headers', array($this, 'add_cross_origin_policy_headers'));
+            // Add security headers
+            add_action('send_headers', array($this, 'add_hsts_header'));
+            add_action('send_headers', array($this, 'add_xframe_header'));
+            add_action('send_headers', array($this, 'add_csp_frame_ancestors_header'));
+            add_action('send_headers', array($this, 'add_referrer_policy_header'));
+            add_action('send_headers', array($this, 'add_content_security_policy_header'));
+            add_action('send_headers', array($this, 'add_permissions_policy_header'));
+            add_action('send_headers', array($this, 'add_cross_origin_policy_headers'));
 
-    // Enforce strong passwords if enabled
-if (get_option('so_ssl_disable_weak_passwords', 0)) {
-    // Disable application passwords
-    add_filter('wp_is_application_passwords_available', '__return_false');
+            // Enforce strong passwords if enabled
+        if (get_option('so_ssl_disable_weak_passwords', 0)) {
+            // Disable application passwords
+            add_filter('wp_is_application_passwords_available', '__return_false');
 
-    // Add script to every page where passwords might be set
-    add_action('login_enqueue_scripts', array($this, 'disable_weak_password_js'));
-    add_action('admin_enqueue_scripts', array($this, 'disable_weak_password_js'));
-    add_action('resetpass_form', array($this, 'disable_weak_password_js'));
-    add_action('register_form', array($this, 'disable_weak_password_js'));
+            // Add script to every page where passwords might be set
+            add_action('login_enqueue_scripts', array($this, 'disable_weak_password_js'));
+            add_action('admin_enqueue_scripts', array($this, 'disable_weak_password_js'));
+            add_action('resetpass_form', array($this, 'disable_weak_password_js'));
+            add_action('register_form', array($this, 'disable_weak_password_js'));
 
-    // Force high priority to override WP defaults
-    add_action('admin_footer', array($this, 'disable_weak_password_js'), 99);
-    add_action('login_footer', array($this, 'disable_weak_password_js'), 99);
+            // Force high priority to override WP defaults
+            add_action('admin_footer', array($this, 'disable_weak_password_js'), 99);
+            add_action('login_footer', array($this, 'disable_weak_password_js'), 99);
 
-    // Add password validation hooks
-    // Update the registration hook to use the filter instead of action
-    add_filter('registration_errors', array($this, 'enforce_strong_password'), 10, 3);
+            // Add password validation hooks
+            // Update the registration hook to use the filter instead of action
+            add_filter('registration_errors', array($this, 'enforce_strong_password'), 10, 3);
 
-    // Make sure validate_password_reset still uses action
-    add_action('validate_password_reset', array($this, 'validate_password_reset'), 10, 2);
+            // Make sure validate_password_reset still uses action
+            add_action('validate_password_reset', array($this, 'validate_password_reset'), 10, 2);
 
-    // Profile update can stay as action
-    add_action('user_profile_update_errors', array($this, 'enforce_strong_password'), 10, 3);
+            // Profile update can stay as action
+            add_action('user_profile_update_errors', array($this, 'enforce_strong_password'), 10, 3);
+        }
+
+        // Disable XML-RPC if enabled
+        if (get_option('so_ssl_disable_xmlrpc', 0)) {
+            add_filter('xmlrpc_enabled', '__return_false');
+            add_filter('wp_headers', array($this, 'remove_xmlrpc_headers'));
+            add_filter('bloginfo_url', array($this, 'remove_xmlrpc_pingback_url'), 10, 2);
+            remove_action('wp_head', 'rsd_link');
+            remove_action('wp_head', 'wlwmanifest_link');
+        }
+
+		// Disable REST API for non-authenticated users if enabled
+if (get_option('so_ssl_disable_rest_api', 0)) {
+    add_filter('rest_authentication_errors', array($this, 'restrict_rest_api_access'));
+    add_filter('wp_headers', array($this, 'remove_rest_api_headers'));
 }
+        // Additional XML-RPC blocking
+if (get_option('so_ssl_disable_xmlrpc', 0)) {
+    // Block XML-RPC requests at the server level
+    add_action('init', array($this, 'block_xmlrpc_requests'));
 }
+
+// Additional REST API protection
+if (get_option('so_ssl_disable_rest_api', 0)) {
+    // Remove REST API info from head
+    remove_action('wp_head', 'rest_output_link_wp_head');
+    remove_action('wp_head', 'wp_oembed_add_discovery_links');
+    remove_action('template_redirect', 'rest_output_link_header', 11);
+}
+
+    }
 
     /**
      * Initialize directories needed for 2FA functionality
@@ -412,6 +441,7 @@ if (get_option('so_ssl_disable_weak_passwords', 0)) {
 		add_options_page(
 			'So SSL Settings',  // Use string literal as fallback
 			'So SSL',          // Use string literal as fallback
+
 			'manage_options',
 			'so-ssl',
 			array($this, 'display_options_page')
@@ -541,6 +571,33 @@ if (get_option('so_ssl_disable_weak_passwords', 0)) {
                         <span class="dashicons dashicons-<?php echo esc_attr($ssl_icon); ?>"></span>
                         <span><?php echo esc_html($ssl_text); ?></span>
                     </div>
+
+                    <?php
+// Check XML-RPC status
+$xmlrpc_disabled = get_option('so_ssl_disable_xmlrpc', 0);
+$xmlrpc_class = $xmlrpc_disabled ? 'so-ssl-security-good' : 'so-ssl-security-warning';
+$xmlrpc_icon = $xmlrpc_disabled ? 'yes' : 'warning';
+$xmlrpc_text = $xmlrpc_disabled ? __('XML-RPC is disabled', 'so-ssl') : __('XML-RPC is enabled', 'so-ssl');
+?>
+
+<div class="so-ssl-security-item <?php echo esc_attr($xmlrpc_class); ?>">
+    <span class="dashicons dashicons-<?php echo esc_attr($xmlrpc_icon); ?>"></span>
+    <span><?php echo esc_html($xmlrpc_text); ?></span>
+</div>
+
+<?php
+// Check REST API status
+$rest_api_disabled = get_option('so_ssl_disable_rest_api', 0);
+$rest_api_class = $rest_api_disabled ? 'so-ssl-security-good' : 'so-ssl-security-warning';
+$rest_api_icon = $rest_api_disabled ? 'yes' : 'warning';
+$rest_api_text = $rest_api_disabled ? __('REST API is protected', 'so-ssl') : __('REST API is publicly accessible', 'so-ssl');
+?>
+
+<div class="so-ssl-security-item <?php echo esc_attr($rest_api_class); ?>">
+    <span class="dashicons dashicons-<?php echo esc_attr($rest_api_icon); ?>"></span>
+    <span><?php echo esc_html($rest_api_text); ?></span>
+</div>
+
 
                     <?php
                     // Check HSTS status
@@ -1352,6 +1409,45 @@ if (get_option('so_ssl_disable_weak_passwords', 0)) {
             'so-ssl-ssl',
             'so_ssl_section'
         );
+
+		// XML-RPC setting
+		register_setting(
+		    'so_ssl_options',
+		    'so_ssl_disable_xmlrpc',
+		    array(
+		        'type' => 'boolean',
+		        'sanitize_callback' => 'intval',
+		        'default' => 0,
+		    )
+		);
+
+		// Add this field after the force_ssl field in the same method:
+		add_settings_field(
+		    'so_ssl_disable_xmlrpc',
+		    __('Disable XML-RPC', 'so-ssl'),
+		    array($this, 'disable_xmlrpc_callback'),
+		    'so-ssl-ssl',
+		    'so_ssl_section'
+		);
+
+		// REST API setting
+		register_setting(
+		    'so_ssl_options',
+		    'so_ssl_disable_rest_api',
+		    array(
+		        'type' => 'boolean',
+		        'sanitize_callback' => 'intval',
+		        'default' => 0,
+		    )
+		);
+
+		add_settings_field(
+		    'so_ssl_disable_rest_api',
+		    __('Disable REST API', 'so-ssl'),
+		    array($this, 'disable_rest_api_callback'),
+		    'so-ssl-ssl',
+		    'so_ssl_section'
+		);
     }
 
     /**
@@ -2131,8 +2227,6 @@ private function register_referrer_policy_settings() {
 				'default' => 'privacy-acknowledgment',
 			)
 		);
-
-
 
 		register_setting(
 			'so_ssl_options',
@@ -4309,12 +4403,12 @@ public function validate_password_reset($errors, $user) {
 		<?php
 	}
 
- /**
- * User Sessions section description.
- */
-public function user_sessions_section_callback() {
-    echo '<p>' . esc_html__('Configure user session management to enhance security by controlling and monitoring active sessions.', 'so-ssl') . '</p>';
-}
+    /**
+     * User Sessions section description.
+     */
+    public function user_sessions_section_callback() {
+        echo '<p>' . esc_html__('Configure user session management to enhance security by controlling and monitoring active sessions.', 'so-ssl') . '</p>';
+    }
 
     /**
      * Enable user sessions management field callback.
@@ -4354,5 +4448,166 @@ public function user_sessions_section_callback() {
         esc_url(admin_url('options-general.php?page=class-so-ssl-login-limit')) . '">' .
         esc_html__('Login Security', 'so-ssl') . '</a>';
         }
+
+
+        /**
+         * Enable xml-rpc field section description.
+         */
+        public function disable_xmlrpc_callback() {
+            $disable_xmlrpc = get_option('so_ssl_disable_xmlrpc', 0);
+
+            echo '<label for="so_ssl_disable_xmlrpc">';
+            echo '<input type="checkbox" id="so_ssl_disable_xmlrpc" name="so_ssl_disable_xmlrpc" value="1" ' . checked(1, $disable_xmlrpc, false) . '/>';
+            echo esc_html__('Disable XML-RPC functionality', 'so-ssl');
+            echo '</label>';
+            echo '<p class="description">' . esc_html__('XML-RPC can be used for brute force attacks and is rarely needed. Disabling it improves security but may break some remote publishing tools and mobile apps.', 'so-ssl') . '</p>';
+
+            // Add informational note about what XML-RPC is used for
+            echo '<div style="background: #f0f6fc; border-left: 4px solid #2271b1; padding: 10px; margin-top: 10px; border-radius: 0 4px 4px 0;">';
+            echo '<strong>' . esc_html__('What is XML-RPC?', 'so-ssl') . '</strong><br/>';
+            echo '• ' . esc_html__('Used by mobile apps to post to WordPress', 'so-ssl') . '<br/>';
+            echo '• ' . esc_html__('Used by some third-party tools for remote publishing', 'so-ssl') . '<br/>';
+            echo '• ' . esc_html__('Often targeted by attackers for brute force login attempts', 'so-ssl') . '<br/>';
+            echo '• ' . esc_html__('WordPress REST API is the modern alternative', 'so-ssl') . '<br/>';
+            echo '<strong style="color: #d63638;">' . esc_html__('Note:', 'so-ssl') . '</strong> ' . esc_html__('Only disable if you don\'t use mobile apps or remote publishing tools.', 'so-ssl');
+            echo '</div>';
+        }
+        /**
+         * Disable rest-api field section description.
+         */
+		public function disable_rest_api_callback() {
+    $disable_rest_api = get_option('so_ssl_disable_rest_api', 0);
+
+    echo '<label for="so_ssl_disable_rest_api">';
+    echo '<input type="checkbox" id="so_ssl_disable_rest_api" name="so_ssl_disable_rest_api" value="1" ' . checked(1, $disable_rest_api, false) . '/>';
+    echo esc_html__('Disable REST API for non-authenticated users', 'so-ssl');
+    echo '</label>';
+    echo '<p class="description">' . esc_html__('The REST API can expose site information and be used for attacks. This blocks non-authenticated access while preserving functionality for logged-in users and admin functions.', 'so-ssl') . '</p>';
+
+    // Add informational note about what REST API is used for
+    echo '<div style="background: #fff3cd; border-left: 4px solid #ffb900; padding: 10px; margin-top: 10px; border-radius: 0 4px 4px 0;">';
+    echo '<strong>' . esc_html__('What is the REST API?', 'so-ssl') . '</strong><br/>';
+    echo '• ' . esc_html__('Used by the WordPress block editor (Gutenberg)', 'so-ssl') . '<br/>';
+    echo '• ' . esc_html__('Used by many modern plugins and themes', 'so-ssl') . '<br/>';
+    echo '• ' . esc_html__('Enables headless WordPress implementations', 'so-ssl') . '<br/>';
+    echo '• ' . esc_html__('Can expose user lists and site information publicly', 'so-ssl') . '<br/>';
+    echo '<strong style="color: #856404;">' . esc_html__('Recommended:', 'so-ssl') . '</strong> ' . esc_html__('This setting blocks public access but keeps functionality for logged-in users.', 'so-ssl');
+    echo '</div>';
+}
+
+/**
+ * Restrict REST API access to authenticated users only
+ *
+ * @param mixed $access Current access status
+ * @return WP_Error|mixed Error for non-authenticated users, original access for authenticated
+ */
+public function restrict_rest_api_access($access) {
+    // Allow access for authenticated users
+    if (is_user_logged_in()) {
+        return $access;
+    }
+
+    // Allow access to specific endpoints that are needed for core functionality
+    $allowed_endpoints = array(
+        '/wp/v2/media',     // Media uploads
+        '/wp/v2/types',     // Post types
+        '/wp/v2/statuses',  // Post statuses
+    );
+
+    // Get current request URI
+    $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+
+    // Allow core endpoints that don't expose sensitive data
+    foreach ($allowed_endpoints as $endpoint) {
+        if (strpos($request_uri, $endpoint) !== false) {
+            return $access;
+        }
+    }
+
+    // Block all other access for non-authenticated users
+    return new WP_Error(
+        'rest_not_logged_in',
+        __('API access is restricted to authenticated users for security reasons.', 'so-ssl'),
+        array('status' => 401)
+    );
+}
+
+/**
+ * Remove REST API related headers for non-authenticated users
+ *
+ * @param array $headers HTTP headers
+ * @return array Modified headers
+ */
+public function remove_rest_api_headers($headers) {
+    // Only remove headers for non-authenticated users
+    if (!is_user_logged_in()) {
+        if (isset($headers['Link'])) {
+            // Remove REST API discovery links
+            $headers['Link'] = preg_replace('/<[^>]+wp-json[^>]+>;\s*rel="https:\/\/api\.w\.org\/"/', '', $headers['Link']);
+            $headers['Link'] = preg_replace('/,\s*$/', '', $headers['Link']); // Clean up trailing comma
+
+            // Remove the header entirely if it's empty
+            if (empty(trim($headers['Link']))) {
+                unset($headers['Link']);
+            }
+        }
+    }
+    return $headers;
+}
+
+        /**
+         * Remove XML-RPC related headers
+         *
+         * @param array $headers HTTP headers
+         *
+         * @return array Modified headers
+         */
+        public function remove_xmlrpc_headers($headers) {
+            if (isset($headers['X-Pingback'])) {
+                unset($headers['X-Pingback']);
+            }
+            return $headers;
+        }
+
+    /**
+     * Remove XML-RPC pingback URL
+     *
+     * @param string $output The URL returned by get_bloginfo()
+     * @param string $show   Type of information requested
+     *
+     * @return string Modified URL
+     */
+    public function remove_xmlrpc_pingback_url($output, $show) {
+        if ($show === 'pingback_url') {
+            $output = '';
+        }
+        return $output;
+    }
+
+    /**
+ * Block XML-RPC requests completely
+ */
+public function block_xmlrpc_requests() {
+    // Check if this is an XML-RPC request
+    if (defined('XMLRPC_REQUEST') && XMLRPC_REQUEST) {
+        status_header(403);
+        wp_die(
+            esc_html__('XML-RPC services are disabled on this site for security reasons.', 'so-ssl'),
+            esc_html__('XML-RPC Disabled', 'so-ssl'),
+            array('response' => 403)
+        );
+    }
+
+    // Also block direct access to xmlrpc.php
+    global $pagenow;
+    if ($pagenow === 'xmlrpc.php') {
+        status_header(403);
+        wp_die(
+            esc_html__('XML-RPC services are disabled on this site for security reasons.', 'so-ssl'),
+            esc_html__('XML-RPC Disabled', 'so-ssl'),
+            array('response' => 403)
+        );
+        }
+    }
 
 }

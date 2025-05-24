@@ -1,5 +1,6 @@
 === So SSL ===
-Contributors: radfordwill
+Contributors: willradford
+Donate link: https://buy.stripe.com/6oU3co1aodHc5RbgW62go00
 Tags: ssl, security, privacy policy, compliance, 2fa
 Requires at least: 6.4
 Tested up to: 6.8
@@ -194,3 +195,4 @@ Major update with Content Security Policy and Permissions Policy settings.
 
 * This plugin uses the TOTP library for two-factor authentication
 * Icons by Dashicons
+* This plugin uses the QRCodejs. QRCode.js is a JavaScript library used for generating QR codes

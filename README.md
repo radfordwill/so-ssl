@@ -79,7 +79,7 @@ and US regulations.
 
 ## Requirements
 
-* WordPress 5.0 or higher
+* WordPress 6.4 or higher
 * PHP 7.0 or higher
 
 ## Frequently Asked Questions
