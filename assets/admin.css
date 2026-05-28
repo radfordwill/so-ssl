@@ -1,0 +1,51 @@
+
+.so-ssl-admin .so-ssl-version{font-size:14px;background:#1d2327;color:#fff;padding:4px 8px;border-radius:999px;vertical-align:middle}
+.so-ssl-score{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid #dcdcde;border-left:5px solid #2271b1;padding:15px;margin:20px 0;max-width:760px}
+.so-ssl-score span{font-size:26px;font-weight:700}
+.so-ssl-section{margin-top:28px;padding:12px 14px;background:#f6f7f7;border-left:4px solid #2271b1;max-width:980px}
+.so-ssl-admin textarea.large-text{max-width:980px}
+.so-ssl-admin input.large-text{max-width:980px}
+.so-ssl-role{display:inline-block;margin:8px 16px 8px 0}
+.so-ssl-modal{position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px}
+.so-ssl-modal-card{background:#fff;color:#1d2327;max-width:720px;width:100%;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:26px}
+.so-ssl-modal-body{max-height:45vh;overflow:auto;border:1px solid #dcdcde;padding:14px;background:#f6f7f7}
+.so-ssl-check{display:block;margin:18px 0}
+.so-ssl-modal-error{color:#b32d2e}
+
+.so-ssl-field{max-width:980px}
+.so-ssl-field-label{display:inline-flex;align-items:center;gap:6px;vertical-align:middle}
+.so-ssl-info-icon{position:relative;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#2271b1;color:#fff;font-size:11px;font-weight:700;line-height:1;cursor:help;box-sizing:border-box}
+.so-ssl-info-icon::after{content:attr(data-so-ssl-info);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);width:max-content;max-width:260px;white-space:normal;background:#1d2327;color:#fff;border-radius:4px;padding:7px 9px;font-size:12px;font-weight:400;line-height:1.35;box-shadow:0 4px 14px rgba(0,0,0,.2);opacity:0;visibility:hidden;pointer-events:none;z-index:1000}
+.so-ssl-info-icon::before{content:"";position:absolute;left:50%;bottom:calc(100% + 3px);transform:translateX(-50%);border:5px solid transparent;border-top-color:#1d2327;opacity:0;visibility:hidden;pointer-events:none;z-index:1001}
+.so-ssl-info-icon:hover::after,.so-ssl-info-icon:focus::after,.so-ssl-info-icon:hover::before,.so-ssl-info-icon:focus::before{opacity:1;visibility:visible}
+.so-ssl-settings-banner{max-width:772px;margin:16px 0 20px;background:#fff;border:1px solid #dcdcde;border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.so-ssl-settings-banner img{display:block;width:100%;height:auto}
+
+.so-ssl-2fa-profile .so-ssl-setup-key{display:inline-block;padding:8px 10px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;font-size:14px;letter-spacing:1px}
+.so-ssl-status-enabled{color:#008a20}
+.so-ssl-status-disabled{color:#b32d2e}
+
+.so-ssl-admin-recovery-notice{max-width:772px;margin:12px 0 18px}
+.so-ssl-2fa-qr{display:inline-flex;align-items:center;justify-content:center;min-width:180px;min-height:180px;padding:12px;background:#fff;border:1px solid #dcdcde;border-radius:8px}
+.so-ssl-2fa-qr table{border-collapse:collapse!important;margin:0!important}
+.so-ssl-2fa-qr canvas,.so-ssl-2fa-qr img{display:block;max-width:180px;height:auto}
+.so-ssl-authenticator-links{min-width:280px;max-width:100%}
+
+.so-ssl-2fa-settings[disabled]{opacity:.65;background:#f6f7f7;border:1px solid #dcdcde;padding:10px 14px;max-width:980px}
+.so-ssl-2fa-disabled-note{max-width:980px;background:#fff8e5;border-left:4px solid #dba617;padding:10px 12px}
+
+
+.so-ssl-tabs{max-width:980px;margin-top:20px;margin-bottom:0}
+.so-ssl-tab-panel{display:none;max-width:1040px;background:#fff;border:1px solid #c3c4c7;border-top:0;padding:1px 18px 18px;box-sizing:border-box}
+.so-ssl-tab-panel.is-active{display:block}
+.so-ssl-tab-panel[hidden]{display:none!important}
+.so-ssl-tab-panel .so-ssl-section{margin-top:18px}
+.so-ssl-admin .submit{max-width:1040px;background:#fff;border:1px solid #c3c4c7;border-top:0;margin:0;padding:16px 18px 18px;box-sizing:border-box}
+@media (max-width: 782px){.so-ssl-tabs .nav-tab{float:none;display:block;margin:0 0 4px 0}.so-ssl-tab-panel,.so-ssl-admin .submit{border-top:1px solid #c3c4c7}}
+
+.so-ssl-tab-panel .form-table{margin-top:0}
+.so-ssl-tab-panel .form-table th{display:none}
+.so-ssl-tab-panel .form-table td{padding:4px 0 8px}
+.so-ssl-tab-panel .form-table tr{border-bottom:0}
+.so-ssl-settings-api-field.so-ssl-2fa-child-control.is-disabled{opacity:.65}
+.so-ssl-settings-api-field.so-ssl-2fa-child-control.is-disabled input,.so-ssl-settings-api-field.so-ssl-2fa-child-control.is-disabled select,.so-ssl-settings-api-field.so-ssl-2fa-child-control.is-disabled textarea{pointer-events:none}

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 772 250" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Rectangle -->
+  <rect width="772" height="250" fill="#f8fafc" rx="10" ry="10" />
+  
+  <!-- Decorative Elements -->
+  <rect x="0" y="0" width="15" height="250" fill="#0ea5e9" />
+  <rect x="757" y="0" width="15" height="250" fill="#0ea5e9" />
+  
+  <!-- Main Shield - Now on Left Side -->
+  <path d="M220 40 L320 80 L320 150 C320 205 270 225 220 240 C170 225 120 205 120 150 L120 80 Z" 
+        fill="#f1f5f9" stroke="#334155" stroke-width="6"/>
+  
+  <!-- SoSSL Text - Now on Left Side with "So" matching lock color -->
+  <text x="220" y="120" font-family="Arial, sans-serif" font-size="60" font-weight="bold" text-anchor="middle">
+    <tspan fill="#0ea5e9">So</tspan><tspan fill="#334155">SSL</tspan>
+  </text>
+  
+  <!-- Tagline - Now Inside the Shield on two lines without highlight -->
+  <text x="220" y="155" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#0f172a">Secure your site</text>
+  <text x="220" y="180" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#0f172a">with ease</text>
+  
+  <!-- 3D Lock - Now positioned closer to shield -->
+  <g transform="translate(350, 135) scale(1.2)">
+    <!-- Lock Body -->
+    <rect x="-20" y="-2" width="40" height="30" rx="5" ry="5" fill="#0ea5e9" />
+    
+    <!-- Lock Body Highlight -->
+    <rect x="-18" y="-2" width="36" height="5" rx="2" ry="2" fill="#7dd3fc" opacity="0.5" />
+    
+    <!-- Lock Shackle -->
+    <path d="M-10 -2 L-10 -15 C-10 -25 10 -25 10 -15 L10 -2" fill="none" stroke="#334155" stroke-width="6" stroke-linecap="round" />
+    
+    <!-- Keyhole -->
+    <circle cx="0" cy="13" r="6" fill="#0c4a6e" />
+    <circle cx="0" cy="13" r="4" fill="#64748b" />
+    <rect x="-1.5" y="13" width="3" height="7" fill="#64748b" />
+  </g>
+  
+  <!-- Connection Lines - Now on Left Side -->
+  <path d="M50 125 L120 125" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="5,5" />
+  <path d="M330 125 L420 125" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="5,5" />
+  
+  <!-- Abstract Connection Nodes - Now on Left Side -->
+  <circle cx="50" cy="125" r="8" fill="#0ea5e9" />
+  <circle cx="420" cy="125" r="8" fill="#0ea5e9" />
+  
+  <!-- Smaller Connection Nodes - Now on Left Side -->
+  <circle cx="85" cy="95" r="5" fill="#0ea5e9" opacity="0.7" />
+  <circle cx="380" cy="95" r="5" fill="#0ea5e9" opacity="0.7" />
+  <circle cx="85" cy="155" r="5" fill="#0ea5e9" opacity="0.7" />
+  <circle cx="380" cy="155" r="5" fill="#0ea5e9" opacity="0.7" />
+  
+  <!-- Stylized S for additional branding - Removed -->
+  
+  <!-- Adding a blue lock with 3D shackle behind the text -->
+  <g transform="translate(520, 110) rotate(-30) scale(1.2)">
+    <!-- Lock Body -->
+    <rect x="-20" y="-2" width="40" height="30" rx="5" ry="5" fill="#0ea5e9" />
+    
+    <!-- Lock Body Highlight -->
+    <rect x="-18" y="-2" width="36" height="5" rx="2" ry="2" fill="#7dd3fc" opacity="0.5" />
+    
+    <!-- Lock Shackle with 3D Effect - Changed back to blue -->
+    <!-- Back shadow for 3D effect -->
+    <path d="M-10 -2 L-10 -15 C-10 -25 10 -25 10 -15 L10 -2" fill="none" stroke="#0c4a6e" stroke-width="8" stroke-linecap="round" />
+    <!-- Main shackle -->
+    <path d="M-10 -2 L-10 -15 C-10 -25 10 -25 10 -15 L10 -2" fill="none" stroke="#0ea5e9" stroke-width="6" stroke-linecap="round" />
+    <!-- Highlight for 3D effect -->
+    <path d="M-10 -15 C-10 -24 10 -24 10 -15" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" opacity="0.7" />
+    
+    <!-- Keyhole -->
+    <circle cx="0" cy="13" r="6" fill="#0c4a6e" />
+    <circle cx="0" cy="13" r="4" fill="#64748b" />
+    <rect x="-1.5" y="13" width="3" height="7" fill="#64748b" />
+  </g>
+  
+  <!-- Right Side Text with highlight and on top for readability -->
+  <rect x="490" y="90" width="220" height="35" rx="5" ry="5" fill="#0ea5e9" opacity="0.15" />
+  <text x="600" y="115" font-family="Arial, sans-serif" font-size="28" font-weight="bold" text-anchor="middle" fill="#334155">WordPress Security</text>
+  
+  <!-- Simple Effective Fast text -->
+  <text x="600" y="152" font-family="Arial, sans-serif" font-size="22" font-weight="bold" text-anchor="middle" stroke="#94a3b8" stroke-width="1" fill="#0f172a">Simple • Effective • Fast</text>
+</svg>
