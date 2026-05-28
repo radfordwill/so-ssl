@@ -194,7 +194,8 @@ class So_SSL_Plugin {
     public function admin_assets($hook) {
         $screen = function_exists('get_current_screen') ? get_current_screen() : null;
         $screen_id = $screen ? $screen->id : '';
-        $is_so_ssl_screen = (strpos($hook, 'so-ssl') !== false) || in_array($screen_id, array('profile', 'user-edit'), true);
+        $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin screen detection for asset loading.
+        $is_so_ssl_screen = (strpos((string) $hook, 'so-ssl') !== false) || (strpos($page, 'so-ssl') === 0) || in_array($screen_id, array('profile', 'user-edit'), true);
         if (!$is_so_ssl_screen) { return; }
         wp_enqueue_style('so-ssl-admin', SO_SSL_URL . 'assets/admin.css', array(), SO_SSL_VERSION);
         wp_enqueue_script('so-ssl-qrcode', SO_SSL_URL . 'assets/vendor/qrcode-local.js', array(), SO_SSL_VERSION, true);
@@ -1076,6 +1077,7 @@ Site: " . home_url();
         $o = $this->options();
         $score = $this->security_score($o);
         $tabs = $this->settings_tabs();
+        $active_tab = $this->active_settings_tab($tabs);
         echo '<div class="wrap so-ssl-admin"><h1>So SSL <span class="so-ssl-version">v' . esc_html(SO_SSL_VERSION) . '</span></h1>';
         echo '<div class="so-ssl-settings-banner"><img src="' . esc_url(SO_SSL_URL . 'assets/banner-772x250.png') . '" alt="So SSL WordPress Security"></div>';
         if ($this->is_original_admin_account()) {
@@ -1084,8 +1086,9 @@ Site: " . home_url();
         echo '<div class="so-ssl-score"><strong>Security Score:</strong><span>' . esc_html($score) . '%</span></div>';
         echo '<h2 class="nav-tab-wrapper so-ssl-tabs" role="tablist" aria-label="So SSL settings sections">';
         foreach ($tabs as $tab_id => $tab_label) {
-            $is_first = array_key_first($tabs) === $tab_id;
-            echo '<a href="#so-ssl-tab-' . esc_attr($tab_id) . '" class="nav-tab' . ($is_first ? ' nav-tab-active' : '') . '" role="tab" aria-selected="' . ($is_first ? 'true' : 'false') . '" aria-controls="so-ssl-tab-' . esc_attr($tab_id) . '" data-so-ssl-tab="' . esc_attr($tab_id) . '">' . esc_html($tab_label) . '</a>';
+            $is_active = ($active_tab === $tab_id);
+            $tab_url = add_query_arg(array('page' => 'so-ssl', 'so_ssl_tab' => $tab_id), admin_url('admin.php'));
+            echo '<a href="' . esc_url($tab_url) . '" class="nav-tab' . ($is_active ? ' nav-tab-active' : '') . '" role="tab" aria-selected="' . ($is_active ? 'true' : 'false') . '" aria-controls="so-ssl-tab-' . esc_attr($tab_id) . '" data-so-ssl-tab="' . esc_attr($tab_id) . '">' . esc_html($tab_label) . '</a>';
         }
         echo '</h2>';
         echo '<form method="post" action="options.php">';
@@ -1094,13 +1097,31 @@ Site: " . home_url();
             $this->hidden_preserve_2fa_options($o);
         }
         foreach ($tabs as $tab_id => $tab_label) {
-            $is_first = array_key_first($tabs) === $tab_id;
-            echo '<div id="so-ssl-tab-' . esc_attr($tab_id) . '" class="so-ssl-tab-panel' . ($is_first ? ' is-active' : '') . '" role="tabpanel" data-so-ssl-tab-panel="' . esc_attr($tab_id) . '">';
+            $is_active = ($active_tab === $tab_id);
+            echo '<div id="so-ssl-tab-' . esc_attr($tab_id) . '" class="so-ssl-tab-panel' . ($is_active ? ' is-active' : '') . '" role="tabpanel" data-so-ssl-tab-panel="' . esc_attr($tab_id) . '"' . ($is_active ? '' : ' hidden="hidden"') . '>';
             do_settings_sections($this->settings_api_page($tab_id));
             echo '</div>';
         }
         submit_button('Save So SSL Settings');
         echo '</form></div>';
+    }
+
+    private function active_settings_tab($tabs) {
+        $default_tab = array_key_first($tabs);
+        $active_tab = '';
+        if (isset($_GET['so_ssl_tab'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only tab navigation state.
+            $active_tab = sanitize_key(wp_unslash($_GET['so_ssl_tab'])); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only tab navigation state.
+        }
+        if (!$active_tab && function_exists('get_user_setting')) {
+            $active_tab = sanitize_key(get_user_setting('so_ssl_settings_tab', $default_tab));
+        }
+        if (!$active_tab || !isset($tabs[$active_tab])) {
+            $active_tab = $default_tab;
+        }
+        if (function_exists('set_user_setting')) {
+            set_user_setting('so_ssl_settings_tab', $active_tab);
+        }
+        return $active_tab;
     }
 
     private function security_score($o) {
@@ -1396,10 +1417,10 @@ Site: " . home_url();
     }
 
     private function checkbox($key,$label,$o,$bold=false) { $label_html = $this->field_label($key, $label); if ($bold) { $label_html = '<strong>' . $label_html . '</strong>'; } echo '<p class="so-ssl-field so-ssl-field-checkbox"><label><input type="checkbox" name="' . esc_attr($this->field_name($key)) . '" value="1" ' . checked(!empty($o[$key]), true, false) . '> ' . wp_kses($label_html, $this->allowed_html()) . '</label></p>'; }
-    private function number($key,$label,$o) { echo '<p class="so-ssl-field"><label><strong>' . wp_kses($this->field_label($key, $label)) . '</strong><br><input type="number" class="small-text" name="' . esc_attr($this->field_name($key)) . '" value="' . esc_attr($o[$key]) . '"></label></p>'; }
-    private function text($key,$label,$o) { echo '<p class="so-ssl-field"><label><strong>' . wp_kses($this->field_label($key, $label)) . '</strong><br><input type="text" class="large-text" name="' . esc_attr($this->field_name($key)) . '" value="' . esc_attr($o[$key]) . '"></label></p>'; }
-    private function textarea($key,$label,$o) { echo '<p class="so-ssl-field"><label><strong>' . wp_kses($this->field_label($key, $label)) . '</strong><br><textarea class="large-text" rows="5" name="' . esc_attr($this->field_name($key)) . '">' . esc_textarea($o[$key]) . '</textarea></label></p>'; }
-    private function select($key,$label,$o,$choices) { echo '<p class="so-ssl-field"><label><strong>' . wp_kses($this->field_label($key, $label)) . '</strong><br><select name="' . esc_attr($this->field_name($key)) . '">'; foreach($choices as $v=>$l){ echo '<option value="' . esc_attr($v) . '" ' . selected($o[$key], $v, false) . '>' . esc_html($l) . '</option>'; } echo '</select></label></p>'; }
+    private function number($key,$label,$o) { echo '<p class="so-ssl-field"><label><strong>' . wp_kses($this->field_label($key, $label), $this->allowed_html()) . '</strong><br><input type="number" class="small-text" name="' . esc_attr($this->field_name($key)) . '" value="' . esc_attr($o[$key]) . '"></label></p>'; }
+    private function text($key,$label,$o) { echo '<p class="so-ssl-field"><label><strong>' . wp_kses($this->field_label($key, $label), $this->allowed_html()) . '</strong><br><input type="text" class="large-text" name="' . esc_attr($this->field_name($key)) . '" value="' . esc_attr($o[$key]) . '"></label></p>'; }
+    private function textarea($key,$label,$o) { echo '<p class="so-ssl-field"><label><strong>' . wp_kses($this->field_label($key, $label), $this->allowed_html()) . '</strong><br><textarea class="large-text" rows="5" name="' . esc_attr($this->field_name($key)) . '">' . esc_textarea($o[$key]) . '</textarea></label></p>'; }
+    private function select($key,$label,$o,$choices) { echo '<p class="so-ssl-field"><label><strong>' . wp_kses($this->field_label($key, $label), $this->allowed_html()) . '</strong><br><select name="' . esc_attr($this->field_name($key)) . '">'; foreach($choices as $v=>$l){ echo '<option value="' . esc_attr($v) . '" ' . selected($o[$key], $v, false) . '>' . esc_html($l) . '</option>'; } echo '</select></label></p>'; }
     private function role_checkboxes($key,$label,$o,$roles,$bold=true) {
         $legend = $this->field_label($key, $label);
         if ($bold) { $legend = '<strong>' . $legend . '</strong>'; }

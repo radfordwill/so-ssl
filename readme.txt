@@ -4,7 +4,7 @@ Donate link: https://buy.stripe.com/6oU3co1aodHc5RbgW62go00
 Tags: ssl, security, privacy policy, compliance, 2fa
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 1.82
+Stable tag: 1.85
 Requires PHP: 7.0
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.txt
@@ -136,6 +136,19 @@ When the plugin is deleted from the WordPress Plugins screen, So SSL removes its
 This plugin is licensed under GPLv3 or later. See `LICENSE.txt` for the full GNU General Public License version 3 text.
 
 == Changelog ==
+
+= 1.85 =
+* Removed the unregistered user-settings script dependency from the admin script enqueue to prevent WordPress debug notices.
+* Kept tab memory working through the existing browser fallback and server-side tab parameter.
+
+= 1.84 =
+* Fixed a fatal error on the Settings API tabs caused by a wp_kses() call missing the allowed HTML parameter.
+* Confirmed the field label helper now passes the So SSL allowed HTML array for number, text, textarea, and select fields.
+
+= 1.83 =
+* Fixed settings page tab navigation after the Settings API conversion.
+* Added a server-side tab fallback using WordPress-style admin tab links with a so_ssl_tab query parameter.
+* Added server-side and browser fallback tab memory without relying on an unregistered dependency.
 
 = 1.82 =
 * Updated the plugin header Plugin URI to use a plugin-specific page distinct from the Author URI for WordPress.org Plugin Check compliance.
@@ -356,6 +369,15 @@ This plugin is licensed under GPLv3 or later. See `LICENSE.txt` for the full GNU
 * Basic SSL forcing functionality
 
 == Upgrade Notice ==
+
+= 1.85 =
+Fixes a WordPress debug notice caused by an unregistered admin script dependency.
+
+= 1.84 =
+Fixes a fatal settings page error from an incomplete wp_kses() call.
+
+= 1.83 =
+Fixes settings page tab navigation and tab memory.
 
 = 1.82 =
 Plugin header URI cleanup for WordPress.org Plugin Check compliance.

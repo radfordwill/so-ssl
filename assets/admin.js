@@ -63,17 +63,38 @@
     var $panels = $('.so-ssl-tab-panel');
     if (!$tabs.length || !$panels.length) { return; }
 
+    function defaultTab(){
+      return String($tabs.first().data('so-ssl-tab') || 'ssl');
+    }
+
+    function validTab(tab){
+      tab = String(tab || '');
+      return $panels.filter('[data-so-ssl-tab-panel="' + tab + '"]').length ? tab : '';
+    }
+
+    function getQueryTab(){
+      try {
+        var params = new URLSearchParams(window.location.search || '');
+        return validTab(params.get('so_ssl_tab'));
+      } catch (e) {
+        var match = (window.location.search || '').match(/[?&]so_ssl_tab=([^&]+)/);
+        return match ? validTab(decodeURIComponent(match[1].replace(/\+/g, ' '))) : '';
+      }
+    }
+
     function getSavedTab(){
+      var queryTab = getQueryTab();
+      if (queryTab) { return queryTab; }
       if (window.location.hash && $(window.location.hash).hasClass('so-ssl-tab-panel')) {
-        return window.location.hash.replace('#so-ssl-tab-', '');
+        return validTab(window.location.hash.replace('#so-ssl-tab-', '')) || defaultTab();
       }
       if (typeof window.getUserSetting === 'function') {
-        return window.getUserSetting('so_ssl_settings_tab', 'ssl');
+        return validTab(window.getUserSetting('so_ssl_settings_tab', defaultTab())) || defaultTab();
       }
       try {
-        return window.localStorage.getItem('so_ssl_settings_tab') || 'ssl';
+        return validTab(window.localStorage.getItem('so_ssl_settings_tab')) || defaultTab();
       } catch (e) {
-        return 'ssl';
+        return defaultTab();
       }
     }
 
@@ -86,27 +107,35 @@
       } catch (e) {}
     }
 
-    function activateTab(tab){
-      if (!$panels.filter('[data-so-ssl-tab-panel="' + tab + '"]').length) {
-        tab = $tabs.first().data('so-ssl-tab');
+    function updateAddress(tab){
+      if (!window.history || !window.history.replaceState) { return; }
+      try {
+        var url = new URL(window.location.href);
+        url.searchParams.set('page', 'so-ssl');
+        url.searchParams.set('so_ssl_tab', tab);
+        url.hash = '';
+        history.replaceState(null, document.title, url.toString());
+      } catch (e) {
+        history.replaceState(null, document.title, 'admin.php?page=so-ssl&so_ssl_tab=' + encodeURIComponent(tab));
       }
+    }
+
+    function activateTab(tab, updateUrl){
+      tab = validTab(tab) || defaultTab();
       $tabs.removeClass('nav-tab-active').attr('aria-selected', 'false');
       $tabs.filter('[data-so-ssl-tab="' + tab + '"]').addClass('nav-tab-active').attr('aria-selected', 'true');
       $panels.removeClass('is-active').attr('hidden', 'hidden');
       $panels.filter('[data-so-ssl-tab-panel="' + tab + '"]').addClass('is-active').removeAttr('hidden');
       saveTab(tab);
+      if (updateUrl) { updateAddress(tab); }
     }
 
     $tabs.on('click', function(e){
       e.preventDefault();
-      var tab = $(this).data('so-ssl-tab');
-      activateTab(tab);
-      if (history && history.replaceState) {
-        history.replaceState(null, document.title, '#so-ssl-tab-' + tab);
-      }
+      activateTab($(this).data('so-ssl-tab'), true);
     });
 
-    activateTab(getSavedTab());
+    activateTab(getSavedTab(), false);
   }
 
   function wireTwoFactorMasterToggle(){

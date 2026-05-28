@@ -3,7 +3,7 @@
  * Plugin Name: So SSL
  * Plugin URI: https://willradford.com/so-ssl/
  * Description: Comprehensive SSL, security headers, privacy tools, administrator agreement, 2FA, login protection, session management, and login limiting for WordPress.
- * Version: 1.82
+ * Version: 1.85
  * Author: Will Radford
  * Contributors: willradford
  * Author URI: https://willradford.com
@@ -23,7 +23,7 @@
 
 if (!defined('ABSPATH')) { exit; }
 
-define('SO_SSL_VERSION', '1.82');
+define('SO_SSL_VERSION', '1.85');
 define('SO_SSL_FILE', __FILE__);
 define('SO_SSL_DIR', plugin_dir_path(__FILE__));
 define('SO_SSL_URL', plugin_dir_url(__FILE__));

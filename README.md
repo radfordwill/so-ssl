@@ -196,9 +196,14 @@ Recommended WordPress checks:
 
 ## Changelog
 
-### 1.82
+### 1.85
 
-- Updated the plugin header Plugin URI to use a plugin-specific page distinct from the Author URI for WordPress.org Plugin Check compliance.
+- Removed the unregistered `user-settings` admin script dependency that caused a WordPress debug notice.
+- Kept settings tab memory through the server-side tab parameter and browser fallback.
+
+### 1.84
+
+- Fixed a fatal settings page error from an incomplete `wp_kses()` call.
 
 ### 1.81
 
